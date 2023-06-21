@@ -1,0 +1,4 @@
+- source: project
+  quarto-pub:
+    - id: 10fec62c-1523-41be-9405-8fc5c202b803
+      url: 'https://sabrinami.quarto.pub/deep-learning-in-genomics'

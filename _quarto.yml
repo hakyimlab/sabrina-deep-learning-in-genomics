@@ -1,0 +1,22 @@
+project:
+  type: website
+  output-dir: docs
+website:
+  title: "deep-learning-in-genomics"
+  site-url: https://sabrinami.quarto.pub/deep-learning-in-genomics
+  description: "Sabrina's blog for Deep Learning in Genomics course"
+  navbar:
+    right:
+      - about.qmd
+      - icon: github
+        href: https://github.com/
+      - icon: twitter
+        href: https://twitter.com
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+
+execute:
+  freeze: auto
+

@@ -1,0 +1,72 @@
+[
+  {
+    "objectID": "posts/post-with-code/index.html",
+    "href": "posts/post-with-code/index.html",
+    "title": "Post With Code",
+    "section": "",
+    "text": "This is a post with executable code."
+  },
+  {
+    "objectID": "posts/llm-in-molecular-biology-article/index.html",
+    "href": "posts/llm-in-molecular-biology-article/index.html",
+    "title": "Overview of LLM in Molecular Biology article by Serafim Batzoglou",
+    "section": "",
+    "text": "Read the paper here"
+  },
+  {
+    "objectID": "posts/llm-in-molecular-biology-article/index.html#introduction-to-large-language-models",
+    "href": "posts/llm-in-molecular-biology-article/index.html#introduction-to-large-language-models",
+    "title": "Overview of LLM in Molecular Biology article by Serafim Batzoglou",
+    "section": "Introduction to Large Language Models",
+    "text": "Introduction to Large Language Models\n\nLarge language models like GPT-3 are trained on extensive text data and excel at generating coherent and contextually relevant text.\nThese models can be adapted for molecular biology tasks by encoding molecular information and training them on relevant datasets."
+  },
+  {
+    "objectID": "posts/llm-in-molecular-biology-article/index.html#protein-structure-prediction",
+    "href": "posts/llm-in-molecular-biology-article/index.html#protein-structure-prediction",
+    "title": "Overview of LLM in Molecular Biology article by Serafim Batzoglou",
+    "section": "Protein Structure Prediction",
+    "text": "Protein Structure Prediction\n\nLarge language models can assist in predicting protein structures from amino acid sequences.\nLanguage models can generate plausible protein structures, aiding in protein folding predictions and protein engineering.\nChallenges include the vast conformational space and the need for high-quality training data to improve accuracy."
+  },
+  {
+    "objectID": "posts/llm-in-molecular-biology-article/index.html#analyzing-dna-sequences",
+    "href": "posts/llm-in-molecular-biology-article/index.html#analyzing-dna-sequences",
+    "title": "Overview of LLM in Molecular Biology article by Serafim Batzoglou",
+    "section": "Analyzing DNA Sequences",
+    "text": "Analyzing DNA Sequences\n\nLanguage models can be trained to recognize patterns in DNA sequences and identify regulatory elements.\nThey can predict the effects of genetic mutations, aiding in understanding genetic diseases and personalized medicine.\nLarge language models have the potential to improve upon existing methods for DNA sequence analysis."
+  },
+  {
+    "objectID": "posts/llm-in-molecular-biology-article/index.html#molecular-design",
+    "href": "posts/llm-in-molecular-biology-article/index.html#molecular-design",
+    "title": "Overview of LLM in Molecular Biology article by Serafim Batzoglou",
+    "section": "Molecular Design",
+    "text": "Molecular Design\n\nLanguage models can generate novel molecules with desired properties, contributing to drug discovery and material science.\nThey can suggest potential compounds based on specified criteria, accelerating the search for new drugs.\nLarge language models in molecular design can assist in exploring the chemical space and generating molecules that were not previously considered."
+  },
+  {
+    "objectID": "posts/llm-in-molecular-biology-article/index.html#limitations-and-challenges",
+    "href": "posts/llm-in-molecular-biology-article/index.html#limitations-and-challenges",
+    "title": "Overview of LLM in Molecular Biology article by Serafim Batzoglou",
+    "section": "Limitations and Challenges",
+    "text": "Limitations and Challenges\n\nObtaining high-quality training data for molecular biology tasks remains a challenge.\nInterpreting the outputs of language models and understanding the underlying biological mechanisms is essential.\nIncorporating domain-specific knowledge into language models is crucial for accurate and reliable results."
+  },
+  {
+    "objectID": "posts/welcome/index.html",
+    "href": "posts/welcome/index.html",
+    "title": "Welcome To My Blog",
+    "section": "",
+    "text": "This is the first post in a Quarto blog. Welcome!\n\nSince this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "deep-learning-in-genomics",
+    "section": "",
+    "text": "Post With Code\n\n\n\n\n\n\n\nnews\n\n\ncode\n\n\nanalysis\n\n\n\n\n\n\n\n\n\n\n\nJun 20, 2023\n\n\nHarlow Malloc\n\n\n\n\n\n\n  \n\n\n\n\nOverview of LLM in Molecular Biology article by Serafim Batzoglou\n\n\n\n\n\nWe’ll review key points from each section of Large Language Models in Molecular Biology\n\n\n\n\n\n\nJun 20, 2023\n\n\n\n\n\n\n  \n\n\n\n\nWelcome To My Blog\n\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\n\n\nJun 17, 2023\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this blog"
+  }
+]

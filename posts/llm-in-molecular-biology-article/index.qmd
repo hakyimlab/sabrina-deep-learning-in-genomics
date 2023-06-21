@@ -1,0 +1,32 @@
+---
+title: "Overview of LLM in Molecular Biology article by Serafim Batzoglou"
+description: "We'll review key points from each section of Large Language Models in Molecular Biology"
+date: "6/20/2023"
+---
+
+Read the paper [here](https://towardsdatascience.com/large-language-models-in-molecular-biology-9eb6b65d8a30)
+
+## Introduction to Large Language Models
+- Large language models like GPT-3 are trained on extensive text data and excel at generating coherent and contextually relevant text.
+- These models can be adapted for molecular biology tasks by encoding molecular information and training them on relevant datasets.
+
+## Protein Structure Prediction
+- Large language models can assist in predicting protein structures from amino acid sequences.
+- Language models can generate plausible protein structures, aiding in protein folding predictions and protein engineering.
+- Challenges include the vast conformational space and the need for high-quality training data to improve accuracy.
+
+## Analyzing DNA Sequences
+- Language models can be trained to recognize patterns in DNA sequences and identify regulatory elements.
+- They can predict the effects of genetic mutations, aiding in understanding genetic diseases and personalized medicine.
+- Large language models have the potential to improve upon existing methods for DNA sequence analysis.
+
+## Molecular Design
+- Language models can generate novel molecules with desired properties, contributing to drug discovery and material science.
+- They can suggest potential compounds based on specified criteria, accelerating the search for new drugs.
+- Large language models in molecular design can assist in exploring the chemical space and generating molecules that were not previously considered.
+
+## Limitations and Challenges
+- Obtaining high-quality training data for molecular biology tasks remains a challenge.
+- Interpreting the outputs of language models and understanding the underlying biological mechanisms is essential.
+- Incorporating domain-specific knowledge into language models is crucial for accurate and reliable results.
+

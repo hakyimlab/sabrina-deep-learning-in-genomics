@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>deep-learning-in-genomics</title>
+<link>https://sabrinami.quarto.pub/deep-learning-in-genomics/index.html</link>
+<atom:link href="https://sabrinami.quarto.pub/deep-learning-in-genomics/index.xml" rel="self" type="application/rss+xml"/>
+<description>Sabrina&#39;s blog for Deep Learning in Genomics course</description>
+<generator>quarto-1.3.361</generator>
+<lastBuildDate>Tue, 20 Jun 2023 04:00:00 GMT</lastBuildDate>
+<item>
+  <title>Post With Code</title>
+  <dc:creator>Harlow Malloc</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/post-with-code/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>This is a post with executable code.</p>
+
+
+
+ ]]></description>
+  <category>news</category>
+  <category>code</category>
+  <category>analysis</category>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/post-with-code/index.html</guid>
+  <pubDate>Tue, 20 Jun 2023 04:00:00 GMT</pubDate>
+  <media:content url="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/post-with-code/image.jpg" medium="image" type="image/jpeg"/>
+</item>
+<item>
+  <title>Overview of LLM in Molecular Biology article by Serafim Batzoglou</title>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/llm-in-molecular-biology-article/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>Read the paper <a href="https://towardsdatascience.com/large-language-models-in-molecular-biology-9eb6b65d8a30">here</a></p>
+<section id="introduction-to-large-language-models" class="level2">
+<h2 class="anchored" data-anchor-id="introduction-to-large-language-models">Introduction to Large Language Models</h2>
+<ul>
+<li>Large language models like GPT-3 are trained on extensive text data and excel at generating coherent and contextually relevant text.</li>
+<li>These models can be adapted for molecular biology tasks by encoding molecular information and training them on relevant datasets.</li>
+</ul>
+</section>
+<section id="protein-structure-prediction" class="level2">
+<h2 class="anchored" data-anchor-id="protein-structure-prediction">Protein Structure Prediction</h2>
+<ul>
+<li>Large language models can assist in predicting protein structures from amino acid sequences.</li>
+<li>Language models can generate plausible protein structures, aiding in protein folding predictions and protein engineering.</li>
+<li>Challenges include the vast conformational space and the need for high-quality training data to improve accuracy.</li>
+</ul>
+</section>
+<section id="analyzing-dna-sequences" class="level2">
+<h2 class="anchored" data-anchor-id="analyzing-dna-sequences">Analyzing DNA Sequences</h2>
+<ul>
+<li>Language models can be trained to recognize patterns in DNA sequences and identify regulatory elements.</li>
+<li>They can predict the effects of genetic mutations, aiding in understanding genetic diseases and personalized medicine.</li>
+<li>Large language models have the potential to improve upon existing methods for DNA sequence analysis.</li>
+</ul>
+</section>
+<section id="molecular-design" class="level2">
+<h2 class="anchored" data-anchor-id="molecular-design">Molecular Design</h2>
+<ul>
+<li>Language models can generate novel molecules with desired properties, contributing to drug discovery and material science.</li>
+<li>They can suggest potential compounds based on specified criteria, accelerating the search for new drugs.</li>
+<li>Large language models in molecular design can assist in exploring the chemical space and generating molecules that were not previously considered.</li>
+</ul>
+</section>
+<section id="limitations-and-challenges" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-and-challenges">Limitations and Challenges</h2>
+<ul>
+<li>Obtaining high-quality training data for molecular biology tasks remains a challenge.</li>
+<li>Interpreting the outputs of language models and understanding the underlying biological mechanisms is essential.</li>
+<li>Incorporating domain-specific knowledge into language models is crucial for accurate and reliable results.</li>
+</ul>
+
+
+</section>
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/llm-in-molecular-biology-article/index.html</guid>
+  <pubDate>Tue, 20 Jun 2023 04:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Welcome To My Blog</title>
+  <dc:creator>Tristan O&#39;Malley</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/welcome/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>This is the first post in a Quarto blog. Welcome!</p>
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/welcome/thumbnail.jpg" class="img-fluid"></p>
+<p>Since this post doesn’t specify an explicit <code>image</code>, the first image in the post will be used in the listing page of posts.</p>
+
+
+
+ ]]></description>
+  <category>news</category>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/welcome/index.html</guid>
+  <pubDate>Sat, 17 Jun 2023 04:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>
