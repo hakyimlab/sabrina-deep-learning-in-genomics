@@ -4,9 +4,6 @@ description: "This week we learned the basics of VS Code, Python, and NumPy."
 author: "Sabrina Mi"
 date: "6/23/2023"
 jupyter: torch
-execute:
-  freeze: true
-  
 ---
 
 Here's my notes from the [w3 NumPy tutorial](https://www.w3schools.com/python/numpy/numpy_intro.asp):
