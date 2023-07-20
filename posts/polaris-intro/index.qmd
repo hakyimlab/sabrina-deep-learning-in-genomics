@@ -66,7 +66,7 @@ python -m ipykernel install --user --name ml-python
 The last line creates a new directory `~/.local/share/jupyter/kernels/ml-python`. We add a couple lines to `kernel.json` so that we can use the new environment in the our Jupyter notebooks:
 
 
-```json
+```
 {
   "argv": [
     "/home/s1mi/.conda/envs/ml-python/bin/python",
@@ -79,7 +79,7 @@ The last line creates a new directory `~/.local/share/jupyter/kernels/ml-python`
   "language": "python",
   "env": {
     "CONDA_PREFIX": "/home/s1mi/.conda/envs/ml-python",
-    "PATH": "/home/s1mi/.conda/envs/ml-python",
+    "PATH": "/home/s1mi/.conda/envs/ml-python:${PATH}",
     "http_proxy": "http://proxy.alcf.anl.gov:3128",
     "https_proxy": "http://proxy.alcf.anl.gov:3128"
   },
