@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.433">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>deep-learning-in-genomics - GENETIC MEDICINE DEEP LEARNING HACKATHON 2022</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">deep-learning-in-genomics</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html" rel="" target="">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/" rel="" target=""><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com" rel="" target=""><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+            <div class="quarto-navbar-tools">
+</div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">GENETIC MEDICINE DEEP LEARNING HACKATHON 2022</h1>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="enformer-usage-notebook---participant" class="level3">
+<h3 class="anchored" data-anchor-id="enformer-usage-notebook---participant">ENFORMER USAGE NOTEBOOK - PARTICIPANT</h3>
+<p><strong>Authors</strong>: Saideep Gona, Temidayo Adeluwa</p>
+<p><strong>Acknowledgement</strong>: - Boxiang Liu - Festus Nyasimi (for providing us with Predixcan predictions)</p>
+<p><strong>Date</strong>: Saturday April 2, 2022</p>
+<p>Copyright 2021 DeepMind Technologies Limited</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”); you may not use this file except in compliance with the License. You may obtain a copy of the License at</p>
+<pre><code> https://www.apache.org/licenses/LICENSE-2.0</code></pre>
+<p>Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.</p>
+</section>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>In this notebook, we explore how Enformer can be used to predict the expression of protein-coding genes. We utilized some code from the <a href="https://colab.research.google.com/github/deepmind/deepmind_research/blob/master/enformer/enformer-usage.ipynb">original Enformer usage colab notebook</a>. Here, we showcase how the Enformer model can be used to predict gene expression on a GEUVADIS/1000 genomes dataset, and compare the predictions with true expression.</p>
+<p><strong>“Effective gene expression prediction from sequence by integrating long-range interactions”</strong></p>
+<p>Žiga Avsec, Vikram Agarwal, Daniel Visentin, Joseph R. Ledsam, Agnieszka Grabska-Barwinska, Kyle R. Taylor, Yannis Assael, John Jumper, Pushmeet Kohli, David R. Kelley</p>
+<section id="steps" class="level3">
+<h3 class="anchored" data-anchor-id="steps">Steps</h3>
+<p>This notebook demonstrates how to - Prepare inputs for Enformer to make predictions - Make predictions with Enformer and produce figures - Compare predictions with true expression</p>
+</section>
+</section>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<p>Google Colab gives us some GPU access. This limited GPU is available to anyone with a Google account, who has signed up to use Colaboratory. We will begin by changing the runtime type to GPU. Follow the instruction below by clicking on “Runtime -&gt; Change runtime type -&gt; GPU” in the menu bar below the title of this notebook.</p>
+<p><strong>Start the colab kernel with GPU</strong>: Runtime -&gt; Change runtime type -&gt; GPU</p>
+<p>Below, we import tensorflow as tf, and check that the runtime has been changed to GPU.</p>
+<p>kipoiseq is a package that helps us to extract sequences from fasta files given some intervals. We will install the package.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tensorflow <span class="im">as</span> tf</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Make sure the GPU is enabled </span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="cf">assert</span> tf.config.list_physical_devices(<span class="st">'GPU'</span>), <span class="st">'Start the colab kernel with GPU: Runtime -&gt; Change runtime type -&gt; GPU'</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Num GPUs Available: "</span>, <span class="bu">len</span>(tf.config.list_physical_devices(<span class="st">'GPU'</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># You can ignore the pyYAML error</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>echo $SHELL</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>echo $PATH</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Biopython is a python package that helps us do many bioinfomatic analysis in python</p>
+<div class="cell" data-outputid="ed234327-29b9-4d20-c68b-f4a290baad9b">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!pip install Biopython</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="setting-up-our-environments" class="level3">
+<h3 class="anchored" data-anchor-id="setting-up-our-environments">Setting up our environments</h3>
+<p>We need to have some packages imported to help us do cool stuff.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tensorflow_hub <span class="im">as</span> hub <span class="co"># for interacting with saved models and tensorflow hub</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> joblib</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> gzip <span class="co"># for manipulating compressed files</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> kipoiseq <span class="co"># for manipulating fasta files</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> kipoiseq <span class="im">import</span> Interval <span class="co"># same as above, really</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pyfaidx <span class="co"># to index our reference genome file</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd <span class="co"># for manipulating dataframes</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np <span class="co"># for numerical computations</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt <span class="co"># for plotting</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib <span class="im">as</span> mpl <span class="co"># for plotting</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns <span class="co"># for plotting</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pickle <span class="co"># for saving large objects</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os, sys <span class="co"># functions for interacting with the operating system</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>matplotlib inline</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="op">%</span>config InlineBackend.figure_format <span class="op">=</span> <span class="st">'retina'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Optional</strong></p>
+<p>You may want to store your results. Google Drive gives about 15gb worth of storage space, used for all your files and emails.</p>
+<p>Here, you can mount your Google Drive using the next line of code. You will need to provide permission access.</p>
+<p>The line after that will automatically create a folder called “Enformer_Hackathon_2022” in your Google Drive.</p>
+<div class="cell" data-outputid="4e8c150c-36e1-4ae0-be1f-9acac53236a0">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#from google.colab import drive</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#drive.mount('/content/drive')</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!mkdir -p "/content/drive/MyDrive/Enformer_Hackathon_2022/results/"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next,</p>
+<p>We want to define some paths to save downloaded files for the duration of this notebook. These will be wiped off by Google as soon as we are done.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>transform_path <span class="op">=</span> <span class="st">'gs://dm-enformer/models/enformer.finetuned.SAD.robustscaler-PCA500-robustscaler.transform.pkl'</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>model_path <span class="op">=</span> <span class="st">'https://tfhub.dev/deepmind/enformer/1'</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>fasta_file <span class="op">=</span> <span class="st">'/home/s1mi/enformer_tutorial/genome.fa'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We may inspect the tracks used to train the model. The CAGE prediction corresponding to B lymphoblastoid cell line is index 5110. We use B lymphoblastoid cell line predictions here because that is the cell line used to generate GEUVADIS gene expression data. You can copy the https link, paste in another tab in your browser and look through the large txt file for other tracks.</p>
+<div class="cell" data-outputid="1c912c07-7a2e-46c4-fa8d-33ba698f030d">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Download targets from Basenji2 dataset</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Cite: Kelley et al Cross-species regulatory sequence activity prediction. PLoS Comput. Biol. 16, e1008050 (2020).</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>targets_txt <span class="op">=</span> <span class="st">'https://raw.githubusercontent.com/calico/basenji/master/manuscripts/cross2020/targets_human.txt'</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>df_targets <span class="op">=</span> pd.read_csv(targets_txt, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>df_targets[df_targets.index<span class="op">==</span><span class="dv">5110</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="download-files" class="level3">
+<h3 class="anchored" data-anchor-id="download-files">Download files</h3>
+<p>We need to download some files. Give it a moment. We will download the following files: - The reference genome fasta file (we will also index this file in the process) - A text file for the transcription start sites for each chromosome - Per chromosome files that has annotation for the genes - A compressed file that contains the variant bed files for the genes and their locations.</p>
+<p>Credit to Genome Reference Consortium: https://www.ncbi.nlm.nih.gov/grc</p>
+<p>Schneider et al 2017 http://dx.doi.org/10.1101/gr.213611.116: Evaluation of GRCh38 and de novo haploid genome assemblies demonstrates the enduring quality of the reference assembly</p>
+<p>Make a data directory, and download the necessary bed files and chromosome annotation files</p>
+<p><strong>NB:</strong> You may decide to download these files into your “/content/drive/MyDrive/Enformer_Hackathon_2022/” directory. <strong>You don’t need to do this</strong>. But if you want permanent access to the files we use in this notebook, you can change the path from “/home/s1mi/enformer_tutorial/” to “/content/drive/MyDrive/Enformer_Hackathon_2022/”, and modify what you need accordingly.</p>
+<p>The next line of code will download the reference genome fasta file and index this file.</p>
+<div class="cell" data-outputid="09b1c79a-2b86-4555-f16b-36313b4d5dd9">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># reference genome and indexed</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">#!wget -O - https://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz | gunzip -c &gt; {fasta_file}</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">#pyfaidx.Faidx(fasta_file)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The next lines of code will download the variation bed files, and we have created links to help us download the variation bed files for each chromosome, for each gene.</p>
+<div class="cell" data-outputid="9de5f0ba-973b-441a-a498-618066bdd40f">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>chrom_bed_downloads <span class="op">=</span> pd.read_csv(<span class="st">"https://uchicago.box.com/shared/static/du77wf31li38tciv8imivwu57svae03p.csv"</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>chrom_bed_downloads.index <span class="op">=</span> chrom_bed_downloads[<span class="st">"chroms"</span>]</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>chrom_bed_downloads.head(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will define a function to help us download bed variation files for a given gene or list of genes</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> download_chrom_beds(chromosome, genes, downloads_table<span class="op">=</span>chrom_bed_downloads):</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">  Downloads bed/variation files for a chromosome and list of genes</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  link <span class="op">=</span> downloads_table.loc[<span class="bu">str</span>(chromosome), <span class="st">"link"</span>]</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  chr_which <span class="op">=</span> <span class="st">'chr'</span> <span class="op">+</span> chromosome</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> gene <span class="kw">in</span> genes:</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> os.path.exists(<span class="st">'/home/s1mi/enformer_tutorial/individual_beds/chr'</span> <span class="op">+</span> chromosome <span class="op">+</span> <span class="st">'/chr'</span> <span class="op">+</span> chromosome <span class="op">+</span> <span class="st">'_'</span> <span class="op">+</span> gene <span class="op">+</span> <span class="st">'.bed'</span>): <span class="co"># if the file is in the folder, no need to download again</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>      <span class="cf">continue</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">!</span>curl <span class="op">-</span>L {link} <span class="op">--</span>output <span class="op">/</span>home<span class="op">/</span>s1mi<span class="op">/</span>enformer_tutorial<span class="op">/</span>chr_{chromosome}_bed.tar.gz <span class="op">&amp;&amp;</span> cd <span class="op">/</span>home<span class="op">/</span>s1mi<span class="op">/</span>enformer_tutorial <span class="op">&amp;&amp;</span> tar <span class="op">-</span>zxf <span class="op">/</span>home<span class="op">/</span>s1mi<span class="op">/</span>enformer_tutorial<span class="op">/</span>chr_{chromosome}_bed.tar.gz .<span class="op">/</span>individual_beds<span class="op">/</span>{chr_which}<span class="op">/</span>{chr_which}_{gene}.bed</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># remove the download tar.gz file</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    <span class="op">!</span>rm <span class="op">/</span>home<span class="op">/</span>s1mi<span class="op">/</span>enformer_tutorial<span class="op">/</span>chr_{chromosome}_bed.tar.gz</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We don’t need this function yet. But we can test out how it works.</p>
+<p>Assuming we want to download the variation files for ‘ERAP1’, which is located on chromosome 5…</p>
+<p>This will download the bed file into /home/s1mi/enformer_tutorial/individual_beds/chr5/</p>
+<div class="cell" data-outputid="fbd87143-2693-44b9-941b-b39d856d99f0">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>download_chrom_beds(chromosome <span class="op">=</span> <span class="st">'5'</span>, genes<span class="op">=</span>[<span class="st">'ERAP1'</span>, <span class="st">'ERAP2'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>And when you need the file, you can read it in like…</p>
+<div class="cell" data-outputid="b098aa73-1e39-4410-e165-e28f689c42c5">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>erap1_variations <span class="op">=</span> pd.read_table(<span class="st">'/home/s1mi/enformer_tutorial/individual_beds/chr5/chr5_ERAP1.bed'</span>, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>erap1_variations.head(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>You can pass in a list of genes as long as they are all located on that chromosome.</p>
+<p>In the next block of code, we download the TSS for each chromosome and the genes in that chromosome, as wells as the per chromosome gene annotations. We need this information to estimate predictions.</p>
+<div class="cell" data-outputid="bd64a030-c1c7-4377-f7d9-91834054774b">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">#!curl -L https://uchicago.box.com/shared/static/perc3uabzzd267cbp8zc0inwgrmur7pu.gz --output /home/s1mi/enformer_tutorial/chr_tss.tar.xz &amp;&amp; cd /home/s1mi/enformer_tutorial/ &amp;&amp; tar -zxf /home/s1mi/enformer_tutorial/chr_tss.tar.xz</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#!mkdir -p /home/s1mi/enformer_tutorial/gene_chroms #creates a folder to hold our files</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co">#!curl -L https://uchicago.box.com/shared/static/e2kiwrjlgqqio0pc37a2iz7l5bqbv57u.gz --output /home/s1mi/enformer_tutorial/gene_chroms/gene_chroms.tar.gz &amp;&amp; cd /home/s1mi/enformer_tutorial/gene_chroms/ &amp;&amp; tar -zxf /home/s1mi/enformer_tutorial/gene_chroms/gene_chroms.tar.gz</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="how-do-we-want-to-go-about-using-enformer-given-all-these-files-we-just-downloaded" class="level3">
+<h3 class="anchored" data-anchor-id="how-do-we-want-to-go-about-using-enformer-given-all-these-files-we-just-downloaded">How do we want to go about using Enformer given all these files we just downloaded?</h3>
+<p>As we know, enformer’s input is a single strand genome sequence. Yet, we are interested in predicting on population level data which includes individual-specific variation. To get around this limitation, we will treat each individual as the sum of their haplotypes. Using the phased variant data around each gene (stored in the variant bed files) to modify the reference sequence, we can create two distinct haplotype sequences for each individual. The sum of both of Enformer’s haplotype predictions serves as an individual-specific, additive estimate which we can correlate with true predictions. Together, the files we downloaded give us all the information we need to build these haplotype sequences.</p>
+<p>Althought enformer predicts a wide array of functional output, we will focus here on gene expression in lymphoblastoid cells allowing for correlation against ground truth Geuvadis gene expression data.</p>
+<p>There are many functions that we have defined in the next code block. You can explore them later, but for now, simply run the block by clicking on the play button.</p>
+</section>
+<section id="code" class="level3">
+<h3 class="anchored" data-anchor-id="code">Code</h3>
+<p>Next, we have some functions that will help us along the way. Classes and methods defined in this code block can be found in the <a href="https://colab.research.google.com/github/deepmind/deepmind_research/blob/master/enformer/enformer-usage.ipynb">original Enformer usage colab notebook</a>.</p>
+<div class="cell" data-outputid="e6a400e0-0c95-486c-fa53-a59c20ffd1f1">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># @title `Enformer`, `EnformerScoreVariantsNormalized`, `EnformerScoreVariantsPCANormalized`,</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>SEQUENCE_LENGTH <span class="op">=</span> <span class="dv">393216</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> Enformer:</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, tfhub_url):</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._model <span class="op">=</span> hub.load(tfhub_url).model</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> predict_on_batch(<span class="va">self</span>, inputs):</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> <span class="va">self</span>._model.predict_on_batch(inputs)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {k: v.numpy() <span class="cf">for</span> k, v <span class="kw">in</span> predictions.items()}</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">@tf.function</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> contribution_input_grad(<span class="va">self</span>, input_sequence,</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>                              target_mask, output_head<span class="op">=</span><span class="st">'human'</span>):</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    input_sequence <span class="op">=</span> input_sequence[tf.newaxis]</span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>    target_mask_mass <span class="op">=</span> tf.reduce_sum(target_mask)</span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> tf.GradientTape() <span class="im">as</span> tape:</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>      tape.watch(input_sequence)</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>      prediction <span class="op">=</span> tf.reduce_sum(</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>          target_mask[tf.newaxis] <span class="op">*</span></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>          <span class="va">self</span>._model.predict_on_batch(input_sequence)[output_head]) <span class="op">/</span> target_mask_mass</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a>    input_grad <span class="op">=</span> tape.gradient(prediction, input_sequence) <span class="op">*</span> input_sequence</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>    input_grad <span class="op">=</span> tf.squeeze(input_grad, axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tf.reduce_sum(input_grad, axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> EnformerScoreVariantsRaw:</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, tfhub_url, organism<span class="op">=</span><span class="st">'human'</span>):</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._model <span class="op">=</span> Enformer(tfhub_url)</span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._organism <span class="op">=</span> organism</span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> predict_on_batch(<span class="va">self</span>, inputs):</span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a>    ref_prediction <span class="op">=</span> <span class="va">self</span>._model.predict_on_batch(inputs[<span class="st">'ref'</span>])[<span class="va">self</span>._organism]</span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a>    alt_prediction <span class="op">=</span> <span class="va">self</span>._model.predict_on_batch(inputs[<span class="st">'alt'</span>])[<span class="va">self</span>._organism]</span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> alt_prediction.mean(axis<span class="op">=</span><span class="dv">1</span>) <span class="op">-</span> ref_prediction.mean(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> EnformerScoreVariantsNormalized:</span>
+<span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-45"><a href="#cb16-45" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, tfhub_url, transform_pkl_path,</span>
+<span id="cb16-46"><a href="#cb16-46" aria-hidden="true" tabindex="-1"></a>               organism<span class="op">=</span><span class="st">'human'</span>):</span>
+<span id="cb16-47"><a href="#cb16-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">assert</span> organism <span class="op">==</span> <span class="st">'human'</span>, <span class="st">'Transforms only compatible with organism=human'</span></span>
+<span id="cb16-48"><a href="#cb16-48" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._model <span class="op">=</span> EnformerScoreVariantsRaw(tfhub_url, organism)</span>
+<span id="cb16-49"><a href="#cb16-49" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> tf.io.gfile.GFile(transform_pkl_path, <span class="st">'rb'</span>) <span class="im">as</span> f:</span>
+<span id="cb16-50"><a href="#cb16-50" aria-hidden="true" tabindex="-1"></a>      transform_pipeline <span class="op">=</span> joblib.load(f)</span>
+<span id="cb16-51"><a href="#cb16-51" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._transform <span class="op">=</span> transform_pipeline.steps[<span class="dv">0</span>][<span class="dv">1</span>]  <span class="co"># StandardScaler.</span></span>
+<span id="cb16-52"><a href="#cb16-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-53"><a href="#cb16-53" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> predict_on_batch(<span class="va">self</span>, inputs):</span>
+<span id="cb16-54"><a href="#cb16-54" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> <span class="va">self</span>._model.predict_on_batch(inputs)</span>
+<span id="cb16-55"><a href="#cb16-55" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">self</span>._transform.transform(scores)</span>
+<span id="cb16-56"><a href="#cb16-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-57"><a href="#cb16-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-58"><a href="#cb16-58" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> EnformerScoreVariantsPCANormalized:</span>
+<span id="cb16-59"><a href="#cb16-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-60"><a href="#cb16-60" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, tfhub_url, transform_pkl_path,</span>
+<span id="cb16-61"><a href="#cb16-61" aria-hidden="true" tabindex="-1"></a>               organism<span class="op">=</span><span class="st">'human'</span>, num_top_features<span class="op">=</span><span class="dv">500</span>):</span>
+<span id="cb16-62"><a href="#cb16-62" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._model <span class="op">=</span> EnformerScoreVariantsRaw(tfhub_url, organism)</span>
+<span id="cb16-63"><a href="#cb16-63" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> tf.io.gfile.GFile(transform_pkl_path, <span class="st">'rb'</span>) <span class="im">as</span> f:</span>
+<span id="cb16-64"><a href="#cb16-64" aria-hidden="true" tabindex="-1"></a>      <span class="va">self</span>._transform <span class="op">=</span> joblib.load(f)</span>
+<span id="cb16-65"><a href="#cb16-65" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._num_top_features <span class="op">=</span> num_top_features</span>
+<span id="cb16-66"><a href="#cb16-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-67"><a href="#cb16-67" aria-hidden="true" tabindex="-1"></a>  <span class="kw">def</span> predict_on_batch(<span class="va">self</span>, inputs):</span>
+<span id="cb16-68"><a href="#cb16-68" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> <span class="va">self</span>._model.predict_on_batch(inputs)</span>
+<span id="cb16-69"><a href="#cb16-69" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="va">self</span>._transform.transform(scores)[:, :<span class="va">self</span>._num_top_features]</span>
+<span id="cb16-70"><a href="#cb16-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-71"><a href="#cb16-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-72"><a href="#cb16-72" aria-hidden="true" tabindex="-1"></a><span class="co"># </span><span class="al">TODO</span><span class="co">(avsec): Add feature description: Either PCX, or full names.</span></span>
+<span id="cb16-73"><a href="#cb16-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-74"><a href="#cb16-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-75"><a href="#cb16-75" aria-hidden="true" tabindex="-1"></a><span class="co"># @title `variant_centered_sequences`</span></span>
+<span id="cb16-76"><a href="#cb16-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-77"><a href="#cb16-77" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> FastaStringExtractor:</span>
+<span id="cb16-78"><a href="#cb16-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-79"><a href="#cb16-79" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, fasta_file):</span>
+<span id="cb16-80"><a href="#cb16-80" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.fasta <span class="op">=</span> pyfaidx.Fasta(fasta_file)</span>
+<span id="cb16-81"><a href="#cb16-81" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>._chromosome_sizes <span class="op">=</span> {k: <span class="bu">len</span>(v) <span class="cf">for</span> k, v <span class="kw">in</span> <span class="va">self</span>.fasta.items()}</span>
+<span id="cb16-82"><a href="#cb16-82" aria-hidden="true" tabindex="-1"></a>    <span class="co">#import pd.Interval as Interval</span></span>
+<span id="cb16-83"><a href="#cb16-83" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> extract(<span class="va">self</span>, interval: Interval, <span class="op">**</span>kwargs) <span class="op">-&gt;</span> <span class="bu">str</span>:</span>
+<span id="cb16-84"><a href="#cb16-84" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Truncate interval if it extends beyond the chromosome lengths.</span></span>
+<span id="cb16-85"><a href="#cb16-85" aria-hidden="true" tabindex="-1"></a>        chromosome_length <span class="op">=</span> <span class="va">self</span>._chromosome_sizes[interval.chrom]</span>
+<span id="cb16-86"><a href="#cb16-86" aria-hidden="true" tabindex="-1"></a>        trimmed_interval <span class="op">=</span> Interval(interval.chrom,</span>
+<span id="cb16-87"><a href="#cb16-87" aria-hidden="true" tabindex="-1"></a>                                    <span class="bu">max</span>(interval.start, <span class="dv">0</span>),</span>
+<span id="cb16-88"><a href="#cb16-88" aria-hidden="true" tabindex="-1"></a>                                    <span class="bu">min</span>(interval.end, chromosome_length),</span>
+<span id="cb16-89"><a href="#cb16-89" aria-hidden="true" tabindex="-1"></a>                                    )</span>
+<span id="cb16-90"><a href="#cb16-90" aria-hidden="true" tabindex="-1"></a>        <span class="co"># pyfaidx wants a 1-based interval</span></span>
+<span id="cb16-91"><a href="#cb16-91" aria-hidden="true" tabindex="-1"></a>        sequence <span class="op">=</span> <span class="bu">str</span>(<span class="va">self</span>.fasta.get_seq(trimmed_interval.chrom,</span>
+<span id="cb16-92"><a href="#cb16-92" aria-hidden="true" tabindex="-1"></a>                                          trimmed_interval.start <span class="op">+</span> <span class="dv">1</span>,</span>
+<span id="cb16-93"><a href="#cb16-93" aria-hidden="true" tabindex="-1"></a>                                          trimmed_interval.stop).seq).upper()</span>
+<span id="cb16-94"><a href="#cb16-94" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Fill truncated values with N's.</span></span>
+<span id="cb16-95"><a href="#cb16-95" aria-hidden="true" tabindex="-1"></a>        pad_upstream <span class="op">=</span> <span class="st">'N'</span> <span class="op">*</span> <span class="bu">max</span>(<span class="op">-</span>interval.start, <span class="dv">0</span>)</span>
+<span id="cb16-96"><a href="#cb16-96" aria-hidden="true" tabindex="-1"></a>        pad_downstream <span class="op">=</span> <span class="st">'N'</span> <span class="op">*</span> <span class="bu">max</span>(interval.end <span class="op">-</span> chromosome_length, <span class="dv">0</span>)</span>
+<span id="cb16-97"><a href="#cb16-97" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> pad_upstream <span class="op">+</span> sequence <span class="op">+</span> pad_downstream</span>
+<span id="cb16-98"><a href="#cb16-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-99"><a href="#cb16-99" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> close(<span class="va">self</span>):</span>
+<span id="cb16-100"><a href="#cb16-100" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="va">self</span>.fasta.close()</span>
+<span id="cb16-101"><a href="#cb16-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-102"><a href="#cb16-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-103"><a href="#cb16-103" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> one_hot_encode(sequence):</span>
+<span id="cb16-104"><a href="#cb16-104" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> kipoiseq.transforms.functional.one_hot_dna(sequence).astype(np.float32)</span>
+<span id="cb16-105"><a href="#cb16-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-106"><a href="#cb16-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-107"><a href="#cb16-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-108"><a href="#cb16-108" aria-hidden="true" tabindex="-1"></a><span class="co"># @title `plot_tracks`</span></span>
+<span id="cb16-109"><a href="#cb16-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-110"><a href="#cb16-110" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_tracks(tracks, interval, height<span class="op">=</span><span class="fl">1.5</span>):</span>
+<span id="cb16-111"><a href="#cb16-111" aria-hidden="true" tabindex="-1"></a>  fig, axes <span class="op">=</span> plt.subplots(<span class="bu">len</span>(tracks), <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">20</span>, height <span class="op">*</span> <span class="bu">len</span>(tracks)), sharex<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb16-112"><a href="#cb16-112" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> ax, (title, y) <span class="kw">in</span> <span class="bu">zip</span>(axes, tracks.items()):</span>
+<span id="cb16-113"><a href="#cb16-113" aria-hidden="true" tabindex="-1"></a>    ax.fill_between(np.linspace(interval.start, interval.end, num<span class="op">=</span><span class="bu">len</span>(y)), y)</span>
+<span id="cb16-114"><a href="#cb16-114" aria-hidden="true" tabindex="-1"></a>    ax.set_title(title)</span>
+<span id="cb16-115"><a href="#cb16-115" aria-hidden="true" tabindex="-1"></a>    sns.despine(top<span class="op">=</span><span class="va">True</span>, right<span class="op">=</span><span class="va">True</span>, bottom<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb16-116"><a href="#cb16-116" aria-hidden="true" tabindex="-1"></a>  ax.set_xlabel(<span class="bu">str</span>(interval))</span>
+<span id="cb16-117"><a href="#cb16-117" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here, we define some utility functions for ourselves, to help us make predictions and analyse our predictions.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> Bio</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> Bio.Seq <span class="im">import</span> Seq</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_rev_complement(dna_string):</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span>(<span class="bu">str</span>(Seq(dna_string).reverse_complement()))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prepare_for_quantify_prediction_per_TSS(predictions, gene, tss_df):</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="co">  Parameters:</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co">          predicitions (A numpy array): All predictions from the track</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co">          gene (a gene name, character): a gene</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co">          tss_df: a list of dataframe of genes and their transcription start sites</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co">  Returns:</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="co">          A dictionary of cage experiment predictions and a list of transcription start sites</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  output <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> tdf <span class="kw">in</span> tss_df:</span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> gene <span class="kw">not</span> <span class="kw">in</span> tdf.genes.values:</span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">continue</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>    gene_tss_list <span class="op">=</span> tdf[tdf.genes <span class="op">==</span> gene].txStart_Sites.<span class="bu">apply</span>(<span class="bu">str</span>).values</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>    gene_tss_list <span class="op">=</span> [t.split(<span class="st">', '</span>) <span class="cf">for</span> t <span class="kw">in</span> gene_tss_list]</span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    gene_tss_list <span class="op">=</span> [<span class="bu">int</span>(item) <span class="cf">for</span> nestedlist <span class="kw">in</span> gene_tss_list <span class="cf">for</span> item <span class="kw">in</span> nestedlist]</span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>    gene_tss_list <span class="op">=</span> <span class="bu">list</span>(<span class="bu">set</span>(gene_tss_list))</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>  output[<span class="st">'cage_predictions'</span>] <span class="op">=</span> predictions[:, <span class="dv">5110</span>] <span class="co"># a numpy array</span></span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>  output[<span class="st">'gene_TSS'</span>] <span class="op">=</span> gene_tss_list <span class="co"># a list</span></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span>(output) <span class="co"># a dictionary</span></span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> quantify_prediction_per_TSS(low_range, TSS, cage_predictions):</span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a><span class="co">  Parameters:</span></span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a><span class="co">          low_range (int): The lower interval</span></span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a><span class="co">          TSS (list of integers): A list of TSS for a gene</span></span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a><span class="co">          cage_predictions: A 1D numpy array or a vector of predictions from enformer corresponding to track 5110 or CAGE predictions</span></span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a><span class="co">  Returns:</span></span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a><span class="co">          A dictionary of gene expression predictions for each TSS for a gene</span></span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a><span class="co">    '''</span></span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>  tss_predictions <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> tss <span class="kw">in</span> TSS:</span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a>    bin_start <span class="op">=</span> low_range <span class="op">+</span> ((<span class="dv">768</span> <span class="op">+</span> <span class="dv">320</span>) <span class="op">*</span> <span class="dv">128</span>)</span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>    count <span class="op">=</span> <span class="op">-</span><span class="dv">1</span></span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> bin_start <span class="op">&lt;</span> tss:</span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>      bin_start <span class="op">=</span> bin_start <span class="op">+</span> <span class="dv">128</span></span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>      count <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> count <span class="op">&gt;=</span> <span class="bu">len</span>(cage_predictions)<span class="op">-</span><span class="dv">1</span>:</span>
+<span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>      <span class="cf">continue</span></span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>    cage_preds <span class="op">=</span> cage_predictions[count <span class="op">-</span> <span class="dv">1</span>] <span class="op">+</span> cage_predictions[count] <span class="op">+</span> cage_predictions[count <span class="op">+</span> <span class="dv">1</span>]</span>
+<span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>    tss_predictions[tss] <span class="op">=</span> cage_preds</span>
+<span id="cb18-49"><a href="#cb18-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-50"><a href="#cb18-50" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span>(tss_predictions)</span>
+<span id="cb18-51"><a href="#cb18-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-52"><a href="#cb18-52" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> collect_intervals(chromosomes <span class="op">=</span> [<span class="st">"22"</span>], gene_list<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb18-53"><a href="#cb18-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-54"><a href="#cb18-54" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb18-55"><a href="#cb18-55" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters :</span></span>
+<span id="cb18-56"><a href="#cb18-56" aria-hidden="true" tabindex="-1"></a><span class="co">      chromosomes : a list of chromosome numbers; each element should be a string format</span></span>
+<span id="cb18-57"><a href="#cb18-57" aria-hidden="true" tabindex="-1"></a><span class="co">      gene_list : a list of genes; the genes should be located on those chromosomes</span></span>
+<span id="cb18-58"><a href="#cb18-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-59"><a href="#cb18-59" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns :</span></span>
+<span id="cb18-60"><a href="#cb18-60" aria-hidden="true" tabindex="-1"></a><span class="co">      A dictionary of genes (from gene_list) and their intervals within their respective chromosomes</span></span>
+<span id="cb18-61"><a href="#cb18-61" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb18-62"><a href="#cb18-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-63"><a href="#cb18-63" aria-hidden="true" tabindex="-1"></a>  gene_intervals <span class="op">=</span> {} <span class="co"># Collect intervals for our genes of interest</span></span>
+<span id="cb18-64"><a href="#cb18-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-65"><a href="#cb18-65" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> chrom <span class="kw">in</span> chromosomes:</span>
+<span id="cb18-66"><a href="#cb18-66" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="st">"/home/s1mi/enformer_tutorial/gene_chroms/gene_"</span><span class="op">+</span> chrom <span class="op">+</span> <span class="st">".txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> chrom_genes:</span>
+<span id="cb18-67"><a href="#cb18-67" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> line <span class="kw">in</span> chrom_genes:</span>
+<span id="cb18-68"><a href="#cb18-68" aria-hidden="true" tabindex="-1"></a>        split_line <span class="op">=</span> line.strip().split(<span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
+<span id="cb18-69"><a href="#cb18-69" aria-hidden="true" tabindex="-1"></a>        gene_intervals[split_line[<span class="dv">2</span>]] <span class="op">=</span> [</span>
+<span id="cb18-70"><a href="#cb18-70" aria-hidden="true" tabindex="-1"></a>                                          split_line[<span class="dv">0</span>],</span>
+<span id="cb18-71"><a href="#cb18-71" aria-hidden="true" tabindex="-1"></a>                                          <span class="bu">int</span>(split_line[<span class="dv">3</span>]),</span>
+<span id="cb18-72"><a href="#cb18-72" aria-hidden="true" tabindex="-1"></a>                                          <span class="bu">int</span>(split_line[<span class="dv">4</span>])</span>
+<span id="cb18-73"><a href="#cb18-73" aria-hidden="true" tabindex="-1"></a>                                        ]</span>
+<span id="cb18-74"><a href="#cb18-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-75"><a href="#cb18-75" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="bu">isinstance</span>(gene_list, <span class="bu">list</span>): <span class="co"># if the user has supplied a list of genes they are interested in</span></span>
+<span id="cb18-76"><a href="#cb18-76" aria-hidden="true" tabindex="-1"></a>    use_genes <span class="op">=</span> <span class="bu">dict</span>((k, gene_intervals[k]) <span class="cf">for</span> k <span class="kw">in</span> gene_list <span class="cf">if</span> k <span class="kw">in</span> gene_intervals)</span>
+<span id="cb18-77"><a href="#cb18-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span>(use_genes)</span>
+<span id="cb18-78"><a href="#cb18-78" aria-hidden="true" tabindex="-1"></a>  <span class="cf">elif</span> <span class="bu">isinstance</span>(gene_list, <span class="bu">type</span>(<span class="va">None</span>)):</span>
+<span id="cb18-79"><a href="#cb18-79" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span>(gene_intervals)</span>
+<span id="cb18-80"><a href="#cb18-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-81"><a href="#cb18-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-82"><a href="#cb18-82" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_predictions(gene_intervals, tss_dataframe, individuals_list<span class="op">=</span><span class="va">None</span>):</span>
+<span id="cb18-83"><a href="#cb18-83" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb18-84"><a href="#cb18-84" aria-hidden="true" tabindex="-1"></a><span class="co">  Parameters :</span></span>
+<span id="cb18-85"><a href="#cb18-85" aria-hidden="true" tabindex="-1"></a><span class="co">    gene_intervals : the results from calling `collect_intervals`</span></span>
+<span id="cb18-86"><a href="#cb18-86" aria-hidden="true" tabindex="-1"></a><span class="co">    tss_dataframe : a list of the TSSs dataframes i.e. the TSS for the genes in the chromosomes</span></span>
+<span id="cb18-87"><a href="#cb18-87" aria-hidden="true" tabindex="-1"></a><span class="co">    individuals_list : a list of individuals on which we want to make predictions; defaults to None</span></span>
+<span id="cb18-88"><a href="#cb18-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-89"><a href="#cb18-89" aria-hidden="true" tabindex="-1"></a><span class="co">  Returns :</span></span>
+<span id="cb18-90"><a href="#cb18-90" aria-hidden="true" tabindex="-1"></a><span class="co">    A list of predictions; the first element is the predictions around the TSS for each gene. The second is the prediction across CAGE tracks</span></span>
+<span id="cb18-91"><a href="#cb18-91" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb18-92"><a href="#cb18-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-93"><a href="#cb18-93" aria-hidden="true" tabindex="-1"></a>  gene_output <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb18-94"><a href="#cb18-94" aria-hidden="true" tabindex="-1"></a>  gene_predictions <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb18-95"><a href="#cb18-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-96"><a href="#cb18-96" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> gene <span class="kw">in</span> gene_intervals.keys():</span>
+<span id="cb18-97"><a href="#cb18-97" aria-hidden="true" tabindex="-1"></a>    gene_interval <span class="op">=</span> gene_intervals[gene]</span>
+<span id="cb18-98"><a href="#cb18-98" aria-hidden="true" tabindex="-1"></a>    target_interval <span class="op">=</span> kipoiseq.Interval(<span class="st">"chr"</span> <span class="op">+</span> gene_interval[<span class="dv">0</span>],</span>
+<span id="cb18-99"><a href="#cb18-99" aria-hidden="true" tabindex="-1"></a>                                        gene_interval[<span class="dv">1</span>],</span>
+<span id="cb18-100"><a href="#cb18-100" aria-hidden="true" tabindex="-1"></a>                                        gene_interval[<span class="dv">2</span>]) <span class="co"># creates an interval to select the right sequences</span></span>
+<span id="cb18-101"><a href="#cb18-101" aria-hidden="true" tabindex="-1"></a>    target_fa <span class="op">=</span> fasta_extractor.extract(target_interval.resize(SEQUENCE_LENGTH))  <span class="co"># extracts the fasta sequences, and resizes such that it is compatible with the sequence_length</span></span>
+<span id="cb18-102"><a href="#cb18-102" aria-hidden="true" tabindex="-1"></a>    window_coords <span class="op">=</span> target_interval.resize(SEQUENCE_LENGTH) <span class="co"># we also need information about the start and end locations after resizing</span></span>
+<span id="cb18-103"><a href="#cb18-103" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb18-104"><a href="#cb18-104" aria-hidden="true" tabindex="-1"></a>      cur_gene_vars <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_tutorial/individual_beds/chr"</span> <span class="op">+</span> gene_interval[<span class="dv">0</span>] <span class="op">+</span> <span class="st">"/chr"</span> <span class="op">+</span> gene_interval[<span class="dv">0</span>] <span class="op">+</span> <span class="st">"_"</span><span class="op">+</span> gene <span class="op">+</span> <span class="st">".bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>) <span class="co"># read in the appropriate bed file for the gene</span></span>
+<span id="cb18-105"><a href="#cb18-105" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span>:</span>
+<span id="cb18-106"><a href="#cb18-106" aria-hidden="true" tabindex="-1"></a>      <span class="cf">continue</span></span>
+<span id="cb18-107"><a href="#cb18-107" aria-hidden="true" tabindex="-1"></a>    individual_results <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb18-108"><a href="#cb18-108" aria-hidden="true" tabindex="-1"></a>    individual_prediction <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb18-109"><a href="#cb18-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-110"><a href="#cb18-110" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">isinstance</span>(individuals_list, <span class="bu">list</span>) <span class="kw">or</span> <span class="bu">isinstance</span>(individuals_list, <span class="bu">type</span>(np.empty([<span class="dv">1</span>, <span class="dv">1</span>]))):</span>
+<span id="cb18-111"><a href="#cb18-111" aria-hidden="true" tabindex="-1"></a>      use_individuals <span class="op">=</span> individuals_list</span>
+<span id="cb18-112"><a href="#cb18-112" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> <span class="bu">isinstance</span>(individuals_list, <span class="bu">type</span>(<span class="va">None</span>)):</span>
+<span id="cb18-113"><a href="#cb18-113" aria-hidden="true" tabindex="-1"></a>      use_individuals <span class="op">=</span> cur_gene_vars.columns[<span class="dv">4</span>:]</span>
+<span id="cb18-114"><a href="#cb18-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-115"><a href="#cb18-115" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> use_individuals:</span>
+<span id="cb18-116"><a href="#cb18-116" aria-hidden="true" tabindex="-1"></a>      <span class="bu">print</span>(<span class="st">'Currently on gene </span><span class="sc">{}</span><span class="st">, and predicting on individual </span><span class="sc">{}</span><span class="st">...'</span>.<span class="bu">format</span>(gene, individual))</span>
+<span id="cb18-117"><a href="#cb18-117" aria-hidden="true" tabindex="-1"></a>      <span class="co"># two haplotypes per individual</span></span>
+<span id="cb18-118"><a href="#cb18-118" aria-hidden="true" tabindex="-1"></a>      haplo_1 <span class="op">=</span> <span class="bu">list</span>(target_fa[:])</span>
+<span id="cb18-119"><a href="#cb18-119" aria-hidden="true" tabindex="-1"></a>      haplo_2 <span class="op">=</span> <span class="bu">list</span>(target_fa[:])</span>
+<span id="cb18-120"><a href="#cb18-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-121"><a href="#cb18-121" aria-hidden="true" tabindex="-1"></a>      ref_mismatch_count <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb18-122"><a href="#cb18-122" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> i,row <span class="kw">in</span> cur_gene_vars.iterrows():</span>
+<span id="cb18-123"><a href="#cb18-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-124"><a href="#cb18-124" aria-hidden="true" tabindex="-1"></a>        geno <span class="op">=</span> row[individual].split(<span class="st">"|"</span>)</span>
+<span id="cb18-125"><a href="#cb18-125" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (row[<span class="st">"POS"</span>]<span class="op">-</span>window_coords.start<span class="op">-</span><span class="dv">1</span>) <span class="op">&gt;=</span> <span class="bu">len</span>(haplo_2):</span>
+<span id="cb18-126"><a href="#cb18-126" aria-hidden="true" tabindex="-1"></a>          <span class="cf">continue</span></span>
+<span id="cb18-127"><a href="#cb18-127" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (row[<span class="st">"POS"</span>]<span class="op">-</span>window_coords.start<span class="op">-</span><span class="dv">1</span>) <span class="op">&lt;</span> <span class="dv">0</span>:</span>
+<span id="cb18-128"><a href="#cb18-128" aria-hidden="true" tabindex="-1"></a>          <span class="cf">continue</span></span>
+<span id="cb18-129"><a href="#cb18-129" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> geno[<span class="dv">0</span>] <span class="op">==</span> <span class="st">"1"</span>:</span>
+<span id="cb18-130"><a href="#cb18-130" aria-hidden="true" tabindex="-1"></a>          haplo_1[row[<span class="st">"POS"</span>]<span class="op">-</span>window_coords.start<span class="op">-</span><span class="dv">1</span>] <span class="op">=</span> row[<span class="st">"ALT"</span>]</span>
+<span id="cb18-131"><a href="#cb18-131" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> geno[<span class="dv">1</span>] <span class="op">==</span> <span class="st">"1"</span>:</span>
+<span id="cb18-132"><a href="#cb18-132" aria-hidden="true" tabindex="-1"></a>          haplo_2[row[<span class="st">"POS"</span>]<span class="op">-</span>window_coords.start<span class="op">-</span><span class="dv">1</span>] <span class="op">=</span> row[<span class="st">"ALT"</span>]</span>
+<span id="cb18-133"><a href="#cb18-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-134"><a href="#cb18-134" aria-hidden="true" tabindex="-1"></a>      <span class="co"># predict on the individual's two haplotypes</span></span>
+<span id="cb18-135"><a href="#cb18-135" aria-hidden="true" tabindex="-1"></a>      prediction_1 <span class="op">=</span> model.predict_on_batch(one_hot_encode(<span class="st">""</span>.join(haplo_1))[np.newaxis])[<span class="st">'human'</span>][<span class="dv">0</span>]</span>
+<span id="cb18-136"><a href="#cb18-136" aria-hidden="true" tabindex="-1"></a>      prediction_2 <span class="op">=</span> model.predict_on_batch(one_hot_encode(<span class="st">""</span>.join(haplo_2))[np.newaxis])[<span class="st">'human'</span>][<span class="dv">0</span>]</span>
+<span id="cb18-137"><a href="#cb18-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-138"><a href="#cb18-138" aria-hidden="true" tabindex="-1"></a>      temp_predictions <span class="op">=</span> [prediction_1[:, <span class="dv">5110</span>], prediction_2[:, <span class="dv">5110</span>]] <span class="co"># CAGE predictions we are interested in</span></span>
+<span id="cb18-139"><a href="#cb18-139" aria-hidden="true" tabindex="-1"></a>      individual_prediction[individual] <span class="op">=</span> temp_predictions</span>
+<span id="cb18-140"><a href="#cb18-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-141"><a href="#cb18-141" aria-hidden="true" tabindex="-1"></a>      <span class="co"># Calculate TSS CAGE expression which correspond to column 5110 of the predictions above</span></span>
+<span id="cb18-142"><a href="#cb18-142" aria-hidden="true" tabindex="-1"></a>      temp_list <span class="op">=</span> <span class="bu">list</span>()</span>
+<span id="cb18-143"><a href="#cb18-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-144"><a href="#cb18-144" aria-hidden="true" tabindex="-1"></a>      pred_prepared_1 <span class="op">=</span> prepare_for_quantify_prediction_per_TSS(predictions<span class="op">=</span>prediction_1, gene<span class="op">=</span>gene, tss_df<span class="op">=</span>tss_dataframe)</span>
+<span id="cb18-145"><a href="#cb18-145" aria-hidden="true" tabindex="-1"></a>      tss_predictions_1 <span class="op">=</span> quantify_prediction_per_TSS(low_range <span class="op">=</span> window_coords.start, TSS<span class="op">=</span>pred_prepared_1[<span class="st">'gene_TSS'</span>], cage_predictions<span class="op">=</span>pred_prepared_1[<span class="st">'cage_predictions'</span>])</span>
+<span id="cb18-146"><a href="#cb18-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-147"><a href="#cb18-147" aria-hidden="true" tabindex="-1"></a>      pred_prepared_2 <span class="op">=</span> prepare_for_quantify_prediction_per_TSS(predictions<span class="op">=</span>prediction_2, gene<span class="op">=</span>gene, tss_df<span class="op">=</span>tss_dataframe)</span>
+<span id="cb18-148"><a href="#cb18-148" aria-hidden="true" tabindex="-1"></a>      tss_predictions_2 <span class="op">=</span> quantify_prediction_per_TSS(low_range <span class="op">=</span> window_coords.start, TSS<span class="op">=</span>pred_prepared_2[<span class="st">'gene_TSS'</span>], cage_predictions<span class="op">=</span>pred_prepared_2[<span class="st">'cage_predictions'</span>])</span>
+<span id="cb18-149"><a href="#cb18-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-150"><a href="#cb18-150" aria-hidden="true" tabindex="-1"></a>      temp_list.append(tss_predictions_1)</span>
+<span id="cb18-151"><a href="#cb18-151" aria-hidden="true" tabindex="-1"></a>      temp_list.append(tss_predictions_2) <span class="co"># results here are a dictionary for each TSS for each haplotype</span></span>
+<span id="cb18-152"><a href="#cb18-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-153"><a href="#cb18-153" aria-hidden="true" tabindex="-1"></a>      individual_results[individual] <span class="op">=</span> temp_list <span class="co"># save for the individual</span></span>
+<span id="cb18-154"><a href="#cb18-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-155"><a href="#cb18-155" aria-hidden="true" tabindex="-1"></a>    gene_output[gene] <span class="op">=</span> individual_results</span>
+<span id="cb18-156"><a href="#cb18-156" aria-hidden="true" tabindex="-1"></a>    gene_predictions[gene] <span class="op">=</span> individual_prediction</span>
+<span id="cb18-157"><a href="#cb18-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-158"><a href="#cb18-158" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span>([gene_output, gene_predictions])</span>
+<span id="cb18-159"><a href="#cb18-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-160"><a href="#cb18-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-161"><a href="#cb18-161" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> collect_target_intervals(gene_intervals):</span>
+<span id="cb18-162"><a href="#cb18-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-163"><a href="#cb18-163" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb18-164"><a href="#cb18-164" aria-hidden="true" tabindex="-1"></a><span class="co">  Returns a dictionary of Interval objects (from kipoiseq) for each gene corresponding to the locations of the gene</span></span>
+<span id="cb18-165"><a href="#cb18-165" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb18-166"><a href="#cb18-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-167"><a href="#cb18-167" aria-hidden="true" tabindex="-1"></a>  target_intervals_dict <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb18-168"><a href="#cb18-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-169"><a href="#cb18-169" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> gene <span class="kw">in</span> gene_intervals.keys():</span>
+<span id="cb18-170"><a href="#cb18-170" aria-hidden="true" tabindex="-1"></a>    gene_interval <span class="op">=</span> gene_intervals[gene]</span>
+<span id="cb18-171"><a href="#cb18-171" aria-hidden="true" tabindex="-1"></a>    target_interval <span class="op">=</span> kipoiseq.Interval(<span class="st">"chr"</span> <span class="op">+</span> gene_interval[<span class="dv">0</span>],</span>
+<span id="cb18-172"><a href="#cb18-172" aria-hidden="true" tabindex="-1"></a>                                        gene_interval[<span class="dv">1</span>],</span>
+<span id="cb18-173"><a href="#cb18-173" aria-hidden="true" tabindex="-1"></a>                                        gene_interval[<span class="dv">2</span>])</span>
+<span id="cb18-174"><a href="#cb18-174" aria-hidden="true" tabindex="-1"></a>    target_intervals_dict[gene] <span class="op">=</span> target_interval</span>
+<span id="cb18-175"><a href="#cb18-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-176"><a href="#cb18-176" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span>(target_intervals_dict)</span>
+<span id="cb18-177"><a href="#cb18-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-178"><a href="#cb18-178" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> prepare_for_plot_tracks(gene, individual, all_predictions, chromosome<span class="op">=</span>[<span class="st">'22'</span>]):</span>
+<span id="cb18-179"><a href="#cb18-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-180"><a href="#cb18-180" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb18-181"><a href="#cb18-181" aria-hidden="true" tabindex="-1"></a><span class="co">  This returns a dictionary of gene tracks and gene intervals, prepared for the function plot_tracks.</span></span>
+<span id="cb18-182"><a href="#cb18-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-183"><a href="#cb18-183" aria-hidden="true" tabindex="-1"></a><span class="co">  Parameters:</span></span>
+<span id="cb18-184"><a href="#cb18-184" aria-hidden="true" tabindex="-1"></a><span class="co">    - gene</span></span>
+<span id="cb18-185"><a href="#cb18-185" aria-hidden="true" tabindex="-1"></a><span class="co">    - individual</span></span>
+<span id="cb18-186"><a href="#cb18-186" aria-hidden="true" tabindex="-1"></a><span class="co">    - all_predictions</span></span>
+<span id="cb18-187"><a href="#cb18-187" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb18-188"><a href="#cb18-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-189"><a href="#cb18-189" aria-hidden="true" tabindex="-1"></a>  haplo_predictions <span class="op">=</span> all_predictions[gene][individual]</span>
+<span id="cb18-190"><a href="#cb18-190" aria-hidden="true" tabindex="-1"></a>  gene_tracks <span class="op">=</span> {gene <span class="op">+</span> <span class="st">' | '</span> <span class="op">+</span> individual <span class="op">+</span> <span class="st">' | haplotype 1'</span>: np.log10(<span class="dv">1</span> <span class="op">+</span> haplo_predictions[<span class="dv">0</span>]),</span>
+<span id="cb18-191"><a href="#cb18-191" aria-hidden="true" tabindex="-1"></a>                gene <span class="op">+</span> <span class="st">' | '</span> <span class="op">+</span> individual <span class="op">+</span> <span class="st">' | haplotype 2'</span>: np.log10(<span class="dv">1</span> <span class="op">+</span> haplo_predictions[<span class="dv">1</span>])}</span>
+<span id="cb18-192"><a href="#cb18-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-193"><a href="#cb18-193" aria-hidden="true" tabindex="-1"></a>  gene_intervals <span class="op">=</span> collect_intervals(chromosomes<span class="op">=</span>chromosome, gene_list<span class="op">=</span>[gene])</span>
+<span id="cb18-194"><a href="#cb18-194" aria-hidden="true" tabindex="-1"></a>  gene_intervals <span class="op">=</span> collect_target_intervals(gene_intervals)</span>
+<span id="cb18-195"><a href="#cb18-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-196"><a href="#cb18-196" aria-hidden="true" tabindex="-1"></a>  output <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb18-197"><a href="#cb18-197" aria-hidden="true" tabindex="-1"></a>  output[<span class="st">'gene_tracks'</span>] <span class="op">=</span> gene_tracks</span>
+<span id="cb18-198"><a href="#cb18-198" aria-hidden="true" tabindex="-1"></a>  output[<span class="st">'gene_intervals'</span>] <span class="op">=</span> gene_intervals[gene]</span>
+<span id="cb18-199"><a href="#cb18-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-200"><a href="#cb18-200" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span>(output)</span>
+<span id="cb18-201"><a href="#cb18-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-202"><a href="#cb18-202" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> check_individuals(path_to_bed_file, list_of_individuals):</span>
+<span id="cb18-203"><a href="#cb18-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-204"><a href="#cb18-204" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb18-205"><a href="#cb18-205" aria-hidden="true" tabindex="-1"></a><span class="co">  Checks if an individual is missing in bed variation files.</span></span>
+<span id="cb18-206"><a href="#cb18-206" aria-hidden="true" tabindex="-1"></a><span class="co">  These individuals should be removed prior to training</span></span>
+<span id="cb18-207"><a href="#cb18-207" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb18-208"><a href="#cb18-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-209"><a href="#cb18-209" aria-hidden="true" tabindex="-1"></a>  myfile <span class="op">=</span> <span class="bu">open</span>(path_to_bed_file, <span class="st">'r'</span>)</span>
+<span id="cb18-210"><a href="#cb18-210" aria-hidden="true" tabindex="-1"></a>  myline <span class="op">=</span> myfile.readline()</span>
+<span id="cb18-211"><a href="#cb18-211" aria-hidden="true" tabindex="-1"></a>  bed_names <span class="op">=</span> myline.split(<span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)[<span class="dv">4</span>:]</span>
+<span id="cb18-212"><a href="#cb18-212" aria-hidden="true" tabindex="-1"></a>  myfile.close()</span>
+<span id="cb18-213"><a href="#cb18-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-214"><a href="#cb18-214" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> <span class="bu">set</span>(list_of_individuals).issubset(<span class="bu">set</span>(bed_names)) <span class="op">==</span> <span class="va">False</span>:</span>
+<span id="cb18-215"><a href="#cb18-215" aria-hidden="true" tabindex="-1"></a>    missing <span class="op">=</span> <span class="bu">list</span>(<span class="bu">set</span>(list_of_individuals).difference(bed_names))</span>
+<span id="cb18-216"><a href="#cb18-216" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'This (or these) individual(s) is/are not present: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(missing))</span>
+<span id="cb18-217"><a href="#cb18-217" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span>:</span>
+<span id="cb18-218"><a href="#cb18-218" aria-hidden="true" tabindex="-1"></a>    missing <span class="op">=</span> []</span>
+<span id="cb18-219"><a href="#cb18-219" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">'All individuals are present in the bed file.'</span>)</span>
+<span id="cb18-220"><a href="#cb18-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-221"><a href="#cb18-221" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span>(missing)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_predixcan_vs_geuvadis(interested_gene, interested_individuals, geuvadis_expression, predixcan_expression):</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co">  Show a plot and return correlation coefficient</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># from predixcan expression</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  df_predixcan <span class="op">=</span> predixcan_expression[predixcan_expression.gene_name <span class="op">==</span> interested_gene].loc[:,interested_individuals]</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># from enformer</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  df_geuvadis <span class="op">=</span> geuvadis_expression[geuvadis_expression.gene_name <span class="op">==</span> interested_gene].loc[:,interested_individuals]</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># concatenate both</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  df_all <span class="op">=</span> pd.concat([df_predixcan, df_geuvadis], axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  df_all.index <span class="op">=</span> [<span class="st">'Predixcan'</span>, <span class="st">'GEUVADIS'</span>]</span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plotting</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>  sns.regplot(x<span class="op">=</span>df_all.iloc[<span class="dv">0</span>,:], y<span class="op">=</span>df_all.iloc[<span class="dv">1</span>,:], color<span class="op">=</span><span class="st">'red'</span>).<span class="bu">set</span>(title<span class="op">=</span><span class="st">'Predixcan vs. GEUVADIS predictions on </span><span class="sc">{}</span><span class="st"> individuals for gene </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(<span class="bu">len</span>(df_all.columns), interested_gene))</span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>  <span class="co"># correlation coefficient</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>  corr_coef <span class="op">=</span> np.corrcoef(x<span class="op">=</span>df_all.iloc[<span class="dv">0</span>,:], y<span class="op">=</span>df_all.iloc[<span class="dv">1</span>,:])[<span class="dv">0</span>][<span class="dv">1</span>]</span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span>([df_all, corr_coef])</span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_enformer_vs_predixcan(prediction_results, interested_gene, interested_individuals, predixcan_expression, how<span class="op">=</span><span class="st">'sum'</span>):</span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a><span class="co">  Show a plot and return correlation coefficient</span></span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>  enformer_predictions <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> gene, individuals <span class="kw">in</span> prediction_results[<span class="dv">0</span>].items():</span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a>    temp_individual <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual, haplo_predictions <span class="kw">in</span> individuals.items():</span>
+<span id="cb19-34"><a href="#cb19-34" aria-hidden="true" tabindex="-1"></a>      temp <span class="op">=</span> <span class="bu">list</span>()</span>
+<span id="cb19-35"><a href="#cb19-35" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, <span class="bu">len</span>(haplo_predictions[<span class="dv">0</span>])):</span>
+<span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a>        temp.append(<span class="bu">list</span>(haplo_predictions[<span class="dv">0</span>].values())[i] <span class="op">+</span> <span class="bu">list</span>(haplo_predictions[<span class="dv">1</span>].values())[i])</span>
+<span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> how <span class="op">==</span> <span class="st">'sum'</span>:</span>
+<span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a>        temp_individual[individual] <span class="op">=</span> np.<span class="bu">sum</span>(temp)</span>
+<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a>      <span class="cf">elif</span> how <span class="op">==</span> <span class="st">'max'</span>:</span>
+<span id="cb19-40"><a href="#cb19-40" aria-hidden="true" tabindex="-1"></a>        temp_individual[individual] <span class="op">=</span> np.<span class="bu">max</span>(temp)</span>
+<span id="cb19-41"><a href="#cb19-41" aria-hidden="true" tabindex="-1"></a>    enformer_predictions[gene] <span class="op">=</span> temp_individual</span>
+<span id="cb19-42"><a href="#cb19-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-43"><a href="#cb19-43" aria-hidden="true" tabindex="-1"></a>  <span class="co"># from predixcan expression</span></span>
+<span id="cb19-44"><a href="#cb19-44" aria-hidden="true" tabindex="-1"></a>  df_predixcan <span class="op">=</span> predixcan_expression[predixcan_expression.gene_name <span class="op">==</span> interested_gene].loc[:,interested_individuals]</span>
+<span id="cb19-45"><a href="#cb19-45" aria-hidden="true" tabindex="-1"></a>  <span class="co"># from enformer</span></span>
+<span id="cb19-46"><a href="#cb19-46" aria-hidden="true" tabindex="-1"></a>  df_enformer <span class="op">=</span> pd.DataFrame(enformer_predictions[interested_gene], index<span class="op">=</span>[<span class="dv">0</span>]).loc[:, df_predixcan.columns]</span>
+<span id="cb19-47"><a href="#cb19-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-48"><a href="#cb19-48" aria-hidden="true" tabindex="-1"></a>  <span class="co"># concatenate both</span></span>
+<span id="cb19-49"><a href="#cb19-49" aria-hidden="true" tabindex="-1"></a>  df_all <span class="op">=</span> pd.concat([df_enformer, df_predixcan], axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb19-50"><a href="#cb19-50" aria-hidden="true" tabindex="-1"></a>  df_all.index <span class="op">=</span> [<span class="st">'Enformer'</span>, <span class="st">'Predixcan'</span>]</span>
+<span id="cb19-51"><a href="#cb19-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-52"><a href="#cb19-52" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plotting</span></span>
+<span id="cb19-53"><a href="#cb19-53" aria-hidden="true" tabindex="-1"></a>  sns.regplot(x<span class="op">=</span>df_all.iloc[<span class="dv">0</span>,:], y<span class="op">=</span>df_all.iloc[<span class="dv">1</span>,:], color<span class="op">=</span><span class="st">'red'</span>).<span class="bu">set</span>(title<span class="op">=</span><span class="st">'Predixcan vs. Enformer predictions on </span><span class="sc">{}</span><span class="st"> individuals for gene </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(<span class="bu">len</span>(df_all.columns), interested_gene))</span>
+<span id="cb19-54"><a href="#cb19-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-55"><a href="#cb19-55" aria-hidden="true" tabindex="-1"></a>  <span class="co"># correlation coefficient</span></span>
+<span id="cb19-56"><a href="#cb19-56" aria-hidden="true" tabindex="-1"></a>  corr_coef_predix <span class="op">=</span> np.corrcoef(x<span class="op">=</span>df_all.iloc[<span class="dv">0</span>,:], y<span class="op">=</span>df_all.iloc[<span class="dv">1</span>,:])[<span class="dv">0</span>][<span class="dv">1</span>]</span>
+<span id="cb19-57"><a href="#cb19-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-58"><a href="#cb19-58" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span>([df_all, corr_coef_predix])</span>
+<span id="cb19-59"><a href="#cb19-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-60"><a href="#cb19-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-61"><a href="#cb19-61" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_enformer_vs_geuvadis(prediction_results, interested_gene, interested_individuals, geuvadis_expression, how<span class="op">=</span><span class="st">'sum'</span>):</span>
+<span id="cb19-62"><a href="#cb19-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-63"><a href="#cb19-63" aria-hidden="true" tabindex="-1"></a>  <span class="co">'''</span></span>
+<span id="cb19-64"><a href="#cb19-64" aria-hidden="true" tabindex="-1"></a><span class="co">  Show a plot and return correlation coefficient</span></span>
+<span id="cb19-65"><a href="#cb19-65" aria-hidden="true" tabindex="-1"></a><span class="co">  '''</span></span>
+<span id="cb19-66"><a href="#cb19-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-67"><a href="#cb19-67" aria-hidden="true" tabindex="-1"></a>  enformer_predictions <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb19-68"><a href="#cb19-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-69"><a href="#cb19-69" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> gene, individuals <span class="kw">in</span> prediction_results[<span class="dv">0</span>].items():</span>
+<span id="cb19-70"><a href="#cb19-70" aria-hidden="true" tabindex="-1"></a>    temp_individual <span class="op">=</span> <span class="bu">dict</span>()</span>
+<span id="cb19-71"><a href="#cb19-71" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual, haplo_predictions <span class="kw">in</span> individuals.items():</span>
+<span id="cb19-72"><a href="#cb19-72" aria-hidden="true" tabindex="-1"></a>      temp <span class="op">=</span> <span class="bu">list</span>()</span>
+<span id="cb19-73"><a href="#cb19-73" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, <span class="bu">len</span>(haplo_predictions[<span class="dv">0</span>])):</span>
+<span id="cb19-74"><a href="#cb19-74" aria-hidden="true" tabindex="-1"></a>        temp.append(<span class="bu">list</span>(haplo_predictions[<span class="dv">0</span>].values())[i] <span class="op">+</span> <span class="bu">list</span>(haplo_predictions[<span class="dv">1</span>].values())[i])</span>
+<span id="cb19-75"><a href="#cb19-75" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> how <span class="op">==</span> <span class="st">'sum'</span>:</span>
+<span id="cb19-76"><a href="#cb19-76" aria-hidden="true" tabindex="-1"></a>        temp_individual[individual] <span class="op">=</span> np.<span class="bu">sum</span>(temp)</span>
+<span id="cb19-77"><a href="#cb19-77" aria-hidden="true" tabindex="-1"></a>      <span class="cf">elif</span> how <span class="op">==</span> <span class="st">'max'</span>:</span>
+<span id="cb19-78"><a href="#cb19-78" aria-hidden="true" tabindex="-1"></a>        temp_individual[individual] <span class="op">=</span> np.<span class="bu">max</span>(temp)</span>
+<span id="cb19-79"><a href="#cb19-79" aria-hidden="true" tabindex="-1"></a>    enformer_predictions[gene] <span class="op">=</span> temp_individual</span>
+<span id="cb19-80"><a href="#cb19-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-81"><a href="#cb19-81" aria-hidden="true" tabindex="-1"></a>  <span class="co"># from geuvadis expression</span></span>
+<span id="cb19-82"><a href="#cb19-82" aria-hidden="true" tabindex="-1"></a>  df_geuvadis <span class="op">=</span> geuvadis_expression[geuvadis_expression.gene_name <span class="op">==</span> interested_gene].loc[:,interested_individuals]</span>
+<span id="cb19-83"><a href="#cb19-83" aria-hidden="true" tabindex="-1"></a>  <span class="co">#df_enformer = np.transpose(pd.DataFrame(enformer_predictions)).loc[:, df_geuvadis.columns]</span></span>
+<span id="cb19-84"><a href="#cb19-84" aria-hidden="true" tabindex="-1"></a>  df_enformer <span class="op">=</span> pd.DataFrame(enformer_predictions[interested_gene], index<span class="op">=</span>[<span class="dv">0</span>]).loc[:, df_geuvadis.columns]</span>
+<span id="cb19-85"><a href="#cb19-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-86"><a href="#cb19-86" aria-hidden="true" tabindex="-1"></a>  <span class="co"># concatenate both</span></span>
+<span id="cb19-87"><a href="#cb19-87" aria-hidden="true" tabindex="-1"></a>  df_all <span class="op">=</span> pd.concat([df_enformer, df_geuvadis], axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb19-88"><a href="#cb19-88" aria-hidden="true" tabindex="-1"></a>  df_all.index <span class="op">=</span> [<span class="st">'Enformer'</span>, <span class="st">'GEUVADIS'</span>]</span>
+<span id="cb19-89"><a href="#cb19-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-90"><a href="#cb19-90" aria-hidden="true" tabindex="-1"></a>  <span class="co"># plotting</span></span>
+<span id="cb19-91"><a href="#cb19-91" aria-hidden="true" tabindex="-1"></a>  sns.regplot(x<span class="op">=</span>df_all.iloc[<span class="dv">0</span>,:], y<span class="op">=</span>df_all.iloc[<span class="dv">1</span>,:], color<span class="op">=</span><span class="st">'blue'</span>).<span class="bu">set</span>(title<span class="op">=</span><span class="st">'Enformer vs. Geuvadis predictions on </span><span class="sc">{}</span><span class="st"> individuals for gene </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(<span class="bu">len</span>(df_all.columns), interested_gene))</span>
+<span id="cb19-92"><a href="#cb19-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-93"><a href="#cb19-93" aria-hidden="true" tabindex="-1"></a>  <span class="co"># correlation coefficient</span></span>
+<span id="cb19-94"><a href="#cb19-94" aria-hidden="true" tabindex="-1"></a>  corr_coef_geu <span class="op">=</span> np.corrcoef(x<span class="op">=</span>df_all.iloc[<span class="dv">0</span>,:], y<span class="op">=</span>df_all.iloc[<span class="dv">1</span>,:])[<span class="dv">0</span>][<span class="dv">1</span>]</span>
+<span id="cb19-95"><a href="#cb19-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-96"><a href="#cb19-96" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span>([df_all, corr_coef_geu])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="make-predictions-on-the-geuvadis-dataset." class="level2">
+<h2 class="anchored" data-anchor-id="make-predictions-on-the-geuvadis-dataset.">Make predictions on the GEUVADIS dataset.</h2>
+<p>Here, we will begin to make predictions. Excited?!</p>
+<p>We still need the model itself. The model has been graciously hosted on <a href="https://tfhub.dev/deepmind/enformer/1">Tensorflow Hub</a>, which hosts many other models too. You can click on the link and explore. When you click the link, you can see that the model is about 892 Mb large. Quite big. We will use the url to the model to download and use it here.</p>
+<p>Earlier, we defined an Enformer class (see the codes section). We will load the model into this class. The model has been trained and the weights are freely available. All we need to do is to load this model and use it. Neat.</p>
+<p>We also defined a class FastaStringExtractor, that can help us extract raw sequences from fasta files given the intervals we want. We will make use of this class too.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> Enformer(model_path) <span class="co"># here we load the model architecture.</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>fasta_extractor <span class="op">=</span> FastaStringExtractor(fasta_file) <span class="co"># we define a class called fasta_extractor to help us extra raw sequence data</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="exercise-1" class="level3">
+<h3 class="anchored" data-anchor-id="exercise-1"><strong>EXERCISE 1:</strong></h3>
+<p>For evaluation, we need to <strong>sum the predictions around each unique TSS for a given gene</strong>. We will be using this a lot so it is important that we define what it means. Essentially, for a gene with one TSS, we take the sum of predicitions of the 128 bp output bin containing the TSS and its two immediate neighboring bins. We do this for each haplotype and each TSS to give TSS-level predictions.</p>
+<p>To get individual-level estimates for a whole gene, we sum each haplotype TSS estimate to summarize TSS-level predictions per individual, and then take either the sum or max of TSS-level predictions to summarize at the gene level.</p>
+<p>There are many genes and many individuals in our datasets. To make illustration simpler, we will use four genes, <em>ERAP1</em>, <em>ERAP2</em>, <em>NUDT2</em>, and <em>PEX6</em>, located on chromosome 5, 5, 9, and 6 respectively. We will use predictions for 10 randomly selected individuals located in the bed files.</p>
+<div class="cell" data-outputid="2791e673-9da7-4b9d-8531-7c794185fca7">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>download_chrom_beds(chromosome <span class="op">=</span> <span class="st">"5"</span>, genes <span class="op">=</span> [<span class="st">'ERAP1'</span>, <span class="st">'ERAP2'</span>])</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>download_chrom_beds(chromosome <span class="op">=</span> <span class="st">"9"</span>, genes <span class="op">=</span> [<span class="st">'NUDT2'</span>])</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>download_chrom_beds(chromosome <span class="op">=</span> <span class="st">"6"</span>, genes <span class="op">=</span> [<span class="st">'PEX6'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here, we read into a dataframe the TSS (transcription start sites) per gene for the chromosomes we are interested in. The dataframe has three columns. The first contains the genes, and the second contains the TSS(s) for that gene, and the third contains the strand information. We are interested in genes located on chromosomes 5, 6 and 9.</p>
+<div class="cell" data-outputid="d8a76934-e1f0-40ba-8c1c-48f60601cd1a">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>chr5_tss <span class="op">=</span> pd.read_table(<span class="st">'/home/s1mi/enformer_tutorial/tss_by_chr/chr5_tss_by_gene.txt'</span>, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>chr6_tss <span class="op">=</span> pd.read_table(<span class="st">'/home/s1mi/enformer_tutorial/tss_by_chr/chr6_tss_by_gene.txt'</span>, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>chr9_tss <span class="op">=</span> pd.read_table(<span class="st">'/home/s1mi/enformer_tutorial/tss_by_chr/chr9_tss_by_gene.txt'</span>, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>chr9_tss.head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="preparing-inputs-for-enformer" class="level4">
+<h4 class="anchored" data-anchor-id="preparing-inputs-for-enformer">Preparing inputs for Enformer</h4>
+<p>Now that we have downloaded the genetic information that we need, we want to prepare the inputs for Enformer.</p>
+<p>We need the following - The genes we want to predict for - The genomic interval for these genes - Information about the transcription start sites for these genes - The individuals we want to predict for</p>
+<p>We have a utility function that helps to define the intervals of a gene, and resize this interval to make it acceptable for Enformer. Enformer needs a specific, defined sequence length. We use the <strong>collect_intervals</strong> function. The result is a dictionary that contains chromosome and interval information for each gene.</p>
+<p>For example, let’s explore ERAP1…</p>
+<div class="cell" data-outputid="512f71af-1df8-42d8-8c16-317a030f1bda">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>ERAP1_intervals <span class="op">=</span> collect_intervals(chromosomes<span class="op">=</span>[<span class="st">'5'</span>], gene_list<span class="op">=</span>[<span class="st">'ERAP1'</span>])</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>ERAP1_target_intervals <span class="op">=</span> collect_target_intervals(ERAP1_intervals)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>ERAP1_intervals, ERAP1_target_intervals</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>ERAP1_target_intervals</strong> is an Interval object created using the kipoiseq package we installed earlier. It is used during predictions, and we don’t need to know the methods of this object for the purpose of the next questions.</p>
+<p>However, we have similar information in <strong>ERAP1_intervals</strong>, which is a python dictionary of lists. For the questions below, we will use the <strong>ERAP1_intervals</strong> object.</p>
+</section>
+<section id="question-1a" class="level4">
+<h4 class="anchored" data-anchor-id="question-1a"><strong><em>Question 1a</em></strong></h4>
+<p>What is the size of this interval? <em>Hint</em>: Look at the <strong>ERAP1_intervals</strong>, and remember that Python is 0-based indexed. You need to access the <strong>key</strong> of this dictionary, which is the gene name, and for the value, which is a list, you can access the first element using 0, the second element using 1, and so on.</p>
+<div class="cell" data-outputid="e5072587-661b-4a61-84f7-911e106c9bc4">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>ERAP1_intervals[<span class="st">'ERAP1'</span>][<span class="dv">2</span>] <span class="op">-</span> ERAP1_intervals[<span class="st">'ERAP1'</span>][<span class="dv">1</span>] <span class="co"># your answers go in the ...</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="note" class="level4">
+<h4 class="anchored" data-anchor-id="note"><strong><em>Note</em></strong></h4>
+<p>You can roughly confirm this interval by going to the UCSC genome browser or Ensemble genome browser. We have provided a link for UCSC genome browser’s interval length <a href="https://genome.ucsc.edu/cgi-bin/hgTracks?db=hg19&amp;lastVirtModeType=default&amp;lastVirtModeExtraState=&amp;virtModeType=default&amp;virtMode=0&amp;nonVirtPosition=&amp;position=chr5%3A96096517%2D96143648&amp;hgsid=1316458921_99pz1X7GNzmiEg0WV1q2UmDp9nSB">for ERAP1 here</a>. Click on this link, the answer is right at the top of the browser.</p>
+<p>Enformer takes in a defined sequence length. When we provide a gene and collect its intervals, we need to resize this interval to be acceptable for Enformer. Here, we will use the Intervals object define earlier, <strong>ERAP1_target_intervals</strong>.</p>
+<div class="cell" data-outputid="3c37002b-46af-42fe-e540-be19b23afee3">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>ERAP1_target_interval_resized <span class="op">=</span> ERAP1_target_intervals[<span class="st">'ERAP1'</span>].resize(SEQUENCE_LENGTH)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>ERAP1_target_interval_resized</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="question-1b" class="level4">
+<h4 class="anchored" data-anchor-id="question-1b"><strong><em>Question 1b</em></strong></h4>
+<p>What is the length of this interval? Simply run the next line of code.</p>
+<div class="cell" data-outputid="c0a53c51-4692-4a47-ca57-237d27497a95">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>ERAP1_target_interval_resized.end <span class="op">-</span> ERAP1_target_interval_resized.start</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Essentially, we resized the length of the gene and pad it with the native sequences to the left and to the right, such that the length of the input sequence is 393216, and we can imagine our gene right at the center of this wider interval. This is the same interval length used to train ENCODE data to build Enformer. Since this value is pre-define, we really cannot change it. This is information that Enformer uses to make very good predictions. Below, we confirm that this is true.</p>
+<div class="cell" data-outputid="db229dc2-931e-4e86-8005-87d09104762d">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>(ERAP1_target_interval_resized.end <span class="op">-</span> ERAP1_target_interval_resized.start) <span class="op">==</span> SEQUENCE_LENGTH</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="making-predictions-with-enformer" class="level4">
+<h4 class="anchored" data-anchor-id="making-predictions-with-enformer">Making predictions with Enformer</h4>
+<p>We will select 10 individuals (we have provided 10 randomly sample individuals for ease), and use four genes, <em>ERAP1</em>, <em>ERAP2</em>, <em>NUDT2</em>, and <em>PEX6</em>, located on chromosome 5, 5, 9, and 6 respectively</p>
+<p>We will collect the intervals that correspond to these genes, collect the sequences for that interval from the reference fasta file, loop through each individual’s variations in the bed files we provided, switch around the variations for each haplotype and predict expression.</p>
+<p>Eventually, for each individual, we should have predictions corresponding to each haplotype. We expect that since the haplotypes are different, the predictions should vary too.</p>
+<p>Additionally, we need the TSS for these genes. Remember that we read in the dataframe earlier.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>exercise_1_genes <span class="op">=</span> [<span class="st">'ERAP1'</span>, <span class="st">'NUDT2'</span>, <span class="st">'ERAP2'</span>, <span class="st">'PEX6'</span>] <span class="co"># our gene of interest</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a><span class="co">#exercise_1_gene = ['NUDT2', 'ERAP2'] # our gene of interest</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>exercise_1_individuals <span class="op">=</span> [<span class="st">'NA11992'</span>, <span class="st">'NA19235'</span>, <span class="st">'NA20770'</span>, <span class="st">'HG00232'</span>, <span class="st">'HG00342'</span>, <span class="st">'NA20502'</span>, <span class="st">'NA19189'</span>, <span class="st">'HG00108'</span>, <span class="st">'HG00380'</span>, <span class="st">'NA12872'</span>] <span class="co"># individuals we are interested in</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>exercise_1_chromosomes <span class="op">=</span> [<span class="st">'5'</span>, <span class="st">'9'</span>, <span class="st">'6'</span>] <span class="co"># the gene is on chromosome 5</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>exercise_1_tss_dfs <span class="op">=</span> [chr5_tss, chr9_tss, chr6_tss] <span class="co"># we use the TSS information</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="question-2" class="level4">
+<h4 class="anchored" data-anchor-id="question-2"><strong><em>QUESTION 2</em></strong></h4>
+<p>What is the id of the 8th individual? Hint: Python used 0-based indexing</p>
+<div class="cell" data-outputid="82dff590-70e8-4b4d-915e-1c01ba9eb60c">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'The 8th individual is </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(exercise_1_individuals[<span class="dv">7</span>])) <span class="co"># your code goes into the ellipsis</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>It is possible to have individuals not present in our variation bed files for some reasons. So, we will do some sanity checks.</p>
+<p>Using the <strong>check_individuals</strong> functions, we will check if all these individuals are present in the bed file for that gene.</p>
+<div class="cell" data-outputid="23d7a637-f302-4080-c820-9570566d6967">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>missing_1 <span class="op">=</span> check_individuals(<span class="st">"/home/s1mi/enformer_tutorial/individual_beds/chr9/chr9_NUDT2.bed"</span>, list_of_individuals <span class="op">=</span> exercise_1_individuals)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>missing_2 <span class="op">=</span> check_individuals(<span class="st">"/home/s1mi/enformer_tutorial/individual_beds/chr5/chr5_ERAP2.bed"</span>, list_of_individuals <span class="op">=</span> exercise_1_individuals)</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>missing_3 <span class="op">=</span> check_individuals(<span class="st">"/home/s1mi/enformer_tutorial/individual_beds/chr5/chr5_ERAP1.bed"</span>, list_of_individuals <span class="op">=</span> exercise_1_individuals)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>missing_4 <span class="op">=</span> check_individuals(<span class="st">"/home/s1mi/enformer_tutorial/individual_beds/chr6/chr6_PEX6.bed"</span>, list_of_individuals <span class="op">=</span> exercise_1_individuals)</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>missing_1, missing_2, missing_3, missing_4</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>It looks like all the individuals are present. Very nice! We are good to go.</p>
+<p>To make predictions, we first collect the intervals for the genes we want to predict for.</p>
+<div class="cell" data-outputid="47f26096-7eb7-4c09-aaeb-76e23e96f50a">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>exercise_1_interval <span class="op">=</span> collect_intervals(chromosomes<span class="op">=</span>exercise_1_chromosomes, gene_list<span class="op">=</span>exercise_1_genes) <span class="co"># here, we collect the intervals for that gene</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>exercise_1_interval</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next, we use the <strong>run_predictions</strong> function</p>
+<div class="cell" data-outputid="47b8f525-7b44-41df-9bc8-cfa848fd1744">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>exercise_1_predictions <span class="op">=</span> run_predictions(gene_intervals<span class="op">=</span>exercise_1_interval, tss_dataframe<span class="op">=</span>exercise_1_tss_dfs, individuals_list<span class="op">=</span>exercise_1_individuals) <span class="co"># here we make predictions and save it.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>NB:</strong> If you intend to make predictions across many individuals and genes, it will be faster if you have larger GPU access. For now, we are using limited GPU. So, we have to limit our predictions.</p>
+<p>Quite fast right? Very nice.</p>
+<p>Our prediction object, <strong>exercise_1_predictions</strong> is a list of length two. - The first item in the list corresponds to the sum of predictions around each unique TSS, for each haplotype, for each individual, for each gene.</p>
+<ul>
+<li>The second item in the list corresponds to the CAGE:B lymphoblastoid cell line predictions across all 128bp bins for each haplotype, for each individual, for the genes. We will use the second item for plotting the tracks.</li>
+</ul>
+<p>Let us take a look at the object.</p>
+<div class="cell" data-outputid="823cd61e-0778-485c-9fec-e64e401a2e77">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"The exercise_1_predictions object is a </span><span class="sc">{}</span><span class="st"> of length </span><span class="sc">{}</span><span class="st">."</span>.<span class="bu">format</span>(<span class="bu">type</span>(exercise_1_predictions).<span class="va">__name__</span>, <span class="bu">len</span>(exercise_1_predictions)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>exercise_1_predictions[<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="plotting-the-cageb-lymphoblastoid-cell-line-tracks" class="level4">
+<h4 class="anchored" data-anchor-id="plotting-the-cageb-lymphoblastoid-cell-line-tracks">Plotting the CAGE:B lymphoblastoid cell line tracks</h4>
+<p>Next, we will plot the tracks. We have already defined two helper functions, <strong>prepare_for_plot_tracks</strong> and <strong>plot_tracks</strong> to plot the expression along the TSS for a gene, for an individual and for each haplotype.</p>
+<p>For NUDT2…</p>
+<div class="cell" data-outputid="cba34a3d-586a-4b86-f738-badedc155d37">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>temp <span class="op">=</span> prepare_for_plot_tracks(gene<span class="op">=</span>exercise_1_genes[<span class="dv">1</span>], individual<span class="op">=</span>exercise_1_individuals[<span class="dv">0</span>], all_predictions<span class="op">=</span>exercise_1_predictions[<span class="dv">1</span>], chromosome<span class="op">=</span>[<span class="st">'9'</span>])</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>plot_tracks(tracks<span class="op">=</span>temp[<span class="st">'gene_tracks'</span>], interval<span class="op">=</span>temp[<span class="st">'gene_intervals'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Looks nice!</p>
+<p>Although it looks like there is no variation in the predictions for the haplotypes, we can take a look at the actual prediction values across the TSS.</p>
+<p>The columns are the transcription start sites, and the rows are the haplotypes for the individual. The entries are the sum of the predictions at the <em>TSS</em>, at <em>TSS - 1</em>, and at the <em>TSS + 1</em>.</p>
+<p>We will look at the first individual, <strong>NA11992</strong>, for <strong>NUDT2</strong>…</p>
+<div class="cell" data-outputid="58d37046-c581-4d26-f662-7284c2320253">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(exercise_1_predictions[<span class="dv">0</span>][exercise_1_genes[<span class="dv">1</span>]][exercise_1_individuals[<span class="dv">0</span>]], index<span class="op">=</span>[<span class="st">'haplotype_1'</span>, <span class="st">'haplotype_2'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will look at the first individual, <strong>NA11992</strong>, for <strong>PEX6</strong>…</p>
+<div class="cell" data-outputid="15b8a889-62a0-4a85-a272-ba02ca66a85e">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>pd.DataFrame(exercise_1_predictions[<span class="dv">0</span>][exercise_1_genes[<span class="dv">3</span>]][exercise_1_individuals[<span class="dv">0</span>]], index<span class="op">=</span>[<span class="st">'haplotype_1'</span>, <span class="st">'haplotype_2'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Merely looking at the values, it looks like there are variations in the predictions across the haplotypes and the TSS. We expected some variations because we are predicting expression for each haplotype, which tend to have variations in them. Very nice!</p>
+</section>
+</section>
+</section>
+<section id="comparing-with-true-expression-from-geuvadis-and-with-predixcan" class="level2">
+<h2 class="anchored" data-anchor-id="comparing-with-true-expression-from-geuvadis-and-with-predixcan">Comparing with true expression from GEUVADIS and with Predixcan</h2>
+<p>We should read in the GEUVADIS and Predixcan predictions.</p>
+<div class="cell" data-outputid="4fe9f470-89e2-4935-e4fd-0d49d8f8df03">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>geuvadis_gene_expression <span class="op">=</span> pd.read_table(<span class="st">'https://uchicago.box.com/shared/static/5vwc7pjw9qmtv7298c4rc7bcuicoyemt.gz'</span>, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>,</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>                                         dtype<span class="op">=</span>{<span class="st">'gene_id'</span>: <span class="bu">str</span>, <span class="st">'gene_name'</span>:<span class="bu">str</span>, <span class="st">'TargetID'</span>:<span class="bu">str</span>, <span class="st">'Chr'</span>:<span class="bu">str</span>})</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>geuvadis_gene_expression.head(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="379f904b-a2fb-4184-e4c6-c1177e831f51">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>predixcan_gene_expression <span class="op">=</span> pd.read_table(<span class="st">'https://uchicago.box.com/shared/static/4k68u7x7rxjpoljfdva6qipjxwzd3l0g.txt'</span>, sep<span class="op">=</span><span class="st">' '</span>)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>predixcan_gene_expression.head(<span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="question-3a" class="level4">
+<h4 class="anchored" data-anchor-id="question-3a"><strong><em>QUESTION 3a</em></strong></h4>
+<p>What is the dimension/size/shape of the <strong>geuvadis_gene_expression</strong> dataframe? Hint: You can use the .shape method on a dataframe.</p>
+<div class="cell" data-outputid="39658489-75be-4942-dce8-7840cdccbfe4">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>geuvadis_dimension <span class="op">=</span> geuvadis_gene_expression.shape</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="co">#print("The geuvadis_gene_expression dataframe has {} rows and {} columns".format(*geuvadis_dimension))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="question-4b" class="level4">
+<h4 class="anchored" data-anchor-id="question-4b"><strong><em>QUESTION 4b</em></strong></h4>
+<p>What is the dimension/size/shape of the <strong>predixcan_gene_expression</strong> dataframe? Hint: You can use the .shape method on a dataframe.</p>
+<div class="cell" data-outputid="95c1343b-16e3-4bf6-ad89-d48e213c2077">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>predixcan_dimension <span class="op">=</span> predixcan_gene_expression.shape</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"The predixcan_gene_expression dataframe has </span><span class="sc">{}</span><span class="st"> rows and </span><span class="sc">{}</span><span class="st"> columns"</span>.<span class="bu">format</span>(<span class="op">*</span>predixcan_dimension))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We select the individuals and the gene from the geuvadis_gene_expression dataframe.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>erap1_geuvadis_expression <span class="op">=</span> geuvadis_gene_expression[geuvadis_gene_expression.gene_name <span class="op">==</span> exercise_1_genes[<span class="dv">0</span>]].loc[:,exercise_1_individuals]</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>nudt2_geuvadis_expression <span class="op">=</span> geuvadis_gene_expression[geuvadis_gene_expression.gene_name <span class="op">==</span> exercise_1_genes[<span class="dv">1</span>]].loc[:,exercise_1_individuals]</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>erap2_geuvadis_expression <span class="op">=</span> geuvadis_gene_expression[geuvadis_gene_expression.gene_name <span class="op">==</span> exercise_1_genes[<span class="dv">2</span>]].loc[:,exercise_1_individuals]</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>pex6_geuvadis_expression <span class="op">=</span> geuvadis_gene_expression[geuvadis_gene_expression.gene_name <span class="op">==</span> exercise_1_genes[<span class="dv">3</span>]].loc[:,exercise_1_individuals]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="5f4daab7-3313-4280-dc46-6d189c1e8801">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>nudt2_geuvadis_expression</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>We will sum the prediction for both haplotypes for each TSS, and take the sum of the resulting values. The function used here can also take the max instead of the sums.</p>
+<p>We have 3 utility functions to help us - plot_enformer_vs_guevadis - plot_predixcan_vs_geuvadis - plot_enformer_vs_predixcan (if you think this is necessary)</p>
+<div class="cell" data-outputid="7739e0d6-0361-4fd6-82e1-7f06eba81cc5">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>erap1_vs_geu <span class="op">=</span> plot_enformer_vs_geuvadis(prediction_results<span class="op">=</span>exercise_1_predictions, geuvadis_expression<span class="op">=</span>geuvadis_gene_expression,</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>                            interested_gene<span class="op">=</span>exercise_1_genes[<span class="dv">0</span>], interested_individuals<span class="op">=</span>exercise_1_individuals, how<span class="op">=</span><span class="st">'sum'</span>)</span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Correlation coefficient: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(erap1_vs_geu[<span class="dv">1</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="f86c49af-cc3d-43f8-80ec-062508155318">
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>pex6_vs_geu <span class="op">=</span> plot_enformer_vs_geuvadis(prediction_results<span class="op">=</span>exercise_1_predictions, geuvadis_expression<span class="op">=</span>geuvadis_gene_expression,</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>                            interested_gene<span class="op">=</span>exercise_1_genes[<span class="dv">3</span>], interested_individuals<span class="op">=</span>exercise_1_individuals, how<span class="op">=</span><span class="st">'sum'</span>)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Correlation coefficient: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(pex6_vs_geu[<span class="dv">1</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="a7da3825-9b21-4d56-932d-ec635525298a">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>nudt_vs_geu <span class="op">=</span> plot_enformer_vs_geuvadis(prediction_results<span class="op">=</span>exercise_1_predictions, geuvadis_expression<span class="op">=</span>geuvadis_gene_expression,</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>                            interested_gene<span class="op">=</span>exercise_1_genes[<span class="dv">1</span>], interested_individuals<span class="op">=</span>exercise_1_individuals, how<span class="op">=</span><span class="st">'sum'</span>)</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Correlation coefficient: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(nudt_vs_geu[<span class="dv">1</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="82b41343-c295-4b4d-b485-af291495e33f">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>erap2_vs_geu <span class="op">=</span> plot_enformer_vs_geuvadis(prediction_results<span class="op">=</span>exercise_1_predictions, geuvadis_expression<span class="op">=</span>geuvadis_gene_expression,</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>                            interested_gene<span class="op">=</span>exercise_1_genes[<span class="dv">2</span>], interested_individuals<span class="op">=</span>exercise_1_individuals, how<span class="op">=</span><span class="st">'sum'</span>)</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Correlation coefficient: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(erap2_vs_geu[<span class="dv">1</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now, we can see how Predixcan performs on these individuals</p>
+<div class="cell" data-outputid="d245f45e-a45c-4c48-f819-95f7dee22ffb">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>erap1_predix <span class="op">=</span> plot_predixcan_vs_geuvadis(interested_gene<span class="op">=</span>exercise_1_genes[<span class="dv">0</span>], interested_individuals<span class="op">=</span>exercise_1_individuals, geuvadis_expression<span class="op">=</span>geuvadis_gene_expression, predixcan_expression<span class="op">=</span>predixcan_gene_expression)</span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'The correlation coefficient: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(erap1_predix[<span class="dv">1</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="50e712e1-702c-4cd2-df84-40edb2e1dcb8">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>pex6_predix <span class="op">=</span> plot_predixcan_vs_geuvadis(interested_gene<span class="op">=</span>exercise_1_genes[<span class="dv">3</span>], interested_individuals<span class="op">=</span>exercise_1_individuals, geuvadis_expression<span class="op">=</span>geuvadis_gene_expression, predixcan_expression<span class="op">=</span>predixcan_gene_expression)</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'The correlation coefficient: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(pex6_predix[<span class="dv">1</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="a93acdf3-c3d4-40bb-f19e-ad481e9b063d">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>erap2_predix <span class="op">=</span> plot_predixcan_vs_geuvadis(interested_gene<span class="op">=</span>exercise_1_genes[<span class="dv">2</span>], interested_individuals<span class="op">=</span>exercise_1_individuals, geuvadis_expression<span class="op">=</span>geuvadis_gene_expression, predixcan_expression<span class="op">=</span>predixcan_gene_expression)</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'The correlation coefficient: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(erap2_predix[<span class="dv">1</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="845939e4-e00a-4897-a490-1534f73fc5b6">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>nudt2_predix <span class="op">=</span> plot_predixcan_vs_geuvadis(interested_gene<span class="op">=</span>exercise_1_genes[<span class="dv">1</span>], interested_individuals<span class="op">=</span>exercise_1_individuals, geuvadis_expression<span class="op">=</span>geuvadis_gene_expression, predixcan_expression<span class="op">=</span>predixcan_gene_expression)</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'The correlation coefficient: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(nudt2_predix[<span class="dv">1</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Quite neat and impressive!</p>
+</section>
+</section>
+<section id="exercise-2" class="level2">
+<h2 class="anchored" data-anchor-id="exercise-2"><strong>EXERCISE 2</strong></h2>
+<p>In this exercise, you will get your hands dirty, and run Enformer on your gene(s) of interest.</p>
+<ol type="1">
+<li><p>Select your favorite gene(s). <strong>Note that the more genes you use, the longer it will take to run</strong>.</p></li>
+<li><p>Randomly select 10 individuals, just because we don’t have all the computational power.</p></li>
+<li><p>Run predictions</p></li>
+</ol>
+<p>We only have data for a finite set of genes (sorry!). Here is a list of available genes you can use:</p>
+<div class="cell" data-outputid="944612e4-f856-4624-e9a6-a025205575a4">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>curl <span class="op">-</span>L https:<span class="op">//</span>uchicago.box.com<span class="op">/</span>shared<span class="op">/</span>static<span class="op">/</span>x8d7dx1ykefz49ep6sxot42v44sfvcv5.tsv <span class="op">--</span>output <span class="op">/</span>home<span class="op">/</span>s1mi<span class="op">/</span>enformer_tutorial<span class="op">/</span>all_genes.tsv</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"/home/s1mi/enformer_tutorial/all_genes.tsv"</span>, <span class="st">"r"</span>) <span class="im">as</span> ag:</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>  all_genes <span class="op">=</span> [line.strip() <span class="cf">for</span> line <span class="kw">in</span> ag]</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(all_genes))</span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"First 5 genes all_genes:"</span>, all_genes[<span class="dv">0</span>:<span class="dv">5</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol type="1">
+<li>Select your genes</li>
+</ol>
+<div class="cell" data-outputid="105b0902-3b12-4878-ddda-8c2d322d2473">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>my_genes <span class="op">=</span> [<span class="st">'ATAD3A'</span>]</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"My gene(s) is/are </span><span class="sc">{}</span><span class="st">"</span>.<span class="bu">format</span>(<span class="st">', '</span>.join(my_genes)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol start="2" type="1">
+<li>Read in the TSS txt files where those chromosome are located. If you have genes located on more than one chromosome, copy the <strong>pd.read_table</strong> line for each chromosome you have, and replace the chromosome number (ellipses) as appropriate.</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>my_chromosomes <span class="op">=</span> [<span class="st">'1'</span>] <span class="co"># put in the chromosomes where the genes are located. Just the numbers will do, or you can put them in as a string type</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>my_tss_list <span class="op">=</span> []</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> my_chromosomes:</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">chr</span> <span class="op">=</span> <span class="bu">str</span>(<span class="bu">chr</span>)</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>  bed_file <span class="op">=</span> <span class="st">'/home/s1mi/enformer_tutorial/tss_by_chr/chr</span><span class="sc">{}</span><span class="st">_tss_by_gene.txt'</span>.<span class="bu">format</span>(<span class="bu">chr</span>)</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>  my_tss_list.append(pd.read_table(bed_file, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)) <span class="co"># we read in the TSSs for each chromosome, and put them into a list</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol start="3" type="1">
+<li>Randomly select 10 individuals</li>
+</ol>
+<div class="cell" data-outputid="a3e1a0eb-3488-4634-8465-334ba3572e0e">
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="co"># let us set a seed to randomly select 10 individuals</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">2021</span>)  <span class="co"># replace ... with an integer you want</span></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>number_of_individuals <span class="op">=</span> <span class="dv">10</span></span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>my_individuals <span class="op">=</span> np.random.choice(a<span class="op">=</span>geuvadis_gene_expression.columns[<span class="dv">6</span>:<span class="op">-</span><span class="dv">1</span>], size<span class="op">=</span>number_of_individuals, replace<span class="op">=</span><span class="va">False</span>) <span class="co"># individuals we are interested in</span></span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>my_individuals</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol start="4" type="1">
+<li>We want to make sure that we have complete variation information for all 10 individuals.</li>
+</ol>
+<p>First, we need to download the variation bed files for these individuals</p>
+<div class="cell" data-outputid="25de8c34-1e39-499c-bd99-7c2810b38eb3">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>download_chrom_beds(chromosome<span class="op">=</span><span class="st">'1'</span>, genes<span class="op">=</span>my_genes) <span class="co"># remember that the genes should be on that chromosome, and you can use this code for each chromosome you have.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Read in the variation bed files</p>
+<div class="cell" data-outputid="f18fb43a-ca0b-4ad6-e571-f419e19347e0">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>my_missing_list <span class="op">=</span> <span class="bu">list</span>()</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> my_chromosomes:</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> gene <span class="kw">in</span> my_genes:</span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">chr</span> <span class="op">=</span> <span class="bu">str</span>(<span class="bu">chr</span>)</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>    file_path <span class="op">=</span> <span class="st">'/home/s1mi/enformer_tutorial/individual_beds/chr'</span> <span class="op">+</span> <span class="bu">chr</span> <span class="op">+</span> <span class="st">'/chr'</span> <span class="op">+</span> <span class="bu">chr</span> <span class="op">+</span> <span class="st">'_'</span> <span class="op">+</span> gene <span class="op">+</span> <span class="st">'.bed'</span></span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.exists(file_path):</span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>      <span class="cf">continue</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>    my_missing_list.append(check_individuals(file_path, my_individuals))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="question-4" class="level4">
+<h4 class="anchored" data-anchor-id="question-4"><strong><em>QUESTION 4</em></strong></h4>
+<p>Are there missing individuals? All answers, based on your results are correct. If there are missing individuals, can you remove them? You can add new code blocks as you like.</p>
+<div class="cell" data-outputid="06b151c0-3d6f-4f4a-f59b-d7246fa4c7f1">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>my_missing_list</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>It looks like we are almost set to make predictions.</p>
+<ol start="5" type="1">
+<li>Make predictions. First, we will collect the intervals for the genes we want, check the object and make sure we are on the right track. Next, we will call our <strong>run_predictions</strong> function.</li>
+</ol>
+<div class="cell" data-outputid="d651b2b2-d50d-4af3-e9f9-39722bdc7203">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>my_intervals <span class="op">=</span> collect_intervals(chromosomes<span class="op">=</span> my_chromosomes, gene_list<span class="op">=</span> my_genes) <span class="co"># here, we collect the intervals for that gene; replace ... with the right objects</span></span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>my_intervals</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-outputid="3c7c3263-c304-4c31-ba57-d74ea116b251">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>my_predictions <span class="op">=</span> run_predictions(gene_intervals<span class="op">=</span> my_intervals, tss_dataframe<span class="op">=</span> my_tss_list, individuals_list<span class="op">=</span>my_individuals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>At this point, we will leave you to make your own plots…</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>atad3a_geuvadis_expression <span class="op">=</span> geuvadis_gene_expression[geuvadis_gene_expression.gene_name <span class="op">==</span> my_genes[<span class="dv">0</span>]].loc[:,my_individuals]</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>atad3a_vs_geu <span class="op">=</span> plot_enformer_vs_geuvadis(prediction_results<span class="op">=</span>my_predictions, geuvadis_expression<span class="op">=</span>geuvadis_gene_expression, </span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>                            interested_gene<span class="op">=</span>my_genes[<span class="dv">0</span>], interested_individuals<span class="op">=</span>my_individuals, how<span class="op">=</span><span class="st">'sum'</span>)</span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'Correlation coefficient: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(atad3a_vs_geu[<span class="dv">1</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a>atad3a_predix <span class="op">=</span> plot_predixcan_vs_geuvadis(interested_gene<span class="op">=</span>my_genes[<span class="dv">0</span>], interested_individuals<span class="op">=</span>my_individuals, geuvadis_expression<span class="op">=</span>geuvadis_gene_expression, predixcan_expression<span class="op">=</span>predixcan_gene_expression)</span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">'The correlation coefficient: </span><span class="sc">{}</span><span class="st">'</span>.<span class="bu">format</span>(atad3a_predix[<span class="dv">1</span>]))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="average-haplotype-vs-average-epigenome" class="level2">
+<h2 class="anchored" data-anchor-id="average-haplotype-vs-average-epigenome">Average Haplotype vs Average Epigenome</h2>
+<p>Get ERAP2 interval:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb64"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a>ERAP2_intervals <span class="op">=</span> collect_intervals(chromosomes<span class="op">=</span>[<span class="st">'5'</span>], gene_list<span class="op">=</span>[<span class="st">'ERAP2'</span>])</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>ERAP2_target_intervals <span class="op">=</span> collect_target_intervals(ERAP2_intervals)</span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>ERAP2_intervals, ERAP2_target_intervals</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Select random individual</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>rand_individual <span class="op">=</span> np.random.choice(a<span class="op">=</span>geuvadis_gene_expression.columns[<span class="dv">6</span>:<span class="op">-</span><span class="dv">1</span>], size<span class="op">=</span><span class="dv">1</span>, replace<span class="op">=</span><span class="va">False</span>) <span class="co"># individuals we are interested in</span></span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>rand_individual</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Run predictions (returns average epigenome):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb66"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a>my_predictions <span class="op">=</span> run_predictions(gene_intervals<span class="op">=</span> my_intervals, tss_dataframe<span class="op">=</span> my_tss_list, individuals_list<span class="op">=</span>my_individuals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

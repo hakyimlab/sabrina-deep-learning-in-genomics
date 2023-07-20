@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-06-26">
-<meta name="description" content="A couple snippets on the Polaris computing system">
+<meta name="dcterms.date" content="2023-06-20">
+<meta name="description" content="This post will outline the steps I took to prepare rat data for the enformer pipeline.">
 
-<title>deep-learning-in-genomics - Getting started on Polaris</title>
+<title>deep-learning-in-genomics - A test run of the Enformer pipeline on Palmer Lab rat data</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -22,40 +22,6 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -143,10 +109,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Getting started on Polaris</h1>
+      <h1 class="title">A test run of the Enformer pipeline on Palmer Lab rat data</h1>
                   <div>
         <div class="description">
-          A couple snippets on the Polaris computing system
+          This post will outline the steps I took to prepare rat data for the enformer pipeline.
         </div>
       </div>
                 </div>
@@ -165,7 +131,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">June 26, 2023</p>
+        <p class="date">June 20, 2023</p>
       </div>
     </div>
     
@@ -183,83 +149,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References</h2>
-<p>More info can be found on:</p>
+<p>All of the data is publicly available</p>
 <ul>
-<li><a href="https://docs.alcf.anl.gov/polaris/getting-started/">Main Page</a></li>
-<li><a href="https://docs.alcf.anl.gov/running-jobs/example-job-scripts/">Example Job Scripts</a></li>
+<li><a href="https://hgdownload.soe.ucsc.edu/goldenPath/rn7/bigZips/rn7.fa.gz%20%7C%20gunzip%20-c%20%3E%20%7Bfasta_file%7D">Reference Genome</a></li>
+<li><a href="https://ratgtex.org/data/geno/Brain.rn7.vcf.gz">Genotypes</a></li>
+<li><a href="https://ratgtex.org/data/expr/Brain.rn7.expr.tpm.bed.gz">Gene Expression</a></li>
 </ul>
-</section>
-<section id="shortcuts" class="level2">
-<h2 class="anchored" data-anchor-id="shortcuts">Shortcuts</h2>
+<p>First, I checked that enformer could run on the rat data in python using code provided by deepmind.</p>
 <ul>
-<li>Login: <code>ssh s1mi@polaris.alcf.anl.gov</code></li>
-<li>Main project storage: <code>/lus/grand/projects/TFXcan</code></li>
-<li>Interactive Job: <code>qsub -I -A TFXcan -l select=1 -l filesystems=home:grand -l walltime=1:00:00 -q debug</code></li>
+<li><a href="code/000789972A_chr1_1001138_1014540.py">000789972A_chr1_1001138_1014540.py</a>: Personalized enformer run on individual 000789972A on chromosome 1, 1001138 to 1014540.</li>
 </ul>
-</section>
-<section id="basic-job-script" class="level2">
-<h2 class="anchored" data-anchor-id="basic-job-script">Basic Job Script</h2>
-<pre><code>#!/bin/bash
-#PBS -A $PROJECT
-#PBS -lwalltime=01:00:00
-#PBS -lselect=4
-#PBS -lsystem=polaris
-#PBS -lfilesystems=home:eagle
-
-rpn=4 # assume 1 process per GPU
-procs=$((PBS_NODES*rpn))
-
-# job to “run” from your submission directory
-cd $PBS_O_WORKDIR
-
-module load &lt;something&gt;
-
-set +x # report all commands to stderr
-env
-mpiexec -n $procs -ppn $rpn --cpu-bind core -genvall ./bin &lt;opts&gt;
-</code></pre>
-</section>
-<section id="conda-environments" class="level2">
-<h2 class="anchored" data-anchor-id="conda-environments">Conda Environments</h2>
-<p>Before activating and deactivating environments, we need to run <code>module load conda</code>.</p>
-<p>To create an environment:</p>
-<pre><code>module load conda
-
-export http_proxy=http://proxy.alcf.anl.gov:3128
-export https_proxy=$http_proxy
-
-conda create -n ml-python python=3.10
-conda activate ml-python
-conda install -y jupyter nb_conda ipykernel mpi
-conda install -y pytorch torchvision -c pytorch
-conda install -c conda-forge tensorflow
-python -m ipykernel install --user --name ml-python</code></pre>
-<p>The last line creates a new directory <code>~/.local/share/jupyter/kernels/ml-python</code>. We add a couple lines to <code>kernel.json</code> so that we can use the new environment in the our Jupyter notebooks:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"argv"</span><span class="fu">:</span> <span class="ot">[</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"/home/s1mi/.conda/envs/ml-python/bin/python"</span><span class="ot">,</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"-m"</span><span class="ot">,</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"ipykernel_launcher"</span><span class="ot">,</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"-f"</span><span class="ot">,</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"{connection_file}"</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"display_name"</span><span class="fu">:</span> <span class="st">"ml-python"</span><span class="fu">,</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"language"</span><span class="fu">:</span> <span class="st">"python"</span><span class="fu">,</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"env"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"CONDA_PREFIX"</span><span class="fu">:</span> <span class="st">"/home/s1mi/.conda/envs/ml-python"</span><span class="fu">,</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"PATH"</span><span class="fu">:</span> <span class="st">"/home/s1mi/.conda/envs/ml-python"</span><span class="fu">,</span></span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"http_proxy"</span><span class="fu">:</span> <span class="st">"http://proxy.alcf.anl.gov:3128"</span><span class="fu">,</span></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"https_proxy"</span><span class="fu">:</span> <span class="st">"http://proxy.alcf.anl.gov:3128"</span></span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"metadata"</span><span class="fu">:</span> <span class="fu">{</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"debugger"</span><span class="fu">:</span> <span class="kw">true</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
