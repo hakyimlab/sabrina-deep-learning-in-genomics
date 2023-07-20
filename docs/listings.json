@@ -2,7 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/post-with-code/index.html",
+      "/posts/polaris-intro/index.html",
+      "/posts/week-1/index.html",
       "/posts/llm-in-molecular-biology-article/index.html",
       "/posts/welcome/index.html"
     ]

@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/post-with-code/index.html</loc>
-    <lastmod>2023-06-21T17:27:17.351Z</lastmod>
-  </url>
-  <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/llm-in-molecular-biology-article/index.html</loc>
-    <lastmod>2023-06-21T17:27:17.761Z</lastmod>
+    <lastmod>2023-07-20T15:08:23.370Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/welcome/index.html</loc>
-    <lastmod>2023-06-21T17:27:18.108Z</lastmod>
+    <lastmod>2023-07-20T15:08:23.705Z</lastmod>
+  </url>
+  <url>
+    <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/week-1/index.html</loc>
+    <lastmod>2023-07-20T15:08:25.124Z</lastmod>
+  </url>
+  <url>
+    <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/polaris-intro/index.html</loc>
+    <lastmod>2023-07-20T15:08:25.466Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/index.html</loc>
-    <lastmod>2023-06-21T17:27:18.631Z</lastmod>
+    <lastmod>2023-07-20T15:08:25.996Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/about.html</loc>
-    <lastmod>2023-06-21T17:27:18.936Z</lastmod>
+    <lastmod>2023-07-20T15:08:26.298Z</lastmod>
   </url>
 </urlset>

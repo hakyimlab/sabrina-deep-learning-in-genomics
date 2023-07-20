@@ -1,0 +1,92 @@
+---
+title: "Getting started on Polaris"
+description: "A couple snippets on the Polaris computing system"
+author: "Sabrina Mi"
+date: "6/26/23"
+---
+
+## References
+
+More info can be found on:
+
+* [Main Page](https://docs.alcf.anl.gov/polaris/getting-started/)
+* [Example Job Scripts](https://docs.alcf.anl.gov/running-jobs/example-job-scripts/)
+
+## Shortcuts
+
+* Login: `ssh s1mi@polaris.alcf.anl.gov`
+* Main project storage: `/lus/grand/projects/TFXcan`
+* Interactive Job: `qsub -I -A TFXcan -l select=1 -l filesystems=home:grand -l walltime=1:00:00 -q debug`
+
+## Basic Job Script
+
+```
+#!/bin/bash
+#PBS -A $PROJECT
+#PBS -lwalltime=01:00:00
+#PBS -lselect=4
+#PBS -lsystem=polaris
+#PBS -lfilesystems=home:eagle
+
+rpn=4 # assume 1 process per GPU
+procs=$((PBS_NODES*rpn))
+
+# job to “run” from your submission directory
+cd $PBS_O_WORKDIR
+
+module load <something>
+
+set +x # report all commands to stderr
+env
+mpiexec -n $procs -ppn $rpn --cpu-bind core -genvall ./bin <opts>
+
+```
+
+
+## Conda Environments
+
+Before activating and deactivating environments, we need to run `module load conda`.
+
+To create an environment:
+
+```
+module load conda
+
+export http_proxy=http://proxy.alcf.anl.gov:3128
+export https_proxy=$http_proxy
+
+conda create -n ml-python python=3.10
+conda activate ml-python
+conda install -y jupyter nb_conda ipykernel mpi
+conda install -y pytorch torchvision -c pytorch
+conda install -c conda-forge tensorflow
+python -m ipykernel install --user --name ml-python
+```
+
+The last line creates a new directory `~/.local/share/jupyter/kernels/ml-python`. We add a couple lines to `kernel.json` so that we can use the new environment in the our Jupyter notebooks:
+
+
+```json
+{
+  "argv": [
+    "/home/s1mi/.conda/envs/ml-python/bin/python",
+    "-m",
+    "ipykernel_launcher",
+    "-f",
+    "{connection_file}"
+  ],
+  "display_name": "ml-python",
+  "language": "python",
+  "env": {
+    "CONDA_PREFIX": "/home/s1mi/.conda/envs/ml-python",
+    "PATH": "/home/s1mi/.conda/envs/ml-python",
+    "http_proxy": "http://proxy.alcf.anl.gov:3128",
+    "https_proxy": "http://proxy.alcf.anl.gov:3128"
+  },
+  "metadata": {
+    "debugger": true
+  }
+}
+```
+
+

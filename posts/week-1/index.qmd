@@ -1,0 +1,110 @@
+---
+title: "Week 1"
+description: "This week we learned the basics of VS Code, Python, and NumPy."
+author: "Sabrina Mi"
+date: "6/23/2023"
+jupyter: torch
+---
+
+Here's my notes from the [w3 NumPy tutorial](https://www.w3schools.com/python/numpy/numpy_intro.asp):
+
+## Data Types in Numpy:
+
+By default, Python has strings, integer, float, boolean, and complex. NumPy has extra data types:
+
+* i: integer
+* b: boolean
+* u: unsigned integer
+* f: float
+* c: complex float
+* m: timedelta
+* M: datetime
+* O: object
+* S: string
+* U: unicode string
+* V: void
+
+# PyTorch Notes
+
+PyTorch is a machine learning framework leveraging two key features:
+
+* Tensor computing on GPUs
+* Deep neural networks on an automatic differentiation engine
+
+Deep learning softwares including Enformer are built on top of PyTorch.
+
+We covered the basics of the pytorch library in Python, starting with [Tensors](https://pytorch.org/tutorials/beginner/blitz/tensor_tutorial.html). Tensors function very similarly to NumPy arrays, but the operations can be run on GPUs. As a result, the tensor operations have counterparts in the numpy library.
+
+We'll only write about new concepts:
+
+### Tensors
+
+By default, tensors are intialized on CPU. To move a tensor from CPU to GPU, we run:
+
+```{python}
+import torch
+import numpy as np
+
+data = [[1, 2], [3, 4]]
+x_data = torch.tensor(data)
+print(x_data)
+
+```
+
+```{python}
+if torch.cuda.is_available():
+  tensor = tensor.to('cuda')
+  print(f"Device tensor is stored on: {tensor.device}")
+
+```
+
+Tensors on the CPU and NumPy arrays can share their underlying memory
+locations, and changing one will change	the other.
+
+Below we convert a torch tensor to numpy array and add 1 to every element.
+
+```python
+t = torch.ones(5)
+print(f"t: {t}")
+n = t.numpy()
+print(f"n: {n}")
+
+```
+
+```python
+t.add_(1)
+print(f"t: {t}")
+print(f"n: {n}")
+
+```
+
+### Neural Networks
+
+
+We use `torch.nn` and `torch.autograd` packages to develop neural networks.
+
+We learned how to compute gradients for backward propagation with `torch.autograd` automatic differentiation. 
+
+We can `torch.nn` to first define a neural network in a `forward` function. Next, we chose a loss function, `nn.MSELoss` and run back prop as before. We update the weights with SGD update rule:
+
+```
+weight = weight - learning_rate * gradient
+
+```
+
+`torch.optim` includes various update rules that take parameters and learning rate as input.
+
+
+We summarize the typical training procedure for a neural network:
+
+- Define the neural network that has some learnable parameters (or
+  weights)
+- Iterate over a dataset of inputs
+- Process input through the network
+- Compute the loss (how far is the output from being correct)
+- Propagate gradients back into the network’s parameters
+- Update the weights of the network, typically using a simple update rule:
+  ``weight = weight - learning_rate * gradient``
+
+Lastly, we looked at training on the CIFAR-10 dataset. The process involved the same steps as before, but with a more complex network and more iterations in the training process. We also tested the model.
+

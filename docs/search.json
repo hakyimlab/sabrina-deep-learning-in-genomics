@@ -1,12 +1,5 @@
 [
   {
-    "objectID": "posts/post-with-code/index.html",
-    "href": "posts/post-with-code/index.html",
-    "title": "Post With Code",
-    "section": "",
-    "text": "This is a post with executable code."
-  },
-  {
     "objectID": "posts/llm-in-molecular-biology-article/index.html",
     "href": "posts/llm-in-molecular-biology-article/index.html",
     "title": "Overview of LLM in Molecular Biology article by Serafim Batzoglou",
@@ -56,11 +49,60 @@
     "text": "This is the first post in a Quarto blog. Welcome!\n\nSince this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
   },
   {
+    "objectID": "posts/week-1/index.html",
+    "href": "posts/week-1/index.html",
+    "title": "Week 1",
+    "section": "",
+    "text": "Here’s my notes from the w3 NumPy tutorial:"
+  },
+  {
+    "objectID": "posts/week-1/index.html#data-types-in-numpy",
+    "href": "posts/week-1/index.html#data-types-in-numpy",
+    "title": "Week 1",
+    "section": "Data Types in Numpy:",
+    "text": "Data Types in Numpy:\nBy default, Python has strings, integer, float, boolean, and complex. NumPy has extra data types:\n\ni: integer\nb: boolean\nu: unsigned integer\nf: float\nc: complex float\nm: timedelta\nM: datetime\nO: object\nS: string\nU: unicode string\nV: void"
+  },
+  {
+    "objectID": "posts/polaris-intro/index.html",
+    "href": "posts/polaris-intro/index.html",
+    "title": "Getting started on Polaris",
+    "section": "",
+    "text": "More info can be found on:\n\nMain Page\nExample Job Scripts"
+  },
+  {
+    "objectID": "posts/polaris-intro/index.html#references",
+    "href": "posts/polaris-intro/index.html#references",
+    "title": "Getting started on Polaris",
+    "section": "",
+    "text": "More info can be found on:\n\nMain Page\nExample Job Scripts"
+  },
+  {
+    "objectID": "posts/polaris-intro/index.html#shortcuts",
+    "href": "posts/polaris-intro/index.html#shortcuts",
+    "title": "Getting started on Polaris",
+    "section": "Shortcuts",
+    "text": "Shortcuts\n\nLogin: ssh s1mi@polaris.alcf.anl.gov\nMain project storage: /lus/grand/projects/TFXcan\nInteractive Job: qsub -I -A TFXcan -l select=1 -l filesystems=home:grand -l walltime=1:00:00 -q debug"
+  },
+  {
+    "objectID": "posts/polaris-intro/index.html#basic-job-script",
+    "href": "posts/polaris-intro/index.html#basic-job-script",
+    "title": "Getting started on Polaris",
+    "section": "Basic Job Script",
+    "text": "Basic Job Script\n#!/bin/bash\n#PBS -A $PROJECT\n#PBS -lwalltime=01:00:00\n#PBS -lselect=4\n#PBS -lsystem=polaris\n#PBS -lfilesystems=home:eagle\n\nrpn=4 # assume 1 process per GPU\nprocs=$((PBS_NODES*rpn))\n\n# job to “run” from your submission directory\ncd $PBS_O_WORKDIR\n\nmodule load &lt;something&gt;\n\nset +x # report all commands to stderr\nenv\nmpiexec -n $procs -ppn $rpn --cpu-bind core -genvall ./bin &lt;opts&gt;"
+  },
+  {
+    "objectID": "posts/polaris-intro/index.html#conda-environments",
+    "href": "posts/polaris-intro/index.html#conda-environments",
+    "title": "Getting started on Polaris",
+    "section": "Conda Environments",
+    "text": "Conda Environments\nBefore activating and deactivating environments, we need to run module load conda.\nTo create an environment:\nmodule load conda\n\nexport http_proxy=http://proxy.alcf.anl.gov:3128\nexport https_proxy=$http_proxy\n\nconda create -n ml-python python=3.10\nconda activate ml-python\nconda install -y jupyter nb_conda ipykernel mpi\nconda install -y pytorch torchvision -c pytorch\nconda install -c conda-forge tensorflow\npython -m ipykernel install --user --name ml-python\nThe last line creates a new directory ~/.local/share/jupyter/kernels/ml-python. We add a couple lines to kernel.json so that we can use the new environment in the our Jupyter notebooks:\n{\n  \"argv\": [\n    \"/home/s1mi/.conda/envs/ml-python/bin/python\",\n    \"-m\",\n    \"ipykernel_launcher\",\n    \"-f\",\n    \"{connection_file}\"\n  ],\n  \"display_name\": \"ml-python\",\n  \"language\": \"python\",\n  \"env\": {\n    \"CONDA_PREFIX\": \"/home/s1mi/.conda/envs/ml-python\",\n    \"PATH\": \"/home/s1mi/.conda/envs/ml-python\",\n    \"http_proxy\": \"http://proxy.alcf.anl.gov:3128\",\n    \"https_proxy\": \"http://proxy.alcf.anl.gov:3128\"\n  },\n  \"metadata\": {\n    \"debugger\": true\n  }\n}"
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "deep-learning-in-genomics",
     "section": "",
-    "text": "Post With Code\n\n\n\n\n\n\n\nnews\n\n\ncode\n\n\nanalysis\n\n\n\n\n\n\n\n\n\n\n\nJun 20, 2023\n\n\nHarlow Malloc\n\n\n\n\n\n\n  \n\n\n\n\nOverview of LLM in Molecular Biology article by Serafim Batzoglou\n\n\n\n\n\nWe’ll review key points from each section of Large Language Models in Molecular Biology\n\n\n\n\n\n\nJun 20, 2023\n\n\n\n\n\n\n  \n\n\n\n\nWelcome To My Blog\n\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\n\n\nJun 17, 2023\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
+    "text": "Getting started on Polaris\n\n\n\n\n\nA couple snippets on the Polaris computing system\n\n\n\n\n\n\nJun 26, 2023\n\n\nSabrina Mi\n\n\n\n\n\n\n  \n\n\n\n\nWeek 1\n\n\n\n\n\nThis week we learned the basics of VS Code, Python, and NumPy.\n\n\n\n\n\n\nJun 23, 2023\n\n\nSabrina Mi\n\n\n\n\n\n\n  \n\n\n\n\nOverview of LLM in Molecular Biology article by Serafim Batzoglou\n\n\n\n\n\nWe’ll review key points from each section of Large Language Models in Molecular Biology\n\n\n\n\n\n\nJun 20, 2023\n\n\n\n\n\n\n  \n\n\n\n\nWelcome To My Blog\n\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\n\n\nJun 17, 2023\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
