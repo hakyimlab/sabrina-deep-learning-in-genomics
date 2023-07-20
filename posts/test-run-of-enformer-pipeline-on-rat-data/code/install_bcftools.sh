@@ -1,0 +1,38 @@
+module load gcc/11.2.0
+cd Github
+INSTALL_DIR=/home/s1mi/bin
+git clone https://github.com/madler/zlib.git
+cd zlib
+./configure --prefix=$INSTALL_DIR
+make
+make install
+
+cd ..
+curl -L 'https://sourceforge.net/projects/bzip2/files/bzip2-1.0.6.tar.gz' > bzip2-1.0.6.tar.gz
+tar xvzf bzip2-1.0.6.tar.gz
+cd bzip2-1.0.6
+make -f Makefile-libbz2_so
+
+cd ..
+curl -L 'https://tukaani.org/xz/xz-5.2.4.tar.gz' > xz-5.2.4.tar.gz
+tar xvzf xz-5.2.4.tar.gz
+cd xz-5.2.4
+./configure --prefix=$INSTALL_DIR
+make
+make install
+
+cd ..
+git clone --recurse-submodules https://github.com/samtools/htslib.git
+cd htslib/
+autoconf
+autoheader
+./configure --prefix=$INSTALL_DIR CPPFLAGS="-I$INSTALL_DIR/include" LDFLAGS="-L$INSTALL_DIR/lib -Wl,-R$INSTALL_DIR/lib"
+make
+make install
+
+cd ..
+git clone https://github.com/samtools/bcftools.git
+cd bcftools
+autoconf
+autoheader
+./configure --prefix=$INSTALL_DIR CPPFLAGS="-I$INSTALL_DIR/include" LDFLAGS="-L$INSTALL_DIR/lib -Wl,-R$INSTALL_DIR/lib"

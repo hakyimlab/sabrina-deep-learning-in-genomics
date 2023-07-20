@@ -1,0 +1,20 @@
+---
+title: A test run of the Enformer pipeline on Palmer Lab rat data
+description: This post will outline the steps I took to prepare rat data for the enformer pipeline.
+author: Sabrina Mi
+date: 7/20/23
+---
+All of the data is publicly available
+
+* [Reference Genome](https://hgdownload.soe.ucsc.edu/goldenPath/rn7/bigZips/rn7.fa.gz | gunzip -c > {fasta_file}
+)
+* [Genotypes](https://ratgtex.org/data/geno/Brain.rn7.vcf.gz)
+* [Gene Expression](https://ratgtex.org/data/expr/Brain.rn7.expr.tpm.bed.gz)
+
+First, I checked that enformer could run on the rat data in python using code provided by deepmind. 
+
+* [000789972A_chr1_1001138_1014540.py](code/000789972A_chr1_1001138_1014540.py): Personalized enformer run on individual 000789972A on chromosome 1, 1001138 to 1014540.
+* [EnformerVCF.py](code/EnformerVCF.py): Helper functions provided by deepmind along with some VCF handling functions.
+
+Next, I needed to preprocess the data for the pipeline. This included splitting the VCF by chromosome, indexing the new VCFs, and creating a list of individuals.
+(code/prepare_pipeline_inputs.sh) 
