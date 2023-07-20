@@ -2,10 +2,13 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/hackathon-enformer-usage/Hackathon_enformer_usage_participant.html",
+      "/posts/comparing-enformer-prediction-averages/comparing-averages.html",
       "/posts/polaris-intro/index.html",
       "/posts/week-1/index.html",
+      "/posts/post-with-code/index.html",
       "/posts/llm-in-molecular-biology-article/index.html",
-      "/posts/welcome/index.html"
+      "/posts/test-run-of-enformer-pipeline-on-rat-data/index.html"
     ]
   }
 ]
