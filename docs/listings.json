@@ -2,13 +2,15 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/hackathon-enformer-usage/Hackathon_enformer_usage_participant.html",
+      "/posts/comparing-enformer-CAGE-to-observed-gene-expression/comparing-gene-expression.html",
+      "/posts/running-enformer-locally/scripts/misc.html",
       "/posts/comparing-enformer-predictions-in-overlapping-intervals/results.html",
-      "/posts/comparing-enformer-prediction-averages/comparing-averages.html",
+      "/posts/running-enformer-on-all-regions-reference/reference_epigenome.html",
+      "/posts/hackathon-enformer-usage/Hackathon_enformer_usage_participant.html",
+      "/posts/running-enformer-locally/run_locally.html",
       "/posts/test-run-of-enformer-pipeline-on-rat-data/index.html",
       "/posts/polaris-intro/index.html",
       "/posts/week-1/index.html",
-      "/posts/post-with-code/index.html",
       "/posts/llm-in-molecular-biology-article/index.html"
     ]
   }
