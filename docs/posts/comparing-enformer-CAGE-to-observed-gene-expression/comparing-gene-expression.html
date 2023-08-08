@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.361">
+<meta name="generator" content="quarto-1.3.433">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -163,36 +163,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<div class="cell" data-execution_count="101">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>gene_expr_bed <span class="op">=</span> <span class="st">"/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/data-Github/rat-genomic-analysis/Enformer-Predictions/data/Brain.rn7.expr.tpm.bed"</span></span>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>gene_expr_bed <span class="op">=</span> <span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed"</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>obs_gene_expr <span class="op">=</span> pd.read_csv(gene_expr_bed, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/var/folders/1q/nqyt2x9s071fkn235hfq1p680000gn/T/ipykernel_33538/2078132498.py:5: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+<pre><code>/tmp/ipykernel_156512/1612639889.py:5: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
   obs_gene_expr = pd.read_csv(gene_expr_bed, sep="\t", header=0, index_col='gene_id')</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="102">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">## TEMPORARILY SUBSET OBS GENE EXPR DATA TO INDIVIDUALS IN BOX FOLDER</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="st">"/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/data-Github/rat-genomic-analysis/Enformer-Predictions/predictions"</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> [<span class="bu">file</span> <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> os.listdir(predictions_dir)]</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>obs_gene_expr <span class="op">=</span> obs_gene_expr[individuals]</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> [<span class="st">'ENSRNOG00000001342'</span>, <span class="st">'ENSRNOG00000020624'</span>, <span class="st">'ENSRNOG00000058006'</span>, <span class="st">'ENSRNOG00000060045'</span>]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#print(obs_gene_expr.loc[gene_list])</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>pred_vs_obs <span class="op">=</span> {}</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    obs <span class="op">=</span> obs_gene_expr.loc[gene][<span class="dv">3</span>:]</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    pred_vs_obs[gene] <span class="op">=</span> pd.DataFrame({<span class="st">"observed"</span>: obs, <span class="st">"predicted"</span>: np.zeros(obs.shape)})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="103">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> [<span class="st">'ENSRNOG00000001342'</span>, <span class="st">'ENSRNOG00000020624'</span>, <span class="st">'ENSRNOG00000058006'</span>, <span class="st">'ENSRNOG00000060045'</span>]</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#print(obs_gene_expr.loc[gene_list])</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>pred_vs_obs <span class="op">=</span> {}</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    obs <span class="op">=</span> obs_gene_expr.loc[gene][<span class="dv">3</span>:]</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    pred_vs_obs[gene] <span class="op">=</span> pd.DataFrame({<span class="st">"observed"</span>: obs, <span class="st">"predicted"</span>: np.zeros(obs.shape)})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    gene_annot <span class="op">=</span> annot_df.loc[gene]</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(gene_annot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="104">
+<div class="cell" data-execution_count="12">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_tss_bin(output_window_coords_resized, tss_position, output_length<span class="op">=</span><span class="dv">114688</span>, bin_length<span class="op">=</span><span class="dv">128</span>, rc<span class="op">=</span><span class="va">False</span>):</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">'''</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Computes the bin index of the enformer output bin containing the TSS</span></span>
@@ -227,8 +223,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>            <span class="co"># print(center)</span></span>
 <span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>            <span class="cf">return</span> [center<span class="op">-</span><span class="dv">1</span>,center,center<span class="op">+</span><span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="36">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>annot_df <span class="op">=</span> pd.read_csv(<span class="st">"/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/data-Github/rat-genomic-analysis/Enformer-Predictions/data/rn7.gene.txt"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, index_col<span class="op">=</span><span class="st">'geneId'</span>)</span>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>annot_df <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/rn7.gene.txt"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, index_col<span class="op">=</span><span class="st">'geneId'</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(annot_df.loc[gene_list])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                            geneSymbol chromosome      start        end  \
@@ -276,79 +272,129 @@ ENSRNOG00000060045    False     False
 [4 rows x 68 columns]</code></pre>
 </div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/var/folders/1q/nqyt2x9s071fkn235hfq1p680000gn/T/ipykernel_33538/1256236689.py:1: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
-  annot_df = pd.read_csv("/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/data-Github/rat-genomic-analysis/Enformer-Predictions/data/rn7.gene.txt", sep="\t", index_col='geneId')</code></pre>
+<pre><code>/tmp/ipykernel_156512/3990301426.py:1: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
+  annot_df = pd.read_csv("/home/s1mi/enformer_rat_data/rn7.gene.txt", sep="\t", index_col='geneId')</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="105">
+<div class="cell" data-execution_count="15">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> kipoiseq <span class="co"># for manipulating fasta files</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> kipoiseq <span class="im">import</span> Interval <span class="co"># same as above, really</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="st">"/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/data-Github/rat-genomic-analysis/Enformer-Predictions/predictions"</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="st">"/home/s1mi/enformer_rat_pipeline/predictions_folder/personalized_enformer_minimal_some_regions/predictions_2023-07-26/enformer_predictions"</span></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(gene)</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    gene_annot <span class="op">=</span> annot_df.loc[gene]</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    interval_obj <span class="op">=</span> Interval(<span class="st">"chr"</span> <span class="op">+</span> <span class="bu">str</span>(gene_annot[<span class="st">'chromosome'</span>]), gene_annot[<span class="st">'start'</span>], gene_annot[<span class="st">'end'</span>])</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    tss_bins <span class="op">=</span> compute_tss_bin(interval_obj.resize(<span class="dv">114688</span>), gene_annot[<span class="st">'tss'</span>])</span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> tss_bins <span class="kw">is</span> <span class="va">None</span>:</span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Skipping"</span>, gene)</span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span></span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    interval <span class="op">=</span> <span class="ss">f"chr</span><span class="sc">{</span>gene_annot[<span class="st">'chromosome'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>gene_annot[<span class="st">'start'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>gene_annot[<span class="st">'end'</span>]<span class="sc">}</span><span class="ss">"</span></span>
-<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    i<span class="op">=</span><span class="dv">0</span></span>
-<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> pred_vs_obs[gene].index:</span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>        predictions <span class="op">=</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>predictions_dir<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>individual<span class="sc">}</span><span class="ss">/haplotype1/</span><span class="sc">{</span>interval<span class="sc">}</span><span class="ss">_predictions.h5"</span>, <span class="st">"r"</span>)</span>
-<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>        matrix <span class="op">=</span> predictions[interval][()]</span>
-<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>        extra_bins <span class="op">=</span>  [tss_bins[<span class="dv">0</span>] <span class="op">-</span> <span class="dv">1</span>] <span class="op">+</span> tss_bins <span class="op">+</span> [tss_bins[<span class="dv">2</span>] <span class="op">+</span> <span class="dv">1</span>]</span>
-<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">&lt;</span> <span class="dv">5</span>:</span>
-<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(matrix[extra_bins, <span class="dv">4980</span>])</span>
-<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>            i <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>        pred_expr <span class="op">=</span> np.average(matrix[tss_bins, <span class="dv">4980</span>])</span>
-<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>        pred_vs_obs[gene].loc[individual, <span class="st">"predicted"</span>] <span class="op">=</span> pred_expr</span>
-<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(gene)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>    gene_annot <span class="op">=</span> annot_df.loc[gene]</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>    interval_obj <span class="op">=</span> Interval(<span class="st">"chr"</span> <span class="op">+</span> <span class="bu">str</span>(gene_annot[<span class="st">'chromosome'</span>]), gene_annot[<span class="st">'start'</span>], gene_annot[<span class="st">'end'</span>])</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    tss_bins <span class="op">=</span> compute_tss_bin(interval_obj.resize(<span class="dv">114688</span>), gene_annot[<span class="st">'tss'</span>])</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> tss_bins <span class="kw">is</span> <span class="va">None</span>:</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Skipping"</span>, gene)</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>    interval <span class="op">=</span> <span class="ss">f"chr</span><span class="sc">{</span>gene_annot[<span class="st">'chromosome'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>gene_annot[<span class="st">'start'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>gene_annot[<span class="st">'end'</span>]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>    i<span class="op">=</span><span class="dv">0</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> pred_vs_obs[gene].index:</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>        predictions <span class="op">=</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>predictions_dir<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>individual<span class="sc">}</span><span class="ss">/haplotype1/</span><span class="sc">{</span>interval<span class="sc">}</span><span class="ss">_predictions.h5"</span>, <span class="st">"r"</span>)</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>        matrix <span class="op">=</span> predictions[interval][()]</span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>        extra_bins <span class="op">=</span>  [tss_bins[<span class="dv">0</span>] <span class="op">-</span> <span class="dv">1</span>] <span class="op">+</span> tss_bins <span class="op">+</span> [tss_bins[<span class="dv">2</span>] <span class="op">+</span> <span class="dv">1</span>]</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">&lt;</span> <span class="dv">5</span>:</span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(matrix[extra_bins, <span class="dv">4980</span>])</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>            i <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>        pred_expr <span class="op">=</span> np.average(matrix[tss_bins, <span class="dv">4980</span>])</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>        pred_vs_obs[gene].loc[individual, <span class="st">"predicted"</span>] <span class="op">=</span> pred_expr</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>ENSRNOG00000001342
-[0.00573737 0.00508188 0.00727259 0.00560077 0.0076798 ]
-[0.00573869 0.00508314 0.00727495 0.00560294 0.00768098]
 [0.00573627 0.00507914 0.0072732  0.00559864 0.00767822]
 [0.00573627 0.00507914 0.0072732  0.00559864 0.00767822]
-[0.00573737 0.00508188 0.00727259 0.00560077 0.0076798 ]
+[0.00573627 0.00507914 0.0072732  0.00559864 0.00767822]
+[0.00573627 0.00507914 0.0072732  0.00559864 0.00767822]
+[0.00573627 0.00507914 0.0072732  0.00559864 0.00767822]
 ENSRNOG00000020624
 [5.7827654  4.293017   7.8872423  0.10644712 0.05631344]
+[5.7819533  4.290507   7.8848658  0.10634203 0.05630142]
 [5.7827654  4.293017   7.8872423  0.10644712 0.05631344]
-[5.7819533  4.290507   7.8848658  0.10634203 0.05630142]
-[5.7819533  4.290507   7.8848658  0.10634203 0.05630142]
-[5.7819533  4.290507   7.8848658  0.10634203 0.05630142]
+[5.7827654  4.293017   7.8872423  0.10644712 0.05631344]
+[5.7827654  4.293017   7.8872423  0.10644712 0.05631344]
 ENSRNOG00000058006
+[1.4247483e+01 5.7383850e-02 1.2978141e-02 9.7031957e-03 1.5117653e-02]
 [1.42411528e+01 5.73353358e-02 1.29730888e-02 9.69883148e-03
  1.51052885e-02]
-[1.42411528e+01 5.73353358e-02 1.29730888e-02 9.69883148e-03
- 1.51052885e-02]
-[1.42411528e+01 5.73353358e-02 1.29730888e-02 9.69883148e-03
- 1.51052885e-02]
-[1.4251710e+01 5.7409633e-02 1.2985041e-02 9.7029284e-03 1.5121926e-02]
-[1.42411528e+01 5.73353358e-02 1.29730888e-02 9.69883148e-03
- 1.51052885e-02]
+[1.4247483e+01 5.7383850e-02 1.2978141e-02 9.7031957e-03 1.5117653e-02]
+[1.4247483e+01 5.7383850e-02 1.2978141e-02 9.7031957e-03 1.5117653e-02]
+[1.4247483e+01 5.7383850e-02 1.2978141e-02 9.7031957e-03 1.5117653e-02]
 ENSRNOG00000060045
 Skipping ENSRNOG00000060045</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="106">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pred_vs_obs.keys())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pred_vs_obs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>dict_keys(['ENSRNOG00000001342', 'ENSRNOG00000020624', 'ENSRNOG00000058006', 'ENSRNOG00000060045'])</code></pre>
+<pre><code>{'ENSRNOG00000001342':            observed  predicted
+000789972A     7.53   0.005984
+0007899884    11.35   0.005984
+000789FF64     9.33   0.005984
+00079298B1     9.88   0.005984
+00079299B5      9.9   0.005984
+...             ...        ...
+00079FF7D6     7.63   0.005984
+0007899826     2.83   0.005984
+0007929917     8.29   0.005984
+00077E82E3    10.05   0.005985
+00078A18A7     6.73   0.005984
+
+[340 rows x 2 columns], 'ENSRNOG00000020624':            observed  predicted
+000789972A    44.43   4.095569
+0007899884    50.12   4.093905
+000789FF64    62.47   4.095569
+00079298B1    64.97   4.095569
+00079299B5    57.53   4.095569
+...             ...        ...
+00079FF7D6     53.3   4.093905
+0007899826    52.88   4.093905
+0007929917    54.19   4.093905
+00077E82E3    74.91   4.095569
+00078A18A7     50.0   4.093905
+
+[340 rows x 2 columns], 'ENSRNOG00000058006':            observed  predicted
+000789972A    75.75   0.026688
+0007899884    98.29   0.026669
+000789FF64     26.2   0.026688
+00079298B1    91.46   0.026688
+00079299B5     34.1   0.026688
+...             ...        ...
+00079FF7D6    80.28   0.026669
+0007899826   133.57   0.026669
+0007929917    59.49   0.026669
+00077E82E3    43.07   0.026669
+00078A18A7    45.07   0.026669
+
+[340 rows x 2 columns], 'ENSRNOG00000060045':            observed  predicted
+000789972A    87.16        0.0
+0007899884     87.5        0.0
+000789FF64    94.36        0.0
+00079298B1    89.63        0.0
+00079299B5    87.33        0.0
+...             ...        ...
+00079FF7D6    94.34        0.0
+0007899826    85.75        0.0
+0007929917    80.93        0.0
+00077E82E3    80.16        0.0
+00078A18A7    79.55        0.0
+
+[340 rows x 2 columns]}</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="116">
+<div class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pred_vs_obs[<span class="st">'ENSRNOG00000020624'</span>]</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(df[<span class="st">'observed'</span>])</span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> zscore</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> zscore(df[<span class="st">'observed'</span>])</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> zscore(df[<span class="st">'predicted'</span>])</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> df[<span class="st">'observed'</span>]</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> df[<span class="st">'predicted'</span>]</span>
 <span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the dot plot</span></span>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>plt.scatter(x, y, color<span class="op">=</span><span class="st">'blue'</span>, marker<span class="op">=</span><span class="st">'o'</span>, s<span class="op">=</span><span class="dv">100</span>)</span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
@@ -362,8 +408,22 @@ Skipping ENSRNOG00000060045</code></pre>
 <span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
 <span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>000789972A    44.43
+0007899884    50.12
+000789FF64    62.47
+00079298B1    64.97
+00079299B5    57.53
+              ...  
+00079FF7D6     53.3
+0007899826    52.88
+0007929917    54.19
+00077E82E3    74.91
+00078A18A7     50.0
+Name: observed, Length: 340, dtype: object</code></pre>
+</div>
 <div class="cell-output cell-output-display">
-<p><img src="comparing-gene-expression_files/figure-html/cell-9-output-1.png" class="img-fluid"></p>
+<p><img src="comparing-gene-expression_files/figure-html/cell-9-output-2.png" class="img-fluid"></p>
 </div>
 </div>
 <ul>
@@ -377,63 +437,94 @@ Skipping ENSRNOG00000060045</code></pre>
 </ul>
 <section id="extra-plots" class="level3">
 <h3 class="anchored" data-anchor-id="extra-plots">Extra Plots</h3>
-<div class="cell" data-execution_count="120">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>predixcan <span class="op">=</span> <span class="st">'/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/data-Github/rat-genomic-analysis/PTRS-Analysis/RatXcan/Results/Br_EN__predict.txt'</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>pred_gene_expr <span class="op">=</span> pd.read_csv(predixcan, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'IID'</span>)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>pred_gene_expr <span class="op">=</span> pred_gene_expr.loc[individuals]</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>/var/folders/1q/nqyt2x9s071fkn235hfq1p680000gn/T/ipykernel_33538/69215650.py:2: DtypeWarning: Columns (0,1) have mixed types. Specify dtype option on import or set low_memory=False.
-  pred_gene_expr = pd.read_csv(predixcan, sep="\t", header=0, index_col='IID')</code></pre>
+<div class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># predixcan = '/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/data-Github/rat-genomic-analysis/PTRS-Analysis/RatXcan/Results/Br_EN__predict.txt'</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="co"># pred_gene_expr = pd.read_csv(predixcan, sep="\t", header=0, index_col='IID')</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co"># pred_gene_expr = pred_gene_expr.loc[individuals]</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="112">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pred_gene_expr[[gene]].join(df[<span class="st">'predicted'</span>], how<span class="op">=</span><span class="st">'inner'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            ENSRNOG00000060045  predicted
+00077E90D8            1.286916   4.095569
+00078997FE            0.011189   4.095569
+00079FF7D6            2.644286   4.093905
+00078A1A62            0.009481   4.093905
+000792A3F9            2.646413   4.093905
+...                        ...        ...
+00078A072C            0.009487   4.093905
+000792A07E            1.288204   4.095264
+000792A420            1.370338   4.093905
+00078997BF            0.009408   4.093905
+00077E7666            0.010847   4.095569
+
+[80 rows x 2 columns]</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="89">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pred_vs_obs[<span class="st">'ENSRNOG00000001342'</span>]</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> zscore</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> zscore(df[<span class="st">'observed'</span>])</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> zscore(df[<span class="st">'predicted'</span>])</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the dot plot</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>plt.scatter(x, y, color<span class="op">=</span><span class="st">'blue'</span>, marker<span class="op">=</span><span class="st">'o'</span>, s<span class="op">=</span><span class="dv">100</span>)</span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels and title</span></span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Observed'</span>)</span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Predicted'</span>)</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Enformed Predicted vs Observed Gene Expression'</span>)</span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="comparing-gene-expression_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># gene = 'ENSRNOG00000020624'</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co"># df = pred_vs_obs[gene]</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="co"># df = pred_gene_expr[[gene]].join(df['predicted'], how = 'inner')</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="co"># print(df)</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="co"># from scipy.stats import zscore</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a><span class="co"># x = zscore(df[gene])</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a><span class="co"># y = zscore(df['predicted'])</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="co"># # Create the dot plot</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="co"># plt.scatter(x, y, color='blue', marker='o', s=100)</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>NameError: name 'pred_gene_expr' is not defined</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pred_vs_obs[<span class="st">'ENSRNOG00000001342'</span>]</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> zscore</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> zscore(df[<span class="st">'observed'</span>])</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> zscore(df[<span class="st">'predicted'</span>])</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the dot plot</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>plt.scatter(x, y, color<span class="op">=</span><span class="st">'blue'</span>, marker<span class="op">=</span><span class="st">'o'</span>, s<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels and title</span></span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Observed'</span>)</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Predicted'</span>)</span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Enformed Predicted vs Observed Gene Expression'</span>)</span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
+<span id="cb20-19"><a href="#cb20-19" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-error">
+<pre><code>TypeError: loop of ufunc does not support argument 0 of type numpy.float64 which has no callable sqrt method</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="90">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pred_vs_obs[<span class="st">'ENSRNOG00000058006'</span>]</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> zscore</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> zscore(df[<span class="st">'observed'</span>])</span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> zscore(df[<span class="st">'predicted'</span>])</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the dot plot</span></span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>plt.scatter(x, y, color<span class="op">=</span><span class="st">'blue'</span>, marker<span class="op">=</span><span class="st">'o'</span>, s<span class="op">=</span><span class="dv">100</span>)</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels and title</span></span>
-<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Observed'</span>)</span>
-<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Predicted'</span>)</span>
-<span id="cb17-17"><a href="#cb17-17" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Enformed Predicted vs Observed Gene Expression'</span>)</span>
-<span id="cb17-18"><a href="#cb17-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-19"><a href="#cb17-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
-<span id="cb17-20"><a href="#cb17-20" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pred_vs_obs[<span class="st">'ENSRNOG00000058006'</span>]</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.stats <span class="im">import</span> zscore</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> zscore(df[<span class="st">'observed'</span>])</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> zscore(df[<span class="st">'predicted'</span>])</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the dot plot</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>plt.scatter(x, y, color<span class="op">=</span><span class="st">'blue'</span>, marker<span class="op">=</span><span class="st">'o'</span>, s<span class="op">=</span><span class="dv">100</span>)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels and title</span></span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Observed'</span>)</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Predicted'</span>)</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Enformed Predicted vs Observed Gene Expression'</span>)</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
-<p><img src="comparing-gene-expression_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
+<p><img src="comparing-gene-expression_files/figure-html/cell-14-output-1.png" class="img-fluid"></p>
 </div>
 </div>
 
