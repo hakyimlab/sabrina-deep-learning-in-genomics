@@ -1,0 +1,73 @@
+{
+  "individuals": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/metadata/individuals.txt",
+  "project_dir": "/home/s1mi/Br_predictions",
+  "interval_list_file": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/metadata/intervals.txt",
+  "prediction_data_name": "personalized_Br",
+  "prediction_id": "all_genes",
+  "reverse_complement": false,
+  "date": null,
+  "exclude_regions": false,
+  "n_individuals": 3,
+  "batch_individuals": 3,
+  "vcf_files": {
+    "folder": "/lus/grand/projects/TFXcan/imlab/users/sabrina/enformer_rat_data/BrainVCFs",
+    "files": {
+      "chr1": "chr1.vcf.gz",
+      "chr2": "chr2.vcf.gz",
+      "chr3": "chr3.vcf.gz",
+      "chr4": "chr4.vcf.gz",
+      "chr5": "chr5.vcf.gz",
+      "chr6": "chr6.vcf.gz",
+      "chr7": "chr7.vcf.gz",
+      "chr8": "chr8.vcf.gz",
+      "chr9": "chr9.vcf.gz",
+      "chr10": "chr10.vcf.gz",
+      "chr11": "chr11.vcf.gz",
+      "chr12": "chr12.vcf.gz",
+      "chr13": "chr13.vcf.gz",
+      "chr14": "chr14.vcf.gz",
+      "chr15": "chr15.vcf.gz",
+      "chr16": "chr16.vcf.gz",
+      "chr17": "chr17.vcf.gz",
+      "chr18": "chr18.vcf.gz",
+      "chr19": "chr19.vcf.gz",
+      "chr20": "chr20.vcf.gz",
+      "chrX": "chrX.vcf.gz",
+      "chrY": "chrY.vcf.gz"
+    }
+  },
+  "sub_dir": true,
+  "use_parsl": true,
+  "model_path": "/lus/grand/projects/TFXcan/imlab/data/enformer/raw",
+  "fasta_file": "/lus/grand/projects/TFXcan/imlab/users/sabrina/enformer_rat_data/rn7_genome.fasta",
+  "metadata_dir": "/home/s1mi/Github/deep-learning-in-genomics/posts/running-enformer-on-rat-genes-at-TSS/metadata",
+  "output_dir": "enformer_predictions",
+  "tracks_to_save":-1,
+  "bins_to_save": -1,
+  "sequence_source": "personalized",
+  "predictions_log_dir": "predictions_log",
+  "batch_regions": 25,
+  "n_regions": 30088,
+  "write_log": {
+    "logdir": "job_logs",
+    "logtypes": {
+      "memory": true,
+      "error": true,
+      "time": false,
+      "cache": true
+    }
+  },
+  "parsl_parameters": {
+    "job_name": "enformer_predict_regions_personalized",
+    "num_of_full_nodes": 1,
+    "walltime": "01:00:00",
+    "init_blocks":1,
+    "min_num_blocks": 0,
+    "max_num_blocks": 4,
+    "queue": "preemptable",
+    "account": "AIHPC4EDU",
+    "hpc": "polaris",
+    "provider": "highthroughput",
+    "worker_init":"source ~/.bashrc; module load conda; conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools; which python; export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools/lib"
+  }
+}
