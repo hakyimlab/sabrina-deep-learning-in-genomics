@@ -96,6 +96,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 <link rel="stylesheet" href="../../styles.css">
@@ -185,37 +188,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="calculate-gene-expression-variance-across-individuals" class="level2">
 <h2 class="anchored" data-anchor-id="calculate-gene-expression-variance-across-individuals">Calculate gene expression variance across individuals</h2>
-<div class="cell" data-execution_count="32">
+<div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="7">
+<div class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Read in expression data</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed"</span>, header <span class="op">=</span> <span class="dv">0</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>,  index_col<span class="op">=</span> <span class="st">'gene_id'</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>iqn <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.iqn.bed"</span>, header <span class="op">=</span> <span class="dv">0</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>,  index_col<span class="op">=</span> <span class="st">'gene_id'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_123362/1386399847.py:2: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+<pre><code>/tmp/ipykernel_238845/1386399847.py:2: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
   tpm = pd.read_csv("/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed", header = 0, sep="\t",  index_col= 'gene_id')
-/tmp/ipykernel_123362/1386399847.py:3: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+/tmp/ipykernel_238845/1386399847.py:3: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
   iqn = pd.read_csv("/home/s1mi/enformer_rat_data/Brain.rn7.expr.iqn.bed", header = 0, sep="\t",  index_col= 'gene_id')</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="33">
+<div class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>tpm_var <span class="op">=</span> tpm.iloc[:, <span class="dv">3</span>:].var(axis<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>np.average(tpm_var)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="33">
+<div class="cell-output cell-output-display" data-execution_count="6">
 <pre><code>1003.8945129200853</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="34">
+<div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>iqn_var <span class="op">=</span> iqn.iloc[:, <span class="dv">3</span>:].var(axis<span class="op">=</span><span class="dv">1</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>np.average(iqn_var)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="34">
+<div class="cell-output cell-output-display" data-execution_count="7">
 <pre><code>0.6306594759954833</code></pre>
 </div>
 </div>
 <p>We first subset to genes in the top decile for both TPM and IQN variance.</p>
-<div class="cell" data-execution_count="37">
+<div class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>tpm_threshold <span class="op">=</span> tpm_var.quantile(<span class="fl">0.9</span>)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>iqn_threshold <span class="op">=</span> iqn_var.quantile(<span class="fl">0.9</span>)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>high_tpm_var_genes <span class="op">=</span> <span class="bu">set</span>(tpm[tpm_var<span class="op">&gt;</span> tpm_threshold].index)</span>
@@ -226,8 +229,320 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>167 genes with high variance</code></pre>
 </div>
 </div>
+</section>
+<section id="count-eqtls" class="level2">
+<h2 class="anchored" data-anchor-id="count-eqtls">Count eQTLs</h2>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>eqtl <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/annotation/Brain.rn7.cis_qtl_signif.txt"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>eqtl.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div>
 
 
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">gene_id</th>
+<th data-quarto-table-cell-role="th">variant_id</th>
+<th data-quarto-table-cell-role="th">tss_distance</th>
+<th data-quarto-table-cell-role="th">af</th>
+<th data-quarto-table-cell-role="th">ma_samples</th>
+<th data-quarto-table-cell-role="th">ma_count</th>
+<th data-quarto-table-cell-role="th">pval_nominal</th>
+<th data-quarto-table-cell-role="th">slope</th>
+<th data-quarto-table-cell-role="th">slope_se</th>
+<th data-quarto-table-cell-role="th">pval_nominal_threshold</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>ENSRNOG00000050129</td>
+<td>chr1:2002359</td>
+<td>695174</td>
+<td>0.433432</td>
+<td>223</td>
+<td>294</td>
+<td>0.0015</td>
+<td>0.129848</td>
+<td>0.04054</td>
+<td>0.006989</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>ENSRNOG00000050129</td>
+<td>chr1:2002361</td>
+<td>695176</td>
+<td>0.433432</td>
+<td>223</td>
+<td>294</td>
+<td>0.0015</td>
+<td>0.129848</td>
+<td>0.04054</td>
+<td>0.006989</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>ENSRNOG00000050129</td>
+<td>chr1:2002408</td>
+<td>695223</td>
+<td>0.433432</td>
+<td>223</td>
+<td>294</td>
+<td>0.0015</td>
+<td>0.129848</td>
+<td>0.04054</td>
+<td>0.006989</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>ENSRNOG00000050129</td>
+<td>chr1:2002450</td>
+<td>695265</td>
+<td>0.433432</td>
+<td>223</td>
+<td>294</td>
+<td>0.0015</td>
+<td>0.129848</td>
+<td>0.04054</td>
+<td>0.006989</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>ENSRNOG00000050129</td>
+<td>chr1:2002464</td>
+<td>695279</td>
+<td>0.433432</td>
+<td>223</td>
+<td>294</td>
+<td>0.0015</td>
+<td>0.129848</td>
+<td>0.04054</td>
+<td>0.006989</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>counts <span class="op">=</span> eqtl[<span class="st">'gene_id'</span>].value_counts()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>counts.describe()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<pre><code>count    11238.000000
+mean      2312.935398
+std       1490.079008
+min          1.000000
+25%       1160.250000
+50%       2236.000000
+75%       3277.750000
+max      10799.000000
+Name: gene_id, dtype: float64</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>eqtl_threshold <span class="op">=</span> counts.quantile(<span class="fl">0.9</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>eqtl_genes <span class="op">=</span> counts[counts <span class="op">&gt;</span> eqtl_threshold].index</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(eqtl_genes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Index(['ENSRNOG00000031024', 'ENSRNOG00000000451', 'ENSRNOG00000032708',
+       'ENSRNOG00000000455', 'ENSRNOG00000021507', 'ENSRNOG00000009389',
+       'ENSRNOG00000066838', 'ENSRNOG00000000432', 'ENSRNOG00000039396',
+       'ENSRNOG00000002232',
+       ...
+       'ENSRNOG00000016364', 'ENSRNOG00000008471', 'ENSRNOG00000043350',
+       'ENSRNOG00000012337', 'ENSRNOG00000005248', 'ENSRNOG00000068325',
+       'ENSRNOG00000012868', 'ENSRNOG00000068200', 'ENSRNOG00000005610',
+       'ENSRNOG00000008356'],
+      dtype='object', length=1124)</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> high_var_genes.intersection(<span class="bu">set</span>(eqtl_genes))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(gene_list), <span class="st">"candidate genes for enformer prediction experiments"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>17 candidate genes for enformer prediction experiments</code></pre>
+</div>
+</div>
+</section>
+<section id="check-elastic-net-prediction-performance" class="level2">
+<h2 class="anchored" data-anchor-id="check-elastic-net-prediction-performance">Check Elastic Net Prediction Performance</h2>
+<p>Now that we have a manageable number of genes, we can individual check that these genes have sufficient prediction performance.</p>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>model_genes <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/highestR2genes.csv"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">"gene"</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>model_genes.loc[[gene <span class="cf">for</span> gene <span class="kw">in</span> gene_list <span class="cf">if</span> gene <span class="kw">in</span> model_genes.index]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="18">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">genename</th>
+<th data-quarto-table-cell-role="th">pred.perf.R2</th>
+<th data-quarto-table-cell-role="th">n.snps.in.model</th>
+<th data-quarto-table-cell-role="th">pred.perf.pval</th>
+<th data-quarto-table-cell-role="th">cor</th>
+<th data-quarto-table-cell-role="th">pred.perf.qval</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">gene</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000009734</td>
+<td>Akr1b8</td>
+<td>0.050379</td>
+<td>4</td>
+<td>6.577101e-04</td>
+<td>0.224453</td>
+<td>4.811327e-04</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000001311</td>
+<td>Rab36</td>
+<td>0.559618</td>
+<td>2</td>
+<td>6.036613e-42</td>
+<td>0.748076</td>
+<td>7.693936e-41</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000010079</td>
+<td>Ca3</td>
+<td>0.003307</td>
+<td>2</td>
+<td>3.884876e-01</td>
+<td>0.057507</td>
+<td>1.439053e-01</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000028436</td>
+<td>Rprml</td>
+<td>0.228241</td>
+<td>3</td>
+<td>2.407910e-14</td>
+<td>0.477745</td>
+<td>5.222104e-14</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000032908</td>
+<td>Acaa1a</td>
+<td>0.548779</td>
+<td>2</td>
+<td>9.394297e-41</td>
+<td>0.740796</td>
+<td>1.111821e-39</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000050647</td>
+<td>Hspa1b</td>
+<td>0.078443</td>
+<td>6</td>
+<td>1.847947e-05</td>
+<td>0.280077</td>
+<td>1.706734e-05</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000012235</td>
+<td>Ppp1r17</td>
+<td>0.370200</td>
+<td>2</td>
+<td>2.229702e-24</td>
+<td>0.608441</td>
+<td>9.825564e-24</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000048258</td>
+<td>Cisd2</td>
+<td>0.661901</td>
+<td>2</td>
+<td>6.783282e-55</td>
+<td>0.813573</td>
+<td>2.391336e-53</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000054549</td>
+<td>Lss</td>
+<td>0.124023</td>
+<td>3</td>
+<td>4.970816e-08</td>
+<td>0.352169</td>
+<td>6.169430e-08</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000004430</td>
+<td>Cep131</td>
+<td>0.650722</td>
+<td>2</td>
+<td>2.657264e-53</td>
+<td>0.806673</td>
+<td>8.153414e-52</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>All of the genes found in the model have positive correlation. For now, we will keep all 17 genes in our list to run Enformer on.</p>
+</section>
+<section id="run-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="run-pipeline">Run Pipeline</h2>
+<section id="write-metadata" class="level3">
+<h3 class="anchored" data-anchor-id="write-metadata">Write Metadata</h3>
+<p>First, write our <code>metadata/intervals.txt</code> file with the 17 genes we have narrowed down to.</p>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> write_intervals(gene_list, <span class="bu">file</span>):</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="bu">file</span>, <span class="st">'a'</span>) <span class="im">as</span> f:</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>            gene_annot <span class="op">=</span> annot_df.loc[gene]</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>            tss <span class="op">=</span> gene_annot[<span class="st">'tss'</span>]</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>            interval <span class="op">=</span> <span class="ss">f"chr</span><span class="sc">{</span>gene_annot[<span class="st">'chromosome'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>tss<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>tss<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>            f.write(interval <span class="op">+</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>annot_df <span class="op">=</span> pd.read_csv(<span class="st">'/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt'</span>, sep <span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>,  index_col<span class="op">=</span><span class="st">'geneId'</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"gene_list.txt"</span>, <span class="st">"w"</span>) <span class="im">as</span> f:</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    f.write(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(gene_list))</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>write_intervals(gene_list, <span class="st">"metadata/intervals.txt"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_238845/487979158.py:1: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
+  annot_df = pd.read_csv('/home/s1mi/enformer_rat_data/rn7.gene.txt', sep ='\t',  index_col='geneId')</code></pre>
+</div>
+</div>
+<p>Use all 340 individuals:</p>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>bcftools query <span class="op">-</span>l <span class="op">/</span>home<span class="op">/</span>s1mi<span class="op">/</span>enformer_rat_data<span class="op">/</span>Brain.rn7.vcf.gz <span class="op">&gt;</span> metadata<span class="op">/</span>individuals.txt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="submit-jobs" class="level3">
+<h3 class="anchored" data-anchor-id="submit-jobs">Submit Jobs</h3>
+<pre><code>module load conda
+
+conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
+
+cd /home/s1mi/Github/shared_pipelines/enformer_pipeline
+python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-10-selecting-genes/personalized_config.json
+</code></pre>
+
+
+</section>
 </section>
 
 </main> <!-- /main -->

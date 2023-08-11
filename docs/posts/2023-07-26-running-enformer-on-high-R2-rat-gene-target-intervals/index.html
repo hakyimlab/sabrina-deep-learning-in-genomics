@@ -7,10 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-08-11">
-<meta name="description" content="We calculate correlation for two comparisons: (1) Enformer predictions on rn7 reference genome against average gene expression in the Brain study and (2) Enformer predictions for a small sample of rats against their individual gene expression.">
+<meta name="dcterms.date" content="2023-07-26">
 
-<title>deep-learning-in-genomics - Correlation of Enformer CAGE predictions and observed expression across all rn7 genes</title>
+<title>deep-learning-in-genomics - Running Enformer pipeline on 3 well-predicted genes</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -143,13 +142,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Correlation of Enformer CAGE predictions and observed expression across all rn7 genes</h1>
-                  <div>
-        <div class="description">
-          We calculate correlation for two comparisons: (1) Enformer predictions on rn7 reference genome against average gene expression in the Brain study and (2) Enformer predictions for a small sample of rats against their individual gene expression.
-        </div>
-      </div>
-                </div>
+      <h1 class="title">Running Enformer pipeline on 3 well-predicted genes</h1>
+                      </div>
   </div>
     
   
@@ -165,7 +159,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">August 11, 2023</p>
+        <p class="date">July 26, 2023</p>
       </div>
     </div>
     
@@ -183,22 +177,112 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="reference-genome" class="level3">
-<h3 class="anchored" data-anchor-id="reference-genome">Reference Genome</h3>
+<section id="select-well-predicted-genes" class="level3">
+<h3 class="anchored" data-anchor-id="select-well-predicted-genes">Select Well-Predicted Genes</h3>
+<p>We used R2 values from <a href="https://sabrina-mi.github.io/PTRS-Rat-Analysis/Br_EN_Validation">ElasticNet training</a></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="WellPredGenes.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">Well-Predicted Genes</figcaption>
+</figure>
+</div>
+</section>
+<section id="collect-gene-intervals" class="level3">
+<h3 class="anchored" data-anchor-id="collect-gene-intervals">Collect Gene Intervals</h3>
 <div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>predictions_dir<span class="op">=</span><span class="st">"/home/s1mi/Br_predictions/predictions_folder/personalized_Br_selected_genes/predictions_2023-08-11/enformer_predictions"</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>gene_annot <span class="op">=</span> pd.read_csv(<span class="st">'/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt'</span>, sep <span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>,  index_col<span class="op">=</span><span class="st">'geneId'</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> [<span class="st">'ENSRNOG00000001342'</span>, <span class="st">'ENSRNOG00000020624'</span>, <span class="st">'ENSRNOG00000058006'</span>, <span class="st">'ENSRNOG00000060045'</span>]</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> write_intervals(gene_list, <span class="bu">file</span>):</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="bu">file</span>, <span class="st">'a'</span>) <span class="im">as</span> f:</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(gene)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>            row <span class="op">=</span> gene_annot.loc[gene]</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>            interval <span class="op">=</span> <span class="ss">f"chr</span><span class="sc">{</span>row[<span class="st">'chromosome'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>row[<span class="st">'start'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>row[<span class="st">'end'</span>]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>            f.write(interval <span class="op">+</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>write_intervals(gene_list, <span class="st">"metadata/intervals.txt"</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ENSRNOG00000001342
+ENSRNOG00000020624
+ENSRNOG00000058006
+ENSRNOG00000060045</code></pre>
 </div>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>gene_expr_bed <span class="op">=</span> <span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed"</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>obs_gene_expr <span class="op">=</span> pd.read_csv(gene_expr_bed, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_196040/1709712298.py:2: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
-  obs_gene_expr = pd.read_csv(gene_expr_bed, sep="\t", header=0, index_col='gene_id')</code></pre>
+<pre><code>/tmp/ipykernel_71445/1580764274.py:2: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
+  gene_annot = pd.read_csv('/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt', sep ='\t',  index_col='geneId')</code></pre>
 </div>
+</div>
+</section>
+<section id="concatenate-h5-outputs" class="level3">
+<h3 class="anchored" data-anchor-id="concatenate-h5-outputs">Concatenate h5 outputs</h3>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>predictions_dir<span class="op">=</span><span class="st">"/home/s1mi/enformer_rat_pipeline/predictions_folder/personalized_enformer_minimal_some_regions/predictions_2023-07-26/enformer_predictions"</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> concatenate_predictions(predictions_dir, output_path):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(output_path, <span class="st">"w"</span>) <span class="im">as</span> output_file:</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        individuals <span class="op">=</span> os.listdir(predictions_dir)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>            group <span class="op">=</span> output_file.create_group(individual)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>            <span class="bu">dir</span> <span class="op">=</span> os.path.join(predictions_dir, individual, <span class="st">"haplotype1"</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>            filenames <span class="op">=</span> os.listdir(<span class="bu">dir</span>)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> filenames:</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                interval <span class="op">=</span> <span class="bu">file</span>.replace(<span class="st">"_predictions.h5"</span>, <span class="st">""</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>                <span class="cf">with</span> h5py.File(os.path.join(<span class="bu">dir</span>, <span class="bu">file</span>), <span class="st">"r"</span>) <span class="im">as</span> input_file:</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>                    group.create_dataset(interval, data<span class="op">=</span>input_file[interval][()], shape<span class="op">=</span>(<span class="dv">896</span>,<span class="dv">5313</span>))</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>concatenate_predictions(predictions_dir, <span class="st">"/home/s1mi/enformer_rat_pipeline/Br_enformer_predictions.h5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="calculate-predicted-gene-expression" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-predicted-gene-expression">Calculate predicted gene expression</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   temp_predictions = [prediction_1[:, 5110], prediction_2[:, 5110]] # CAGE predictions we are interested in</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   individual_prediction[individual] = temp_predictions</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   # Calculate TSS CAGE expression which correspond to column 5110 of the predictions above</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   temp_list = list()</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   pred_prepared_1 = prepare_for_quantify_prediction_per_TSS(predictions=prediction_1, gene=gene, tss_df=tss_dataframe)</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   tss_predictions_1 = quantify_prediction_per_TSS(low_range = window_coords.start, TSS=pred_prepared_1['gene_TSS'], cage_predictions=pred_prepared_1['cage_predictions'])</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   pred_prepared_2 = prepare_for_quantify_prediction_per_TSS(predictions=prediction_2, gene=gene, tss_df=tss_dataframe)</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   tss_predictions_2 = quantify_prediction_per_TSS(low_range = window_coords.start, TSS=pred_prepared_2['gene_TSS'], cage_predictions=pred_prepared_2['cage_predictions'])</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   temp_list.append(tss_predictions_1)</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   temp_list.append(tss_predictions_2) # results here are a dictionary for each TSS for each haplotype</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">#   individual_results[individual] = temp_list # save for the individual</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="co"># gene_output[gene] = individual_results</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># gene_predictions[gene] = individual_prediction</span></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> calculate_gene_expression(matrix, target_interval, tss):</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    window_coords <span class="op">=</span> target_interval.resize(SEQUENCE_LENGTH)</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    low_range <span class="op">=</span> window_coords.start</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    CAGE_predictions <span class="op">=</span> matrix[:, <span class="dv">4980</span>]</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    bin_start <span class="op">=</span> low_range <span class="op">+</span> ((<span class="dv">768</span> <span class="op">+</span> <span class="dv">320</span>) <span class="op">*</span> <span class="dv">128</span>)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    count <span class="op">=</span> <span class="op">-</span><span class="dv">1</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">while</span> bin_start <span class="op">&lt;</span> tss:</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>      bin_start <span class="op">=</span> bin_start <span class="op">+</span> <span class="dv">128</span></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>      count <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> count <span class="op">&gt;=</span> <span class="bu">len</span>(cage_predictions)<span class="op">-</span><span class="dv">1</span>:</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>      <span class="cf">continue</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    cage_preds <span class="op">=</span> cage_predictions[count <span class="op">-</span> <span class="dv">1</span>] <span class="op">+</span> cage_predictions[count] <span class="op">+</span> cage_predictions[count <span class="op">+</span> <span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
