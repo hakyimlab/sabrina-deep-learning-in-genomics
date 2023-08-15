@@ -1,0 +1,81 @@
+---
+title: "Preparing rat VCFs for Enformer pipeline"
+author: Sabrina Mi
+date: 8/14/2023
+execute:
+    eval: false
+format: html
+---
+
+### Download VCF
+
+```{bash}
+cd enformer_rat_data
+wget https://ratgtex.org/data/geno/Brain.rn7.vcf.gz
+
+```
+
+
+### Changing VCF CHROM notation
+
+```{bash}
+gunzip Brain.rn7.vcf.gz
+awk '{if($0 !~ /^#/) print "chr"$0; else print $0}' Brain.rn7.vcf > output.rn7.vcf
+
+```
+
+
+### Replace missing genotypes with reference alleles
+
+Note: There are a number of good reasons filling in missing genotypes with two reference alleles is discouraged. However, our goal is to predict the epigenome from a sequence of 393,216 base pairs, so we assume that changing a snp will have negligible effect on Enformer predictions. Additionally, we are not using allele frequency to draw any conclusions about our population.
+
+
+```{bash}
+sed 's/\.\/\./0\/0/g' output.rn7.vcf > Brain.rn7.no_missing.vcf
+bgzip Brain.rn7.no_missing.vcf
+bcftools index -t Brain.rn7.no_missing.vcf.gz
+
+```
+
+
+
+### Split VCFs
+
+First by chromosome number:
+
+```{bash}
+
+mkdir BrainVCFs
+# Split VCF by chromosome
+vcf_in=Brain.rn7.no_missing.vcf.gz
+
+vcf_out_prefix=BrainVCFs/chr
+
+for i in {1..20}
+do
+    echo "Working on chromosome ${i}..."
+    bcftools view ${vcf_in} --regions chr${i} -o ${vcf_out_prefix}${i}.vcf.gz -Oz
+done
+
+
+# Index VCFs
+for i in {1..20}
+do
+    echo "Indexing chromosome ${i}..."
+    bcftools index -t BrainVCFs/chr${i}.vcf.gz
+done
+```
+
+Then for the sex chromosomes:
+
+```{bash}
+vcf_in=Brain.rn7.no_missing.vcf.gz
+vcf_out_prefix=BrainVCFs/chr
+
+bcftools view ${vcf_in} --regions X -o ${vcf_out_prefix}X.vcf.gz -Oz
+bcftools view ${vcf_in} --regions Y -o ${vcf_out_prefix}Y.vcf.gz -Oz
+
+bcftools index -t BrainVCFs/chrX.vcf.gz
+bcftools index -t BrainVCFs/chrY.vcf.gz
+
+```
