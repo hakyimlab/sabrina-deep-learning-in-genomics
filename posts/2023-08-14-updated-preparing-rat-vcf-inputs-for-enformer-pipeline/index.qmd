@@ -2,8 +2,7 @@
 title: "Preparing rat VCFs for Enformer pipeline"
 author: Sabrina Mi
 date: 8/14/2023
-execute:
-    eval: false
+engine: markdown
 format: html
 ---
 
