@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-06-26">
-<meta name="description" content="A couple snippets on the Polaris computing system">
+<meta name="dcterms.date" content="2023-08-10">
+<meta name="description" content="We pick up where we left off last time with predicting epigenome across all genes, trying to run the Enformer pipeline on intervals we missed the first time because of batching issues. Additionally, we’ll try using the added mouse head parameter">
 
-<title>deep-learning-in-genomics - Getting started on Polaris</title>
+<title>deep-learning-in-genomics - Running Enformer across all rn7 genes (continued)</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -109,10 +109,10 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Getting started on Polaris</h1>
+      <h1 class="title">Running Enformer across all rn7 genes (continued)</h1>
                   <div>
         <div class="description">
-          A couple snippets on the Polaris computing system
+          We pick up where we left off last time with predicting epigenome across all genes, trying to run the Enformer pipeline on intervals we missed the first time because of batching issues. Additionally, we’ll try using the added mouse head parameter
         </div>
       </div>
                 </div>
@@ -131,7 +131,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">June 26, 2023</p>
+        <p class="date">August 10, 2023</p>
       </div>
     </div>
     
@@ -149,80 +149,9 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References</h2>
-<p>More info can be found on:</p>
-<ul>
-<li><a href="https://docs.alcf.anl.gov/polaris/getting-started/">Main Page</a></li>
-<li><a href="https://docs.alcf.anl.gov/running-jobs/example-job-scripts/">Example Job Scripts</a></li>
-</ul>
-</section>
-<section id="shortcuts" class="level2">
-<h2 class="anchored" data-anchor-id="shortcuts">Shortcuts</h2>
-<ul>
-<li>Login: <code>ssh s1mi@polaris.alcf.anl.gov</code></li>
-<li>Main project storage: <code>/lus/grand/projects/TFXcan</code></li>
-<li>Interactive Job: <code>qsub -I -A TFXcan -l select=1 -l filesystems=home:grand -l walltime=1:00:00 -q debug</code></li>
-</ul>
-</section>
-<section id="basic-job-script" class="level2">
-<h2 class="anchored" data-anchor-id="basic-job-script">Basic Job Script</h2>
-<pre><code>#!/bin/bash
-#PBS -A $PROJECT
-#PBS -lwalltime=01:00:00
-#PBS -lselect=4
-#PBS -lsystem=polaris
-#PBS -lfilesystems=home:eagle
-
-rpn=4 # assume 1 process per GPU
-procs=$((PBS_NODES*rpn))
-
-# job to “run” from your submission directory
-cd $PBS_O_WORKDIR
-
-module load &lt;something&gt;
-
-set +x # report all commands to stderr
-env
-mpiexec -n $procs -ppn $rpn --cpu-bind core -genvall ./bin &lt;opts&gt;
-</code></pre>
-</section>
-<section id="conda-environments" class="level2">
-<h2 class="anchored" data-anchor-id="conda-environments">Conda Environments</h2>
-<p>Before activating and deactivating environments, we need to run <code>module load conda</code>.</p>
-<p>To create an environment:</p>
-<pre><code>module load conda
-
-export http_proxy=http://proxy.alcf.anl.gov:3128
-export https_proxy=$http_proxy
-
-conda create -n ml-python python=3.10
-conda activate ml-python
-conda install -y jupyter nb_conda ipykernel mpi
-conda install -y pytorch torchvision -c pytorch
-conda install -c conda-forge tensorflow
-python -m ipykernel install --user --name ml-python</code></pre>
-<p>The last line creates a new directory <code>~/.local/share/jupyter/kernels/ml-python</code>. We add a couple lines to <code>kernel.json</code> so that we can use the new environment in the our Jupyter notebooks:</p>
-<pre><code>{
-  "argv": [
-    "/home/s1mi/.conda/envs/ml-python/bin/python",
-    "-m",
-    "ipykernel_launcher",
-    "-f",
-    "{connection_file}"
-  ],
-  "display_name": "ml-python",
-  "language": "python",
-  "env": {
-    "CONDA_PREFIX": "/home/s1mi/.conda/envs/ml-python",
-    "PATH": "/home/s1mi/.conda/envs/ml-python:${PATH}",
-    "http_proxy": "http://proxy.alcf.anl.gov:3128",
-    "https_proxy": "http://proxy.alcf.anl.gov:3128"
-  },
-  "metadata": {
-    "debugger": true
-  }
-}</code></pre>
+<p>We’ll reuse the <code>intervals.txt</code> file that spanned all TSS in the rn7 genome.</p>
+<section id="section" class="level3">
+<h3 class="anchored" data-anchor-id="section"></h3>
 
 
 </section>

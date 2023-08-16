@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.361">
+<meta name="generator" content="quarto-1.3.433">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -195,23 +195,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   annot_df = pd.read_csv("/home/s1mi/enformer_rat_data/rn7.gene.txt", sep="\t", index_col='geneId')</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="6">
+<div class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>gene <span class="op">=</span> <span class="st">'ENSRNOG00000054549'</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>gene_annot <span class="op">=</span> annot_df.loc[gene][:<span class="dv">6</span>]</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(gene_annot)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>chromosome <span class="op">=</span> gene_annot[<span class="st">'chromosome'</span>]</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>tss <span class="op">=</span> gene_annot[<span class="st">'tss'</span>]</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> <span class="bu">max</span>(<span class="dv">0</span>, tss <span class="op">-</span> <span class="dv">196608</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>end <span class="op">=</span> tss <span class="op">+</span> <span class="dv">196608</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>region <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>chromosome<span class="sc">}</span><span class="ss">:</span><span class="sc">{</span>start<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span>end<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Gene region:"</span>, region)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>vcf_file <span class="op">=</span> <span class="ss">f"/home/s1mi/enformer_rat_data/BrainVCFs/chr</span><span class="sc">{</span>chromosome<span class="sc">}</span><span class="ss">.vcf.gz"</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"VCF file:"</span>, vcf_file)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>output_file <span class="op">=</span> <span class="ss">f"/home/s1mi/enformer_rat_data/misc/</span><span class="sc">{</span>gene<span class="sc">}</span><span class="ss">.vcf.gz"</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Output VCF:"</span>, output_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>geneSymbol         Lss
-chromosome          20
-start         12092774
-end           12118762
-strand               -
-tss           12118762
-Name: ENSRNOG00000054549, dtype: object</code></pre>
+<pre><code>Gene region: 20:11922154-12315370
+VCF file: /home/s1mi/enformer_rat_data/BrainVCFs/chr20.vcf.gz
+Output VCF: /home/s1mi/enformer_rat_data/misc/ENSRNOG00000054549.vcf.gz</code></pre>
 </div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>SEQUENCE_LENGTH <span class="op">=</span> <span class="dv">393216</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>bcftools view {vcf_file} <span class="op">--</span>regions {region}  <span class="op">-</span>o {output_file} <span class="op">-</span>Oz</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>After a quick scroll through the VCF, there is too much genotype variation across the population to result in uniform Enformer predictions.</p>
 
 
 </section>

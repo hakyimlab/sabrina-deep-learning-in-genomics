@@ -7,10 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-06-26">
-<meta name="description" content="A couple snippets on the Polaris computing system">
+<meta name="dcterms.date" content="2023-08-12">
 
-<title>deep-learning-in-genomics - Getting started on Polaris</title>
+<title>deep-learning-in-genomics - Testing the Enformer pipeline with added parameters for personalized prediction on rats</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -22,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -109,13 +142,8 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Getting started on Polaris</h1>
-                  <div>
-        <div class="description">
-          A couple snippets on the Polaris computing system
-        </div>
-      </div>
-                </div>
+      <h1 class="title">Testing the Enformer pipeline with added parameters for personalized prediction on rats</h1>
+                      </div>
   </div>
     
   
@@ -131,7 +159,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">June 26, 2023</p>
+        <p class="date">August 12, 2023</p>
       </div>
     </div>
     
@@ -149,82 +177,106 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References</h2>
-<p>More info can be found on:</p>
-<ul>
-<li><a href="https://docs.alcf.anl.gov/polaris/getting-started/">Main Page</a></li>
-<li><a href="https://docs.alcf.anl.gov/running-jobs/example-job-scripts/">Example Job Scripts</a></li>
-</ul>
-</section>
-<section id="shortcuts" class="level2">
-<h2 class="anchored" data-anchor-id="shortcuts">Shortcuts</h2>
-<ul>
-<li>Login: <code>ssh s1mi@polaris.alcf.anl.gov</code></li>
-<li>Main project storage: <code>/lus/grand/projects/TFXcan</code></li>
-<li>Interactive Job: <code>qsub -I -A TFXcan -l select=1 -l filesystems=home:grand -l walltime=1:00:00 -q debug</code></li>
-</ul>
-</section>
-<section id="basic-job-script" class="level2">
-<h2 class="anchored" data-anchor-id="basic-job-script">Basic Job Script</h2>
-<pre><code>#!/bin/bash
-#PBS -A $PROJECT
-#PBS -lwalltime=01:00:00
-#PBS -lselect=4
-#PBS -lsystem=polaris
-#PBS -lfilesystems=home:eagle
+<section id="test-for-a-single-individual-and-gene" class="level2">
+<h2 class="anchored" data-anchor-id="test-for-a-single-individual-and-gene">Test for a single individual and gene</h2>
+<p>We chose <code>ENSRNOG00000054549</code>, centered at the TSS chr20:12118762.</p>
+<pre><code>conda activate enformer-predict-tools
 
-rpn=4 # assume 1 process per GPU
-procs=$((PBS_NODES*rpn))
+cd /Users/sabrinami/Github/shared_pipelines/enformer_pipeline
 
-# job to “run” from your submission directory
-cd $PBS_O_WORKDIR
-
-module load &lt;something&gt;
-
-set +x # report all commands to stderr
-env
-mpiexec -n $procs -ppn $rpn --cpu-bind core -genvall ./bin &lt;opts&gt;
+python scripts/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-12-test-run-of-personalized-enformer-pipeline-for-rats/local_test_personalized.json
 </code></pre>
 </section>
-<section id="conda-environments" class="level2">
-<h2 class="anchored" data-anchor-id="conda-environments">Conda Environments</h2>
-<p>Before activating and deactivating environments, we need to run <code>module load conda</code>.</p>
-<p>To create an environment:</p>
-<pre><code>module load conda
+<section id="compare-results-to-non-pipeline-method" class="level2">
+<h2 class="anchored" data-anchor-id="compare-results-to-non-pipeline-method">Compare results to non-pipeline method</h2>
+<section id="read-in-h5-prediction-files" class="level3">
+<h3 class="anchored" data-anchor-id="read-in-h5-prediction-files">Read in h5 prediction files</h3>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> h5py.File(<span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-15/enformer_predictions/000789972A/haplotype1/chr20_12118762_12118762_predictions.h5'</span>, <span class="st">'r'</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>haplo1 <span class="op">=</span> f[<span class="st">'chr20_12118762_12118762'</span>][()]</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> h5py.File(<span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-15/enformer_predictions/000789972A/haplotype2/chr20_12118762_12118762_predictions.h5'</span>, <span class="st">'r'</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>haplo2 <span class="op">=</span> f[<span class="st">'chr20_12118762_12118762'</span>][()]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"haplo1:</span><span class="ch">\n</span><span class="st">"</span>, haplo1)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"haplo2:</span><span class="ch">\n</span><span class="st">"</span>, haplo2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>haplo1:
+ [[0.24076067 0.30101207 0.5132549  ... 0.20521325 1.1217918  0.25558835]
+ [0.15946281 0.20442429 0.37761706 ... 0.04465578 0.24607326 0.08344302]
+ [0.15568599 0.21775411 0.4520394  ... 0.05306218 0.20978831 0.08246609]
+ ...
+ [0.17938398 0.22463004 0.29506153 ... 0.01107231 0.02651541 0.0338815 ]
+ [0.16948122 0.2044945  0.2620006  ... 0.01690046 0.04069382 0.06031117]
+ [0.15266503 0.201914   0.22262897 ... 0.02438843 0.03895664 0.05986918]]
+haplo2:
+ [[0.23317184 0.29741773 0.5182305  ... 0.20385785 1.1424272  0.26008573]
+ [0.15613721 0.20323968 0.37887666 ... 0.04524086 0.257699   0.08468267]
+ [0.15380262 0.21736239 0.45358157 ... 0.05439655 0.22475001 0.08432709]
+ ...
+ [0.17942066 0.2246648  0.29515463 ... 0.01105907 0.02650285 0.03387856]
+ [0.16946748 0.20452495 0.2621123  ... 0.0168827  0.04067391 0.06034191]
+ [0.15272975 0.20209791 0.22299151 ... 0.0243816  0.03896997 0.05996798]]</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>matrix1 <span class="op">=</span> (haplo1 <span class="op">+</span> haplo2)<span class="op">/</span><span class="dv">2</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(matrix1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[0.23696625 0.2992149  0.51574266 ... 0.20453554 1.1321095  0.25783706]
+ [0.15780002 0.20383199 0.37824684 ... 0.04494832 0.25188613 0.08406284]
+ [0.1547443  0.21755825 0.45281047 ... 0.05372937 0.21726915 0.08339658]
+ ...
+ [0.17940232 0.22464743 0.29510808 ... 0.01106569 0.02650913 0.03388003]
+ [0.16947435 0.20450974 0.26205644 ... 0.01689158 0.04068387 0.06032654]
+ [0.15269738 0.20200595 0.22281024 ... 0.02438501 0.03896331 0.05991858]]</code></pre>
+</div>
+</div>
+</section>
+<section id="run-non-pipeline-enformer" class="level3">
+<h3 class="anchored" data-anchor-id="run-non-pipeline-enformer">Run non-pipeline Enformer</h3>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> EnformerVCF</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> kipoiseq</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-08-15 13:18:28.207123: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fasta_file <span class="op">=</span> <span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/rn7_genome.fasta'</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>fasta_extractor <span class="op">=</span> EnformerVCF.FastaStringExtractor(fasta_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">## read vcf and encode haplotypes</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>target_interval <span class="op">=</span> kipoiseq.Interval(<span class="st">"chr20"</span>, <span class="dv">12118762</span>, <span class="dv">12118762</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>chr20_vcf <span class="op">=</span> EnformerVCF.read_vcf(<span class="st">"/Users/sabrinami/enformer_rat_data/BrainVCFs/chr20.vcf.gz"</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>haplo1, haplo2 <span class="op">=</span> EnformerVCF.vcf_to_seq(target_interval, <span class="st">'000789972A'</span>, chr20_vcf, fasta_extractor)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>haplo_1_enc <span class="op">=</span> EnformerVCF.one_hot_encode(<span class="st">""</span>.join(haplo1))[np.newaxis]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>haplo_2_enc <span class="op">=</span> EnformerVCF.one_hot_encode(<span class="st">""</span>.join(haplo2))[np.newaxis]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">## run predictions</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>prediction_1 <span class="op">=</span> EnformerVCF.model.predict_on_batch(haplo_1_enc)[<span class="st">'human'</span>][<span class="dv">0</span>]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>prediction_2 <span class="op">=</span> EnformerVCF.model.predict_on_batch(haplo_2_enc)[<span class="st">'human'</span>][<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>matrix2 <span class="op">=</span> (prediction_1 <span class="op">+</span> prediction_2) <span class="op">/</span> <span class="dv">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"There are"</span>, <span class="bu">sum</span>(<span class="bu">sum</span>(matrix1 <span class="op">!=</span> matrix2)), <span class="st">"differences between the two matrices."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>There are 0 differences between the two matrices</code></pre>
+</div>
+</div>
+<p>The pipeline outputs are the same!</p>
 
-export http_proxy=http://proxy.alcf.anl.gov:3128
-export https_proxy=$http_proxy
 
-conda create -n ml-python python=3.10
-conda activate ml-python
-conda install -y jupyter nb_conda ipykernel mpi
-conda install -y pytorch torchvision -c pytorch
-conda install -c conda-forge tensorflow
-python -m ipykernel install --user --name ml-python</code></pre>
-<p>The last line creates a new directory <code>~/.local/share/jupyter/kernels/ml-python</code>. We add a couple lines to <code>kernel.json</code> so that we can use the new environment in the our Jupyter notebooks:</p>
-<pre><code>{
-  "argv": [
-    "/home/s1mi/.conda/envs/ml-python/bin/python",
-    "-m",
-    "ipykernel_launcher",
-    "-f",
-    "{connection_file}"
-  ],
-  "display_name": "ml-python",
-  "language": "python",
-  "env": {
-    "CONDA_PREFIX": "/home/s1mi/.conda/envs/ml-python",
-    "PATH": "/home/s1mi/.conda/envs/ml-python:${PATH}",
-    "http_proxy": "http://proxy.alcf.anl.gov:3128",
-    "https_proxy": "http://proxy.alcf.anl.gov:3128"
-  },
-  "metadata": {
-    "debugger": true
-  }
-}</code></pre>
-
-
+</section>
 </section>
 
 </main> <!-- /main -->

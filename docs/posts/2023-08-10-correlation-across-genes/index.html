@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.361">
+<meta name="generator" content="quarto-1.3.433">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-08-11">
+<meta name="dcterms.date" content="2023-08-15">
 <meta name="description" content="We calculate correlation for two comparisons: (1) Enformer predictions on rn7 reference genome against average gene expression in the Brain study and (2) Enformer predictions for a small sample of rats against their individual gene expression.">
 
 <title>deep-learning-in-genomics - Correlation of Enformer CAGE predictions and observed expression across all rn7 genes</title>
@@ -96,6 +96,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 <link rel="stylesheet" href="../../styles.css">
@@ -165,7 +168,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">August 11, 2023</p>
+        <p class="date">August 15, 2023</p>
       </div>
     </div>
     
@@ -183,22 +186,781 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="reference-genome" class="level3">
-<h3 class="anchored" data-anchor-id="reference-genome">Reference Genome</h3>
+<section id="reference-genome" class="level2">
+<h2 class="anchored" data-anchor-id="reference-genome">Reference Genome</h2>
+<section id="read-in-expression-files" class="level3">
+<h3 class="anchored" data-anchor-id="read-in-expression-files">Read in expression files</h3>
 <div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>predictions_dir<span class="op">=</span><span class="st">"/home/s1mi/Br_predictions/predictions_folder/personalized_Br_selected_genes/predictions_2023-08-11/enformer_predictions"</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>gene_expr_bed <span class="op">=</span> <span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed"</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>obs_gene_expr <span class="op">=</span> pd.read_csv(gene_expr_bed, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tpm.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_196040/1709712298.py:2: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
-  obs_gene_expr = pd.read_csv(gene_expr_bed, sep="\t", header=0, index_col='gene_id')</code></pre>
+<pre><code>/tmp/ipykernel_177767/849308874.py:1: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+  tpm = pd.read_csv("/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed", sep="\t", header=0, index_col='gene_id')</code></pre>
 </div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">#chr</th>
+<th data-quarto-table-cell-role="th">start</th>
+<th data-quarto-table-cell-role="th">end</th>
+<th data-quarto-table-cell-role="th">000789972A</th>
+<th data-quarto-table-cell-role="th">0007899884</th>
+<th data-quarto-table-cell-role="th">000789FF64</th>
+<th data-quarto-table-cell-role="th">00079298B1</th>
+<th data-quarto-table-cell-role="th">00079299B5</th>
+<th data-quarto-table-cell-role="th">0007929A79</th>
+<th data-quarto-table-cell-role="th">0007929B36</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">0007899761</th>
+<th data-quarto-table-cell-role="th">0007899866</th>
+<th data-quarto-table-cell-role="th">00078A00E6</th>
+<th data-quarto-table-cell-role="th">0007929938</th>
+<th data-quarto-table-cell-role="th">0007929956</th>
+<th data-quarto-table-cell-role="th">00079FF7D6</th>
+<th data-quarto-table-cell-role="th">0007899826</th>
+<th data-quarto-table-cell-role="th">0007929917</th>
+<th data-quarto-table-cell-role="th">00077E82E3</th>
+<th data-quarto-table-cell-role="th">00078A18A7</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">gene_id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000065394</td>
+<td>1</td>
+<td>31563</td>
+<td>31564</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.00</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.00</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000065356</td>
+<td>1</td>
+<td>41634</td>
+<td>41635</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.00</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.00</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000070568</td>
+<td>1</td>
+<td>76833</td>
+<td>76834</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.00</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.01</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000065706</td>
+<td>1</td>
+<td>184235</td>
+<td>184236</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.18</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.00</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000069644</td>
+<td>1</td>
+<td>272252</td>
+<td>272253</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.00</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>...</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.00</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.0</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 343 columns</p>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>iqn <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.iqn.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>iqn.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_177767/3212824497.py:1: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+  iqn = pd.read_csv("/home/s1mi/enformer_rat_data/Brain.rn7.expr.iqn.bed", sep="\t", header=0, index_col='gene_id')</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="4">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">#chr</th>
+<th data-quarto-table-cell-role="th">start</th>
+<th data-quarto-table-cell-role="th">end</th>
+<th data-quarto-table-cell-role="th">000789972A</th>
+<th data-quarto-table-cell-role="th">0007899884</th>
+<th data-quarto-table-cell-role="th">000789FF64</th>
+<th data-quarto-table-cell-role="th">00079298B1</th>
+<th data-quarto-table-cell-role="th">00079299B5</th>
+<th data-quarto-table-cell-role="th">0007929A79</th>
+<th data-quarto-table-cell-role="th">0007929B36</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">0007899761</th>
+<th data-quarto-table-cell-role="th">0007899866</th>
+<th data-quarto-table-cell-role="th">00078A00E6</th>
+<th data-quarto-table-cell-role="th">0007929938</th>
+<th data-quarto-table-cell-role="th">0007929956</th>
+<th data-quarto-table-cell-role="th">00079FF7D6</th>
+<th data-quarto-table-cell-role="th">0007899826</th>
+<th data-quarto-table-cell-role="th">0007929917</th>
+<th data-quarto-table-cell-role="th">00077E82E3</th>
+<th data-quarto-table-cell-role="th">00078A18A7</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">gene_id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000065394</td>
+<td>1</td>
+<td>31563</td>
+<td>31564</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>...</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000065356</td>
+<td>1</td>
+<td>41634</td>
+<td>41635</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>...</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>0.000000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000070568</td>
+<td>1</td>
+<td>76833</td>
+<td>76834</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>...</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>1.890800</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+<td>-0.095706</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000065706</td>
+<td>1</td>
+<td>184235</td>
+<td>184236</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>2.042970</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>...</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+<td>-0.025731</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000069644</td>
+<td>1</td>
+<td>272252</td>
+<td>272253</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>...</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+<td>-0.011026</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 343 columns</p>
+</div>
+</div>
+</div>
+</section>
+<section id="calculate-average-gene-expression" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-average-gene-expression">Calculate average gene expression</h3>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>mean_tpm <span class="op">=</span> tpm.iloc[:,<span class="dv">3</span>:].mean(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mean_tpm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>gene_id
+ENSRNOG00000065394    0.000000
+ENSRNOG00000065356    0.000000
+ENSRNOG00000070568    0.000912
+ENSRNOG00000065706    0.005029
+ENSRNOG00000069644    0.000265
+                        ...   
+ENSRNOG00000067420    0.000000
+ENSRNOG00000069298    0.000559
+ENSRNOG00000066131    0.000529
+ENSRNOG00000068239    0.000500
+ENSRNOG00000069552    0.001088
+Length: 30231, dtype: float64</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>mean_iqn <span class="op">=</span> iqn.iloc[:,<span class="dv">3</span>:].mean(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(mean_iqn)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>gene_id
+ENSRNOG00000065394    0.000000
+ENSRNOG00000065356    0.000000
+ENSRNOG00000070568    0.052617
+ENSRNOG00000065706    0.022574
+ENSRNOG00000069644    0.011569
+                        ...   
+ENSRNOG00000067420    0.000000
+ENSRNOG00000069298    0.004439
+ENSRNOG00000066131    0.008208
+ENSRNOG00000068239    0.004439
+ENSRNOG00000069552    0.017464
+Length: 30231, dtype: float64</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Put both means into dataframe</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>corr_df <span class="op">=</span> pd.DataFrame({<span class="st">'tpm'</span>: mean_tpm, <span class="st">'iqn'</span>: mean_iqn, <span class="st">'predicted'</span>: np.full(<span class="dv">30231</span>, np.nan), <span class="st">'chr'</span>: np.full(<span class="dv">30231</span>, np.nan)})</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>corr_df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="30">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">tpm</th>
+<th data-quarto-table-cell-role="th">iqn</th>
+<th data-quarto-table-cell-role="th">predicted</th>
+<th data-quarto-table-cell-role="th">chr</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">gene_id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000065394</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000065356</td>
+<td>0.000000</td>
+<td>0.000000</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000070568</td>
+<td>0.000912</td>
+<td>0.052617</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000065706</td>
+<td>0.005029</td>
+<td>0.022574</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000069644</td>
+<td>0.000265</td>
+<td>0.011569</td>
+<td>NaN</td>
+<td>NaN</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="calculate-gene-expression-from-enformer-predictions-on-reference-genome" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-gene-expression-from-enformer-predictions-on-reference-genome">Calculate gene expression from Enformer predictions on reference genome</h3>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>reference_predictions<span class="op">=</span><span class="st">"/home/s1mi/Br_predictions/predictions_folder/reference_Br_all_genes/predictions_2023-08-11/enformer_predictions/reference_Br/haplotype0"</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>annot_df <span class="op">=</span> pd.read_csv(<span class="st">'/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt'</span>, sep <span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>,  index_col<span class="op">=</span><span class="st">'geneId'</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>annot_df.head(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_36254/3273646084.py:3: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
+  annot_df = pd.read_csv('/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt', sep ='\t',  index_col='geneId')</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">geneSymbol</th>
+<th data-quarto-table-cell-role="th">chromosome</th>
+<th data-quarto-table-cell-role="th">start</th>
+<th data-quarto-table-cell-role="th">end</th>
+<th data-quarto-table-cell-role="th">strand</th>
+<th data-quarto-table-cell-role="th">tss</th>
+<th data-quarto-table-cell-role="th">description</th>
+<th data-quarto-table-cell-role="th">hasEqtl</th>
+<th data-quarto-table-cell-role="th">expr_BLA</th>
+<th data-quarto-table-cell-role="th">expr_Brain</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">sqtl_BLA</th>
+<th data-quarto-table-cell-role="th">sqtl_Brain</th>
+<th data-quarto-table-cell-role="th">sqtl_Eye</th>
+<th data-quarto-table-cell-role="th">sqtl_IL</th>
+<th data-quarto-table-cell-role="th">sqtl_LHb</th>
+<th data-quarto-table-cell-role="th">sqtl_NAcc</th>
+<th data-quarto-table-cell-role="th">sqtl_NAcc2</th>
+<th data-quarto-table-cell-role="th">sqtl_OFC</th>
+<th data-quarto-table-cell-role="th">sqtl_PL</th>
+<th data-quarto-table-cell-role="th">sqtl_PL2</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">geneId</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000066169</td>
+<td>ENSRNOG00000066169</td>
+<td>1</td>
+<td>36112690</td>
+<td>36122387</td>
+<td>-</td>
+<td>36122387</td>
+<td>NaN</td>
+<td>True</td>
+<td>True</td>
+<td>True</td>
+<td>...</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000070168</td>
+<td>Olr56</td>
+<td>1</td>
+<td>157231467</td>
+<td>157232417</td>
+<td>+</td>
+<td>157231467</td>
+<td>olfactory receptor family 51 subfamily F membe...</td>
+<td>True</td>
+<td>False</td>
+<td>True</td>
+<td>...</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000070901</td>
+<td>Irgq</td>
+<td>1</td>
+<td>80123925</td>
+<td>80131881</td>
+<td>+</td>
+<td>80123925</td>
+<td>immunity-related GTPase Q</td>
+<td>True</td>
+<td>True</td>
+<td>True</td>
+<td>...</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+</tr>
+</tbody>
+</table>
+
+<p>3 rows × 68 columns</p>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># for gene in corr_df.index:</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#     gene_annot = annot_df.loc[gene]</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#     corr_df['chr'].loc[gene] = gene_annot['chromosome']</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#     interval = f"chr{gene_annot['chromosome']}_{gene_annot['tss']}_{gene_annot['tss']}"</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">#     path = os.path.join(predictions_dir, f"{interval}_predictions.h5")</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">#     if os.path.isfile(path):</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">#         predictions = h5py.File(path, "r")</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">#         pred_expr = np.average(predictions[interval][446:450, 4980])</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co">#         corr_df['predicted'].loc[gene] = pred_expr</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">#     else:</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co">#         continue</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co"># corr_df.dropna().to_csv("reference_epigenome_predicted_vs_observed.csv", index=True)</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>corr_df <span class="op">=</span> pd.read_csv(<span class="st">"reference_epigenome_predicted_vs_observed.csv"</span>, header <span class="op">=</span> <span class="dv">0</span>, index_col <span class="op">=</span> <span class="st">'gene_id'</span>)</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(corr_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                         tpm       iqn  predicted chr
+gene_id                                              
+ENSRNOG00000065394  0.000000  0.000000   0.002946   1
+ENSRNOG00000065356  0.000000  0.000000   0.004051   1
+ENSRNOG00000070568  0.000912  0.052617   0.003553   1
+ENSRNOG00000065706  0.005029  0.022574   0.005847   1
+ENSRNOG00000069644  0.000265  0.011569   0.001334   1
+...                      ...       ...        ...  ..
+ENSRNOG00000067420  0.000000  0.000000   0.001928   Y
+ENSRNOG00000069298  0.000559  0.004439   0.003280   Y
+ENSRNOG00000066131  0.000529  0.008208   0.003569   Y
+ENSRNOG00000068239  0.000500  0.004439   0.001887   Y
+ENSRNOG00000069552  0.001088  0.017464   0.001822   Y
+
+[19493 rows x 4 columns]</code></pre>
+</div>
+</div>
+<p>I ran Enformer on roughly ~30,000 intervals, but it looks like we only have predictions for 2/3 of them. I’ll investigate in another post.</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Drop rows with NaN values</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>corr_df <span class="op">=</span> corr_df.dropna()</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a scatter plot with colors based on column z</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>plt.scatter(corr_df[<span class="st">'tpm'</span>], corr_df[<span class="st">'predicted'</span>])</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Set labels and title</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Br Mean TPM Gene Expression'</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Predicted Reference Gene Expression'</span>)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Predicted vs Observed Gene Expression'</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-10-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Drop rows with NaN values</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>corr_df <span class="op">=</span> corr_df.dropna()</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a scatter plot with colors based on column z</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>plt.scatter(corr_df[<span class="st">'iqn'</span>], corr_df[<span class="st">'predicted'</span>])</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Set labels and title</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Br Mean IQN Gene Expression'</span>)</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Predicted Reference Gene Expression'</span>)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Predicted vs Observed Gene Expression'</span>)</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>corr_df.corr()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">tpm</th>
+<th data-quarto-table-cell-role="th">iqn</th>
+<th data-quarto-table-cell-role="th">predicted</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">tpm</td>
+<td>1.000000</td>
+<td>-0.113828</td>
+<td>0.433632</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">iqn</td>
+<td>-0.113828</td>
+<td>1.000000</td>
+<td>-0.180593</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">predicted</td>
+<td>0.433632</td>
+<td>-0.180593</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>The correlation between CAGE predictions and gene expression measured by relative abundance of transcripts is decent. Lastly, we’ll concatenate all the prediction matrices into one h5 file.</p>
+</section>
+</section>
+<section id="concatenate-predictions" class="level2">
+<h2 class="anchored" data-anchor-id="concatenate-predictions">Concatenate Predictions</h2>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> concatenate_predictions(predictions_dir, output_path):</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(output_path, <span class="st">"w"</span>) <span class="im">as</span> output_file:</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>        files <span class="op">=</span> os.listdir(predictions_dir)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> files:</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>            interval <span class="op">=</span> <span class="bu">file</span>.replace(<span class="st">"_predictions.h5"</span>, <span class="st">""</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(os.path.join(predictions_dir, <span class="bu">file</span>), <span class="st">"r"</span>) <span class="im">as</span> input_file:</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>                output_file.create_dataset(interval, data<span class="op">=</span>input_file[interval][()], shape<span class="op">=</span>(<span class="dv">896</span>,<span class="dv">5313</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>concatenate_predictions(reference_predictions, <span class="st">"/home/s1mi/Br_predictions/2023-08-16_predictions_some_missing_genes.h5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

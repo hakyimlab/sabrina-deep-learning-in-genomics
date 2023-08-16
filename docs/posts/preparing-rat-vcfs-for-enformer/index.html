@@ -6,11 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-06-26">
-<meta name="description" content="A couple snippets on the Polaris computing system">
+<meta name="author" content="Sabrina">
+<meta name="dcterms.date" content="2023-07-20">
 
-<title>deep-learning-in-genomics - Getting started on Polaris</title>
+<title>deep-learning-in-genomics - Splitting Br VCF by chromosome</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -109,13 +108,8 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Getting started on Polaris</h1>
-                  <div>
-        <div class="description">
-          A couple snippets on the Polaris computing system
-        </div>
-      </div>
-                </div>
+      <h1 class="title">Splitting Br VCF by chromosome</h1>
+                      </div>
   </div>
     
   
@@ -124,14 +118,14 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Author</div>
       <div class="quarto-title-meta-contents">
-               <p>Sabrina Mi </p>
+               <p>Sabrina </p>
             </div>
     </div>
       
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">June 26, 2023</p>
+        <p class="date">July 20, 2023</p>
       </div>
     </div>
     
@@ -149,80 +143,86 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="references" class="level2">
-<h2 class="anchored" data-anchor-id="references">References</h2>
-<p>More info can be found on:</p>
-<ul>
-<li><a href="https://docs.alcf.anl.gov/polaris/getting-started/">Main Page</a></li>
-<li><a href="https://docs.alcf.anl.gov/running-jobs/example-job-scripts/">Example Job Scripts</a></li>
-</ul>
-</section>
-<section id="shortcuts" class="level2">
-<h2 class="anchored" data-anchor-id="shortcuts">Shortcuts</h2>
-<ul>
-<li>Login: <code>ssh s1mi@polaris.alcf.anl.gov</code></li>
-<li>Main project storage: <code>/lus/grand/projects/TFXcan</code></li>
-<li>Interactive Job: <code>qsub -I -A TFXcan -l select=1 -l filesystems=home:grand -l walltime=1:00:00 -q debug</code></li>
-</ul>
-</section>
-<section id="basic-job-script" class="level2">
-<h2 class="anchored" data-anchor-id="basic-job-script">Basic Job Script</h2>
-<pre><code>#!/bin/bash
-#PBS -A $PROJECT
-#PBS -lwalltime=01:00:00
-#PBS -lselect=4
-#PBS -lsystem=polaris
-#PBS -lfilesystems=home:eagle
+<section id="install-bcftools" class="level2">
+<h2 class="anchored" data-anchor-id="install-bcftools">Install bcftools</h2>
+<pre><code>module load gcc/11.2.0
+cd Github
+INSTALL_DIR=/home/s1mi/bin
+git clone https://github.com/madler/zlib.git
+cd zlib
+./configure --prefix=$INSTALL_DIR
+make
+make install
 
-rpn=4 # assume 1 process per GPU
-procs=$((PBS_NODES*rpn))
+cd ..
+curl -L 'https://sourceforge.net/projects/bzip2/files/bzip2-1.0.6.tar.gz' &gt; bzip2-1.0.6.tar.gz
+tar xvzf bzip2-1.0.6.tar.gz
+cd bzip2-1.0.6
+make -f Makefile-libbz2_so
 
-# job to “run” from your submission directory
-cd $PBS_O_WORKDIR
+cd ..
+curl -L 'https://tukaani.org/xz/xz-5.2.4.tar.gz' &gt; xz-5.2.4.tar.gz
+tar xvzf xz-5.2.4.tar.gz
+cd xz-5.2.4
+./configure --prefix=$INSTALL_DIR
+make
+make install
 
-module load &lt;something&gt;
+cd ..
+git clone --recurse-submodules https://github.com/samtools/htslib.git
+cd htslib/
+autoconf
+autoheader
+./configure --prefix=$INSTALL_DIR CPPFLAGS="-I$INSTALL_DIR/include" LDFLAGS="-L$INSTALL_DIR/lib -Wl,-R$INSTALL_DIR/lib"
+make
+make install
 
-set +x # report all commands to stderr
-env
-mpiexec -n $procs -ppn $rpn --cpu-bind core -genvall ./bin &lt;opts&gt;
+cd ..
+git clone https://github.com/samtools/bcftools.git
+cd bcftools
+autoconf
+autoheader
+./configure --prefix=$INSTALL_DIR CPPFLAGS="-I$INSTALL_DIR/include" LDFLAGS="-L$INSTALL_DIR/lib -Wl,-R$INSTALL_DIR/lib"
 </code></pre>
 </section>
-<section id="conda-environments" class="level2">
-<h2 class="anchored" data-anchor-id="conda-environments">Conda Environments</h2>
-<p>Before activating and deactivating environments, we need to run <code>module load conda</code>.</p>
-<p>To create an environment:</p>
-<pre><code>module load conda
+<section id="split-vcf-by-chromosome" class="level2">
+<h2 class="anchored" data-anchor-id="split-vcf-by-chromosome">Split VCF by chromosome</h2>
+<p>First, by chromosome number:</p>
+<pre><code>bcftools index -t /home/s1mi/enformer_rat_data/Brain.rn7.vcf.gz
 
-export http_proxy=http://proxy.alcf.anl.gov:3128
-export https_proxy=$http_proxy
+# Get list of samples
+bcftools query -l /home/s1mi/enformer_rat_data/Brain.rn7.vcf.gz &gt; /home/s1mi/enformer_rat_pipeline/metadata/individuals.txt
 
-conda create -n ml-python python=3.10
-conda activate ml-python
-conda install -y jupyter nb_conda ipykernel mpi
-conda install -y pytorch torchvision -c pytorch
-conda install -c conda-forge tensorflow
-python -m ipykernel install --user --name ml-python</code></pre>
-<p>The last line creates a new directory <code>~/.local/share/jupyter/kernels/ml-python</code>. We add a couple lines to <code>kernel.json</code> so that we can use the new environment in the our Jupyter notebooks:</p>
-<pre><code>{
-  "argv": [
-    "/home/s1mi/.conda/envs/ml-python/bin/python",
-    "-m",
-    "ipykernel_launcher",
-    "-f",
-    "{connection_file}"
-  ],
-  "display_name": "ml-python",
-  "language": "python",
-  "env": {
-    "CONDA_PREFIX": "/home/s1mi/.conda/envs/ml-python",
-    "PATH": "/home/s1mi/.conda/envs/ml-python:${PATH}",
-    "http_proxy": "http://proxy.alcf.anl.gov:3128",
-    "https_proxy": "http://proxy.alcf.anl.gov:3128"
-  },
-  "metadata": {
-    "debugger": true
-  }
-}</code></pre>
+
+# Split VCF by chromosome
+vcf_in=/home/s1mi/enformer_rat_data/Brain.rn7.vcf.gz
+
+vcf_out_prefix=/home/s1mi/enformer_rat_data/BrainVCFs/chr
+
+for i in {1..20}
+do
+    echo "Working on chromosome ${i}..."
+    bcftools view ${vcf_in} --regions ${i} -o ${vcf_out_prefix}${i}.vcf.gz -Oz
+done
+
+
+# Index VCFs
+for i in {1..20}
+do
+    echo "Indexing chromosome ${i}..."
+    bcftools index -t /home/s1mi/enformer_rat_data/BrainVCFs/chr${i}.vcf.gz
+done
+</code></pre>
+<p>Then separately for sex chromosomes:</p>
+<pre><code>vcf_in=/home/s1mi/enformer_rat_data/Brain.rn7.vcf.gz
+vcf_out_prefix=/home/s1mi/enformer_rat_data/BrainVCFs/chr
+
+bcftools view ${vcf_in} --regions X -o ${vcf_out_prefix}X.vcf.gz -Oz
+bcftools view ${vcf_in} --regions Y -o ${vcf_out_prefix}Y.vcf.gz -Oz
+
+bcftools index -t /home/s1mi/enformer_rat_data/BrainVCFs/chrX.vcf.gz
+bcftools index -t /home/s1mi/enformer_rat_data/BrainVCFs/chrY.vcf.gz
+</code></pre>
 
 
 </section>
