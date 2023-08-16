@@ -2,15 +2,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.433">
+<meta name="generator" content="quarto-1.3.361">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-08-10">
-<meta name="description" content="We pick up where we left off last time with predicting epigenome across all genes, trying to run the Enformer pipeline on intervals we missed the first time because of batching issues. Additionally, we’ll try using the added mouse head parameter">
+<meta name="dcterms.date" content="2023-08-16">
+<meta name="description" content="In the previous test, we added an option to read in unphased VCFs as if they were phased. It correctly ran Enformer on both “haplotypes”, but to reduce number of runs, we implemented predictions on the mean haplotype for unphased VCFs. Now we check that the pipeline method returns the same results as original Enformer usage">
 
-<title>deep-learning-in-genomics - Running Enformer across all rn7 genes (continued)</title>
+<title>deep-learning-in-genomics - Testing the Enformer pipeline’s handling of unphased VCFs</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -22,6 +22,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -109,10 +143,10 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Running Enformer across all rn7 genes (continued)</h1>
+      <h1 class="title">Testing the Enformer pipeline’s handling of unphased VCFs</h1>
                   <div>
         <div class="description">
-          We pick up where we left off last time with predicting epigenome across all genes, trying to run the Enformer pipeline on intervals we missed the first time because of batching issues. Additionally, we’ll try using the added mouse head parameter
+          In the previous test, we added an option to read in unphased VCFs as if they were phased. It correctly ran Enformer on both “haplotypes”, but to reduce number of runs, we implemented predictions on the mean haplotype for unphased VCFs. Now we check that the pipeline method returns the same results as original Enformer usage
         </div>
       </div>
                 </div>
@@ -131,7 +165,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">August 10, 2023</p>
+        <p class="date">August 16, 2023</p>
       </div>
     </div>
     
@@ -149,17 +183,54 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<p>We’ll reuse the <code>intervals.txt</code> file that spanned all TSS in the rn7 genome.</p>
-<section id="human-head" class="level2">
-<h2 class="anchored" data-anchor-id="human-head">Human Head</h2>
-<pre class="{bash}"><code>module load conda
-
-conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
-
-cd /home/s1mi/Github/shared_pipelines/enformer_pipeline
-
-python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-16-correlation-across-genes-human-and-mouse-tracks/all_genes_reference_human_head.json
-</code></pre>
+<section id="read-in-h5-prediction-file" class="level3">
+<h3 class="anchored" data-anchor-id="read-in-h5-prediction-file">Read in h5 prediction file</h3>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> h5py.File(<span class="st">"/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-16/enformer_predictions/000789972A/haplotype0/chr20_12118762_12118762_predictions.h5"</span>, <span class="st">"r"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>predictions1 <span class="op">=</span> f[<span class="st">'chr20_12118762_12118762'</span>][()]</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(predictions1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[0.23258275 0.2962714  0.52013165 ... 0.19615567 1.1101408  0.25560504]
+ [0.15570731 0.20205402 0.3755348  ... 0.04365927 0.24989623 0.08517855]
+ [0.1536611  0.21689793 0.4510562  ... 0.05227472 0.2147567  0.08478698]
+ ...
+ [0.1794057  0.22463816 0.29514343 ... 0.01105995 0.02652512 0.03385386]
+ [0.1694869  0.20448665 0.26207498 ... 0.01688805 0.04071837 0.06028533]
+ [0.15269741 0.20196484 0.22278813 ... 0.02438667 0.03900523 0.05988767]]</code></pre>
+</div>
+</div>
+</section>
+<section id="run-non-pipeline-enformer" class="level3">
+<h3 class="anchored" data-anchor-id="run-non-pipeline-enformer">Run non-pipeline Enformer</h3>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> EnformerVCF</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> kipoiseq</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>fasta_file <span class="op">=</span> <span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/rn7_genome.fasta'</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>fasta_extractor <span class="op">=</span> EnformerVCF.FastaStringExtractor(fasta_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># read VCFs and encode haplotypes</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>target_interval <span class="op">=</span> kipoiseq.Interval(<span class="st">"chr20"</span>, <span class="dv">12118762</span>, <span class="dv">12118762</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>chr20_vcf <span class="op">=</span> EnformerVCF.read_vcf(<span class="st">"/Users/sabrinami/enformer_rat_data/BrainVCFs/chr20.vcf.gz"</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>haplo1, haplo2 <span class="op">=</span> EnformerVCF.vcf_to_seq(target_interval, <span class="st">'000789972A'</span>, chr20_vcf, fasta_extractor)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>haplo1_enc <span class="op">=</span> EnformerVCF.one_hot_encode(<span class="st">""</span>.join(haplo1))[np.newaxis]</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>haplo2_enc <span class="op">=</span> EnformerVCF.one_hot_encode(<span class="st">""</span>.join(haplo2))[np.newaxis]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>mean_haplo <span class="op">=</span> (haplo1_enc <span class="op">+</span> haplo2_enc) <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>predictions2 <span class="op">=</span> EnformerVCF.model.predict_on_batch(mean_haplo)[<span class="st">'human'</span>][<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"There are"</span>, <span class="bu">sum</span>(<span class="bu">sum</span>(predictions1 <span class="op">!=</span> predictions2)), <span class="st">"differences between the two matrices."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>There are 0 differences between the two matrices.</code></pre>
+</div>
+</div>
+<p>It looks like our edits worked!</p>
 
 
 </section>

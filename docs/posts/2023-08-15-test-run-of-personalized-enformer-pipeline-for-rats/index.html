@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.433">
+<meta name="generator" content="quarto-1.3.361">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -184,26 +184,26 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 cd /Users/sabrinami/Github/shared_pipelines/enformer_pipeline
 
-python scripts/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-12-test-run-of-personalized-enformer-pipeline-for-rats/local_test_personalized.json
+python scripts/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/local_test_personalized.json
 </code></pre>
 </section>
 <section id="compare-results-to-non-pipeline-method" class="level2">
 <h2 class="anchored" data-anchor-id="compare-results-to-non-pipeline-method">Compare results to non-pipeline method</h2>
 <section id="read-in-h5-prediction-files" class="level3">
 <h3 class="anchored" data-anchor-id="read-in-h5-prediction-files">Read in h5 prediction files</h3>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> h5py.File(<span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-15/enformer_predictions/000789972A/haplotype1/chr20_12118762_12118762_predictions.h5'</span>, <span class="st">'r'</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>haplo1 <span class="op">=</span> f[<span class="st">'chr20_12118762_12118762'</span>][()]</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> h5py.File(<span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-15/enformer_predictions/000789972A/haplotype2/chr20_12118762_12118762_predictions.h5'</span>, <span class="st">'r'</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>haplo2 <span class="op">=</span> f[<span class="st">'chr20_12118762_12118762'</span>][()]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"haplo1:</span><span class="ch">\n</span><span class="st">"</span>, haplo1)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"haplo2:</span><span class="ch">\n</span><span class="st">"</span>, haplo2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> h5py.File(<span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-15/enformer_predictions/000789972A/haplotype1/chr20_12118762_12118762_predictions.h5'</span>, <span class="st">'r'</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>haplotype1 <span class="op">=</span> f[<span class="st">'chr20_12118762_12118762'</span>][()]</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> h5py.File(<span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-15/enformer_predictions/000789972A/haplotype2/chr20_12118762_12118762_predictions.h5'</span>, <span class="st">'r'</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>haplotype2 <span class="op">=</span> f[<span class="st">'chr20_12118762_12118762'</span>][()]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"haplotype1:</span><span class="ch">\n</span><span class="st">"</span>, haplotype1)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"haplotype2:</span><span class="ch">\n</span><span class="st">"</span>, haplotype2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>haplo1:
  [[0.24076067 0.30101207 0.5132549  ... 0.20521325 1.1217918  0.25558835]
@@ -223,54 +223,38 @@ haplo2:
  [0.15272975 0.20209791 0.22299151 ... 0.0243816  0.03896997 0.05996798]]</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>matrix1 <span class="op">=</span> (haplo1 <span class="op">+</span> haplo2)<span class="op">/</span><span class="dv">2</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(matrix1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[[0.23696625 0.2992149  0.51574266 ... 0.20453554 1.1321095  0.25783706]
- [0.15780002 0.20383199 0.37824684 ... 0.04494832 0.25188613 0.08406284]
- [0.1547443  0.21755825 0.45281047 ... 0.05372937 0.21726915 0.08339658]
- ...
- [0.17940232 0.22464743 0.29510808 ... 0.01106569 0.02650913 0.03388003]
- [0.16947435 0.20450974 0.26205644 ... 0.01689158 0.04068387 0.06032654]
- [0.15269738 0.20200595 0.22281024 ... 0.02438501 0.03896331 0.05991858]]</code></pre>
-</div>
-</div>
 </section>
 <section id="run-non-pipeline-enformer" class="level3">
 <h3 class="anchored" data-anchor-id="run-non-pipeline-enformer">Run non-pipeline Enformer</h3>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> EnformerVCF</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> kipoiseq</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> EnformerVCF</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> kipoiseq</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2023-08-15 13:18:28.207123: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+<pre><code>2023-08-16 15:01:14.430478: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
 To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fasta_file <span class="op">=</span> <span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/rn7_genome.fasta'</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>fasta_extractor <span class="op">=</span> EnformerVCF.FastaStringExtractor(fasta_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>fasta_file <span class="op">=</span> <span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/rn7_genome.fasta'</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>fasta_extractor <span class="op">=</span> EnformerVCF.FastaStringExtractor(fasta_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">## read vcf and encode haplotypes</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>target_interval <span class="op">=</span> kipoiseq.Interval(<span class="st">"chr20"</span>, <span class="dv">12118762</span>, <span class="dv">12118762</span>)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>chr20_vcf <span class="op">=</span> EnformerVCF.read_vcf(<span class="st">"/Users/sabrinami/enformer_rat_data/BrainVCFs/chr20.vcf.gz"</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>haplo1, haplo2 <span class="op">=</span> EnformerVCF.vcf_to_seq(target_interval, <span class="st">'000789972A'</span>, chr20_vcf, fasta_extractor)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>haplo_1_enc <span class="op">=</span> EnformerVCF.one_hot_encode(<span class="st">""</span>.join(haplo1))[np.newaxis]</span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>haplo_2_enc <span class="op">=</span> EnformerVCF.one_hot_encode(<span class="st">""</span>.join(haplo2))[np.newaxis]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">## read vcf and encode haplotypes</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>target_interval <span class="op">=</span> kipoiseq.Interval(<span class="st">"chr20"</span>, <span class="dv">12118762</span>, <span class="dv">12118762</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>chr20_vcf <span class="op">=</span> EnformerVCF.read_vcf(<span class="st">"/Users/sabrinami/enformer_rat_data/BrainVCFs/chr20.vcf.gz"</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>haplo1, haplo2 <span class="op">=</span> EnformerVCF.vcf_to_seq(target_interval, <span class="st">'000789972A'</span>, chr20_vcf, fasta_extractor)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>haplo1_enc <span class="op">=</span> EnformerVCF.one_hot_encode(<span class="st">""</span>.join(haplo1))[np.newaxis]</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>haplo2_enc <span class="op">=</span> EnformerVCF.one_hot_encode(<span class="st">""</span>.join(haplo2))[np.newaxis]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">## run predictions</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>prediction_1 <span class="op">=</span> EnformerVCF.model.predict_on_batch(haplo_1_enc)[<span class="st">'human'</span>][<span class="dv">0</span>]</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>prediction_2 <span class="op">=</span> EnformerVCF.model.predict_on_batch(haplo_2_enc)[<span class="st">'human'</span>][<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">## run predictions</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>prediction1 <span class="op">=</span> EnformerVCF.model.predict_on_batch(haplo1_enc)[<span class="st">'human'</span>][<span class="dv">0</span>]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>prediction2 <span class="op">=</span> EnformerVCF.model.predict_on_batch(haplo2_enc)[<span class="st">'human'</span>][<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>matrix2 <span class="op">=</span> (prediction_1 <span class="op">+</span> prediction_2) <span class="op">/</span> <span class="dv">2</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"There are"</span>, <span class="bu">sum</span>(<span class="bu">sum</span>(matrix1 <span class="op">!=</span> matrix2)), <span class="st">"differences between the two matrices."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"There are"</span>, <span class="bu">sum</span>(<span class="bu">sum</span>(haplotype1 <span class="op">!=</span> prediction1)), <span class="st">"differences between haplotype1 matrices and"</span>, <span class="bu">sum</span>(<span class="bu">sum</span>(haplotype2 <span class="op">!=</span> prediction2)), <span class="st">"differences between haplotype2 matrices."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>There are 0 differences between the two matrices</code></pre>
+<pre><code>There are 0 differences between haplotype1 matrices and 0 differences between haplotype2 matrices.</code></pre>
 </div>
 </div>
 <p>The pipeline outputs are the same!</p>
