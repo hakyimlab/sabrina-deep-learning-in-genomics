@@ -258,9 +258,18 @@ To enable the following instructions: AVX2 FMA, in other operations, rebuild Ten
 </div>
 </div>
 <p>The pipeline outputs are the same!</p>
-
-
 </section>
+</section>
+<section id="test-mouse-head-on-reference-genome" class="level2">
+<h2 class="anchored" data-anchor-id="test-mouse-head-on-reference-genome">Test mouse head on reference genome</h2>
+<pre><code>conda activate enformer-predict-tools
+
+cd /Users/sabrinami/Github/shared_pipelines/enformer_pipeline
+
+python scripts/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/local_test_reference.json
+</code></pre>
+
+
 </section>
 
 </main> <!-- /main -->
