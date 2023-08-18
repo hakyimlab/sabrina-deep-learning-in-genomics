@@ -1,0 +1,24 @@
+---
+title: biomaRt tutorial for querying gene annotation
+author: Sabrina Mi
+description: An example query for hg38 genes and their cannonical TSS
+date: 8/18/2023
+---
+
+BioMart is a database with gene annotations for various species, builds, etc. We can use the package biomaRt package to query information. 
+
+### Install biomaRt
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("biomaRt")
+
+```
+
+### Example 1: Getting a list of human genes and their TSS in hg38
+
+```{r}
+library(biomaRt)
+
+```
