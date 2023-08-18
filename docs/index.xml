@@ -161,6 +161,8 @@ font-style: inherit;">"ensembl_gene_id"</span>, <span class="st" style="color: #
 background-color: null;
 font-style: inherit;">"external_gene_name"</span>, <span class="st" style="color: #20794D;
 background-color: null;
+font-style: inherit;">"chromosome_name"</span>, <span class="st" style="color: #20794D;
+background-color: null;
 font-style: inherit;">"transcription_start_site"</span>)]</span>
 <span id="cb3-9"></span>
 <span id="cb3-10"><span class="co" style="color: #5E5E5E;
@@ -305,7 +307,7 @@ font-style: inherit;">FALSE</span>)</span></code></pre></div>
 
 <section id="setup" class="level2">
 <h2 class="anchored" data-anchor-id="setup">Setup</h2>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">import</span> h5py</span>
@@ -314,15 +316,20 @@ background-color: null;
 font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">as</span> pd</span>
-<span id="cb1-3"></span>
+<span id="cb1-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
 <span id="cb1-4"></span>
-<span id="cb1-5">reference_dir <span class="op" style="color: #5E5E5E;
+<span id="cb1-5"></span>
+<span id="cb1-6">reference_dir <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"/grand/TFXcan/imlab/users/lvairus/reftile_project/enformer-reference-epigenome"</span></span>
-<span id="cb1-6"></span>
-<span id="cb1-7"><span class="kw" style="color: #003B4F;
+<span id="cb1-7"></span>
+<span id="cb1-8"><span class="kw" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">def</span> query_epigenome(path_to_enfref, chr_num, center_bp, num_bins<span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -333,45 +340,45 @@ background-color: null;
 font-style: inherit;">=-</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>):</span>
-<span id="cb1-8">    <span class="co" style="color: #5E5E5E;
+<span id="cb1-9">    <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">"""</span></span>
-<span id="cb1-9"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    Parameters:</span></span>
 <span id="cb1-10"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
+font-style: inherit;">    Parameters:</span></span>
 <span id="cb1-11"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">        chr_num (int/string): chromosome number</span></span>
+font-style: inherit;">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
 <span id="cb1-12"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">        center_bp (int): center base pair position (1-indexed)</span></span>
+font-style: inherit;">        chr_num (int/string): chromosome number</span></span>
 <span id="cb1-13"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">        num_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
+font-style: inherit;">        center_bp (int): center base pair position (1-indexed)</span></span>
 <span id="cb1-14"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
+font-style: inherit;">        num_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
 <span id="cb1-15"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
-<span id="cb1-16"></span>
-<span id="cb1-17"><span class="co" style="color: #5E5E5E;
+font-style: inherit;">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
+<span id="cb1-16"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">    Returns:</span></span>
+font-style: inherit;">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
+<span id="cb1-17"></span>
 <span id="cb1-18"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">        epigen (np.array): enformer predictions centered at center_bp of shape (num_bins, len(tracks))</span></span>
+font-style: inherit;">    Returns:</span></span>
 <span id="cb1-19"><span class="co" style="color: #5E5E5E;
 background-color: null;
+font-style: inherit;">        epigen (np.array): enformer predictions centered at center_bp of shape (num_bins, len(tracks))</span></span>
+<span id="cb1-20"><span class="co" style="color: #5E5E5E;
+background-color: null;
 font-style: inherit;">    """</span></span>
-<span id="cb1-20"></span>
-<span id="cb1-21">    <span class="co" style="color: #5E5E5E;
+<span id="cb1-21"></span>
+<span id="cb1-22">    <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># from chr_num choose file</span></span>
-<span id="cb1-22">    filename <span class="op" style="color: #5E5E5E;
+<span id="cb1-23">    filename <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
 background-color: null;
@@ -382,46 +389,46 @@ background-color: null;
 font-style: inherit;">}</span><span class="ss" style="color: #20794D;
 background-color: null;
 font-style: inherit;">_cat.h5"</span></span>
-<span id="cb1-23"></span>
-<span id="cb1-24">    <span class="co" style="color: #5E5E5E;
+<span id="cb1-24"></span>
+<span id="cb1-25">    <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># from position choose center bin</span></span>
-<span id="cb1-25">    center_ind <span class="op" style="color: #5E5E5E;
+<span id="cb1-26">    center_ind <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> center_bp <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span></span>
-<span id="cb1-26">    center_bin <span class="op" style="color: #5E5E5E;
+<span id="cb1-27">    center_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> center_ind <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">128</span></span>
-<span id="cb1-27">    </span>
-<span id="cb1-28">    <span class="co" style="color: #5E5E5E;
+<span id="cb1-28">    </span>
+<span id="cb1-29">    <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># from bins choose number of bins</span></span>
-<span id="cb1-29">    half_bins <span class="op" style="color: #5E5E5E;
+<span id="cb1-30">    half_bins <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> num_bins <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">2</span></span>
-<span id="cb1-30">    start_bin <span class="op" style="color: #5E5E5E;
+<span id="cb1-31">    start_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> center_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">-</span> half_bins</span>
-<span id="cb1-31">    end_bin <span class="op" style="color: #5E5E5E;
+<span id="cb1-32">    end_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> center_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span> half_bins</span>
-<span id="cb1-32">    <span class="cf" style="color: #003B4F;
+<span id="cb1-33">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">if</span> num_bins <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -434,16 +441,16 @@ background-color: null;
 font-style: inherit;">0</span>: <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># if num_bins is odd</span></span>
-<span id="cb1-33">        end_bin <span class="op" style="color: #5E5E5E;
+<span id="cb1-34">        end_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span></span>
-<span id="cb1-34"></span>
-<span id="cb1-35">    <span class="co" style="color: #5E5E5E;
+<span id="cb1-35"></span>
+<span id="cb1-36">    <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># get bins (with all tracks)</span></span>
-<span id="cb1-36">    <span class="cf" style="color: #003B4F;
+<span id="cb1-37">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">with</span> h5py.File(<span class="ss" style="color: #20794D;
 background-color: null;
@@ -464,7 +471,7 @@ background-color: null;
 font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">as</span> f:</span>
-<span id="cb1-37">        epigen <span class="op" style="color: #5E5E5E;
+<span id="cb1-38">        epigen <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> f[<span class="ss" style="color: #20794D;
 background-color: null;
@@ -477,11 +484,11 @@ background-color: null;
 font-style: inherit;">'</span>][()][start_bin:end_bin] <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># np.array (num_bins, 5313)</span></span>
-<span id="cb1-38"></span>
-<span id="cb1-39">    <span class="co" style="color: #5E5E5E;
+<span id="cb1-39"></span>
+<span id="cb1-40">    <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># get tracks if list provided</span></span>
-<span id="cb1-40">    <span class="cf" style="color: #003B4F;
+<span id="cb1-41">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">if</span> tracks <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -490,13 +497,13 @@ background-color: null;
 font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>:</span>
-<span id="cb1-41">        epigen <span class="op" style="color: #5E5E5E;
+<span id="cb1-42">        epigen <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> epigen[:, tracks] <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># np.array (num_bins, len(tracks))</span></span>
-<span id="cb1-42"></span>
-<span id="cb1-43">    <span class="cf" style="color: #003B4F;
+<span id="cb1-43"></span>
+<span id="cb1-44">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">return</span> epigen</span></code></pre></div>
 </div>
@@ -504,7 +511,7 @@ font-style: inherit;">return</span> epigen</span></code></pre></div>
 <section id="collect-tss-for-all-human-genes" class="level2">
 <h2 class="anchored" data-anchor-id="collect-tss-for-all-human-genes">Collect TSS for all human genes</h2>
 <p>We collected all protein-coding genes and their cannonical TSS using the biomaRt package.</p>
-<div class="cell" data-execution_count="7">
+<div class="cell" data-execution_count="10">
 <div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"></span>
 <span id="cb2-2">hg38_annot <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -526,38 +533,81 @@ font-style: inherit;">"</span>, index_col<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">'ensembl_gene_id'</span>)</span></code></pre></div>
+font-style: inherit;">'ensembl_gene_id'</span>)</span>
+<span id="cb2-3">hg38_annot.head()</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">external_gene_name</th>
+<th data-quarto-table-cell-role="th">transcription_start_site</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">ensembl_gene_id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000142611</td>
+<td>PRDM16</td>
+<td>3069203</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSG00000157911</td>
+<td>PEX10</td>
+<td>2412564</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000142655</td>
+<td>PEX14</td>
+<td>10474950</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSG00000149527</td>
+<td>PLCH2</td>
+<td>2476289</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000171621</td>
+<td>SPSB1</td>
+<td>9292894</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
 </div>
 <p>We computed the predicted human reference epigenome by running Enformer on all intervals spanning the genome and concatenting the results. Now we extract the CAGE:Brain track at the bins where each gene’s TSS fall in order to quantify relative expression across genes.</p>
-<div class="cell" data-execution_count="5">
+<div class="cell" data-execution_count="17">
 <div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">gene <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">'ENSG00000198888'</span></span>
+font-style: inherit;">'ENSG00000142611'</span></span>
 <span id="cb3-2"><span class="kw" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">def</span> quantify_expression(gene):</span>
-<span id="cb3-3">    <span class="bu" style="color: null;
+<span id="cb3-3">    tss <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">print</span>(gene)</span></code></pre></div>
+font-style: inherit;">=</span> hg38_annot.loc[gene][<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'transcription_start_site'</span>]</span>
+<span id="cb3-4">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(query_epigenome)</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">quantify_expression(gene)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>0        ENSG00000198888
-1        ENSG00000198763
-2        ENSG00000198804
-3        ENSG00000198712
-4        ENSG00000228253
-              ...       
-22772    ENSG00000181817
-22773    ENSG00000116885
-22774    ENSG00000116898
-22775    ENSG00000119535
-22776    ENSG00000142694
-Name: ensembl_gene_id, Length: 22777, dtype: object</code></pre>
+<pre><code>3069203</code></pre>
 </div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">quantify_expression(gene)</span></code></pre></div>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="co" style="color: #5E5E5E;

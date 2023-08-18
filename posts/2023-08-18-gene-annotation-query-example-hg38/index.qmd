@@ -3,8 +3,6 @@ title: biomaRt tutorial for querying gene annotation
 author: Sabrina Mi
 description: An example query for hg38 genes and their cannonical TSS
 date: 8/18/2023
-execution:
-  include: false
 ---
 
 BioMart is a database with gene annotations for various species, builds, etc. We can use the package biomaRt package to query information. 
@@ -34,7 +32,7 @@ mart <- useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensem
 protein_coding_TSS <- biomaRt::getBM(attributes = c("ensembl_gene_id","external_gene_name", "chromosome_name","transcript_start","transcript_end","transcript_biotype","transcription_start_site", "transcript_is_canonical", "strand"), filters = c("transcript_biotype","chromosome_name", "transcript_is_canonical"),values = list("protein_coding",c(1:22, 'X', 'Y'), TRUE), mart = mart)
 
 # extract columns of interest
-protein_coding_TSS = protein_coding_TSS[, c("ensembl_gene_id", "external_gene_name", "transcription_start_site")]
+protein_coding_TSS = protein_coding_TSS[, c("ensembl_gene_id", "external_gene_name", "chromosome_name", "transcription_start_site")]
 
 # write to file
 write.table(protein_coding_TSS, file="protein_coding_TSS.tsv", sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
