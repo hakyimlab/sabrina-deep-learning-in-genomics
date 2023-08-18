@@ -7,10 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-08-10">
-<meta name="description" content="We pick up where we left off last time with predicting epigenome across all genes, trying to run the Enformer pipeline on intervals we missed the first time because of batching issues. Additionally, we’ll try using the added mouse head parameter">
+<meta name="dcterms.date" content="2023-08-18">
+<meta name="description" content="An example query for hg38 genes and their cannonical TSS">
 
-<title>deep-learning-in-genomics - Running Enformer across all rn7 genes (continued)</title>
+<title>deep-learning-in-genomics - biomaRt tutorial for querying gene annotation</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -143,10 +143,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Running Enformer across all rn7 genes (continued)</h1>
+      <h1 class="title">biomaRt tutorial for querying gene annotation</h1>
                   <div>
         <div class="description">
-          We pick up where we left off last time with predicting epigenome across all genes, trying to run the Enformer pipeline on intervals we missed the first time because of batching issues. Additionally, we’ll try using the added mouse head parameter
+          An example query for hg38 genes and their cannonical TSS
         </div>
       </div>
                 </div>
@@ -165,7 +165,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">August 10, 2023</p>
+        <p class="date">August 18, 2023</p>
       </div>
     </div>
     
@@ -183,22 +183,53 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="create-list-of-regions-to-exclude" class="level2">
-<h2 class="anchored" data-anchor-id="create-list-of-regions-to-exclude">Create list of regions to exclude</h2>
-<p>We have successful predictions for 19,493 genes out of the 30,057 intervals supplied. We want to exclude them in the next run of the pipeline.</p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>job_log_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_predictions/predictions_folder/reference_Br_all_genes/predictions_2023-08-18/job_logs"</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_predictions/predictions_folder/reference_Br_all_genes/predictions_2023-08-16/enformer_predictions/reference_Br/haplotype0"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>BioMart is a database with gene annotations for various species, builds, etc. We can use the package biomaRt package to query information.</p>
+<section id="install-biomart" class="level3">
+<h3 class="anchored" data-anchor-id="install-biomart">Install biomaRt</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">requireNamespace</span>(<span class="st">"BiocManager"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>))</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">install.packages</span>(<span class="st">"BiocManager"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>BiocManager<span class="sc">::</span><span class="fu">install</span>(<span class="st">"biomaRt"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="op">=</span> os.listdir(predictions_dir)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>predicted_regions <span class="op">=</span> [<span class="bu">file</span>.replace(<span class="st">"_predictions.h5"</span>,<span class="st">""</span>) <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> predictions]</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="ss">f"</span><span class="sc">{</span>job_log_dir<span class="sc">}</span><span class="ss">/invalid_queries.csv"</span>, <span class="st">"w"</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">file</span>.write(<span class="st">"region</span><span class="ch">\n</span><span class="st">"</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">file</span>.write(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(predicted_regions))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="example-1-getting-a-list-of-human-genes-and-their-tss-in-hg38" class="level3">
+<h3 class="anchored" data-anchor-id="example-1-getting-a-list-of-human-genes-and-their-tss-in-hg38">Example 1: Getting a list of human genes and their TSS in hg38</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(biomaRt)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to BioMart database for human genes</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>mart <span class="ot">&lt;-</span> <span class="fu">useMart</span>(<span class="at">biomart =</span> <span class="st">"ENSEMBL_MART_ENSEMBL"</span>, <span class="at">dataset =</span> <span class="st">"hsapiens_gene_ensembl"</span>, <span class="at">host =</span> <span class="st">'https://www.ensembl.org'</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># query canonical TSS for protein-coding genes on chr 1-22, X, and Y</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>protein_coding_TSS <span class="ot">&lt;-</span> biomaRt<span class="sc">::</span><span class="fu">getBM</span>(<span class="at">attributes =</span> <span class="fu">c</span>(<span class="st">"ensembl_gene_id"</span>,<span class="st">"external_gene_name"</span>, <span class="st">"chromosome_name"</span>,<span class="st">"transcript_start"</span>,<span class="st">"transcript_end"</span>,<span class="st">"transcript_biotype"</span>,<span class="st">"transcription_start_site"</span>, <span class="st">"transcript_is_canonical"</span>, <span class="st">"strand"</span>), <span class="at">filters =</span> <span class="fu">c</span>(<span class="st">"transcript_biotype"</span>,<span class="st">"chromosome_name"</span>, <span class="st">"transcript_is_canonical"</span>),<span class="at">values =</span> <span class="fu">list</span>(<span class="st">"protein_coding"</span>,<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">22</span>, <span class="st">'X'</span>, <span class="st">'Y'</span>), <span class="cn">TRUE</span>), <span class="at">mart =</span> mart)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># extract columns of interest</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>protein_coding_TSS <span class="ot">=</span> protein_coding_TSS[, <span class="fu">c</span>(<span class="st">"ensembl_gene_id"</span>, <span class="st">"external_gene_name"</span>, <span class="st">"transcription_start_site"</span>)]</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># write to file</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">write.table</span>(protein_coding_TSS, <span class="at">file=</span><span class="st">"protein_coding_TSS.tsv"</span>, <span class="at">sep=</span><span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">row.names=</span><span class="cn">FALSE</span>, <span class="at">col.names=</span><span class="cn">TRUE</span>, <span class="at">quote=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="example-2-getting-a-list-of-rat-genes-with-orthologs-in-humans" class="level3">
+<h3 class="anchored" data-anchor-id="example-2-getting-a-list-of-rat-genes-with-orthologs-in-humans">Example 2: Getting a list of rat genes with orthologs in humans</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to BioMart database for rat genes</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ensembl <span class="ot">=</span> <span class="fu">useMart</span>(<span class="at">biomart=</span><span class="st">"ENSEMBL_MART_ENSEMBL"</span>, <span class="at">dataset =</span> <span class="st">"rnorvegicus_gene_ensembl"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># query all relevant data and store in a dataframe</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>ortho_rat <span class="ot">=</span> <span class="fu">getBM</span>( <span class="at">attributes=</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">c</span>(<span class="st">"ensembl_gene_id"</span>, </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"hsapiens_homolog_ensembl_gene"</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"external_gene_name"</span>),</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">filters =</span> <span class="st">"with_hsapiens_homolog"</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">values =</span><span class="cn">TRUE</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                  <span class="at">mart =</span> ensembl,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">bmHeader=</span><span class="cn">FALSE</span>)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co"># write to file</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="fu">write.table</span>(ortho_rat, <span class="at">file=</span><span class="st">"ortholog_genes_rats_humans.tsv"</span>, <span class="at">sep=</span><span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">row.names=</span><span class="cn">FALSE</span>, <span class="at">col.names=</span><span class="cn">TRUE</span>, <span class="at">quote=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
