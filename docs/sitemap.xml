@@ -2,110 +2,110 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-10-selecting-genes/selecting-well-predicted-gene-regions.html</loc>
-    <lastmod>2023-08-17T03:05:59.084Z</lastmod>
+    <lastmod>2023-08-17T15:32:37.322Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-07-CAGE-Brain-plots-at-TSS/index.html</loc>
-    <lastmod>2023-08-17T03:05:59.660Z</lastmod>
+    <lastmod>2023-08-17T15:32:37.882Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-03-comparing-enformer-CAGE-to-observed-gene-expression/comparing-gene-expression.html</loc>
-    <lastmod>2023-08-17T03:06:00.114Z</lastmod>
+    <lastmod>2023-08-17T15:32:38.357Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-14-updated-preparing-rat-vcf-inputs-for-enformer-pipeline/index.html</loc>
-    <lastmod>2023-08-17T03:06:00.898Z</lastmod>
+    <lastmod>2023-08-17T15:32:39.162Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/average_haplotype_test.html</loc>
-    <lastmod>2023-08-17T03:06:01.295Z</lastmod>
+    <lastmod>2023-08-17T15:32:39.554Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/index.html</loc>
-    <lastmod>2023-08-17T03:06:01.654Z</lastmod>
+    <lastmod>2023-08-17T15:32:39.919Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/llm-in-molecular-biology-article/index.html</loc>
-    <lastmod>2023-08-17T03:06:02.039Z</lastmod>
+    <lastmod>2023-08-17T15:32:40.320Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/running-enformer-locally/run_locally.html</loc>
-    <lastmod>2023-08-17T03:06:02.519Z</lastmod>
+    <lastmod>2023-08-17T15:32:40.804Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/running-enformer-across-all-rat-genes.html</loc>
-    <lastmod>2023-08-17T03:06:03.192Z</lastmod>
+    <lastmod>2023-08-17T15:32:41.509Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/index.html</loc>
-    <lastmod>2023-08-17T03:06:04.164Z</lastmod>
+    <lastmod>2023-08-17T15:32:42.592Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/compare-CAGE-expression.html</loc>
-    <lastmod>2023-08-17T03:06:04.591Z</lastmod>
+    <lastmod>2023-08-17T15:32:43.030Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/pipeline.html</loc>
-    <lastmod>2023-08-17T03:06:05.116Z</lastmod>
+    <lastmod>2023-08-17T15:32:43.596Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/variance_at_peaks.html</loc>
-    <lastmod>2023-08-17T03:06:05.612Z</lastmod>
+    <lastmod>2023-08-17T15:32:44.086Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/week-1/index.html</loc>
-    <lastmod>2023-08-17T03:06:06.004Z</lastmod>
+    <lastmod>2023-08-17T15:32:44.512Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/polaris-intro/index.html</loc>
-    <lastmod>2023-08-17T03:06:06.347Z</lastmod>
+    <lastmod>2023-08-17T15:32:44.837Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-14-cyvcf2-tutorial/test_vcf_query.html</loc>
-    <lastmod>2023-08-17T03:06:06.909Z</lastmod>
+    <lastmod>2023-08-17T15:32:45.391Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-07-13-comparing-enformer-averages/Compare_averages.html</loc>
-    <lastmod>2023-08-17T03:06:07.584Z</lastmod>
+    <lastmod>2023-08-17T15:32:46.088Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-07-21-comparing-enformer-predictions-in-overlapping-intervals/results.html</loc>
-    <lastmod>2023-08-17T03:06:07.915Z</lastmod>
+    <lastmod>2023-08-17T15:32:46.422Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-07-26-running-enformer-on-high-R2-rat-gene-target-intervals/index.html</loc>
-    <lastmod>2023-08-17T03:06:08.259Z</lastmod>
+    <lastmod>2023-08-17T15:32:46.771Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-07-21-running-enformer-on-all-regions-reference/reference_epigenome.html</loc>
-    <lastmod>2023-08-17T03:06:08.619Z</lastmod>
+    <lastmod>2023-08-17T15:32:47.153Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-16-correlation-across-genes-human-and-mouse-tracks/index.html</loc>
-    <lastmod>2023-08-17T03:06:08.979Z</lastmod>
+    <lastmod>2023-08-17T15:32:47.482Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-11-comparing-enformer-CAGE-predictions-for-high-var-genes/debugging.html</loc>
-    <lastmod>2023-08-17T03:06:09.304Z</lastmod>
+    <lastmod>2023-08-17T15:32:47.820Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-11-comparing-enformer-CAGE-predictions-for-high-var-genes/index.html</loc>
-    <lastmod>2023-08-17T03:06:09.688Z</lastmod>
+    <lastmod>2023-08-17T15:32:48.187Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/annotating-targets-table/annotate_targets.html</loc>
-    <lastmod>2023-08-17T03:06:10.176Z</lastmod>
+    <lastmod>2023-08-17T15:32:48.703Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/hackathon-enformer-usage/Hackathon_enformer_usage_participant.html</loc>
-    <lastmod>2023-08-17T03:06:11.315Z</lastmod>
+    <lastmod>2023-08-17T15:32:49.924Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/index.html</loc>
-    <lastmod>2023-08-17T03:06:12.833Z</lastmod>
+    <lastmod>2023-08-17T15:32:51.485Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/about.html</loc>
-    <lastmod>2023-08-17T03:06:13.137Z</lastmod>
+    <lastmod>2023-08-17T15:32:51.789Z</lastmod>
   </url>
 </urlset>
