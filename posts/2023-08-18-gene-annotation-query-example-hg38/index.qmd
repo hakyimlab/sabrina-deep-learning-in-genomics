@@ -3,13 +3,15 @@ title: biomaRt tutorial for querying gene annotation
 author: Sabrina Mi
 description: An example query for hg38 genes and their cannonical TSS
 date: 8/18/2023
+execution:
+  include: false
 ---
 
 BioMart is a database with gene annotations for various species, builds, etc. We can use the package biomaRt package to query information. 
 
 ### Install biomaRt
 
-```{r}
+```{r, eval=FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install("biomaRt")
@@ -19,6 +21,42 @@ BiocManager::install("biomaRt")
 ### Example 1: Getting a list of human genes and their TSS in hg38
 
 ```{r}
+#| output: false
 library(biomaRt)
+library(tidyverse)
+```
 
+```{r}
+# connect to BioMart database for human genes
+mart <- useMart(biomart = "ENSEMBL_MART_ENSEMBL", dataset = "hsapiens_gene_ensembl", host = 'https://www.ensembl.org')
+
+# query canonical TSS for protein-coding genes on chr 1-22, X, and Y
+protein_coding_TSS <- biomaRt::getBM(attributes = c("ensembl_gene_id","external_gene_name", "chromosome_name","transcript_start","transcript_end","transcript_biotype","transcription_start_site", "transcript_is_canonical", "strand"), filters = c("transcript_biotype","chromosome_name", "transcript_is_canonical"),values = list("protein_coding",c(1:22, 'X', 'Y'), TRUE), mart = mart)
+
+# extract columns of interest
+protein_coding_TSS = protein_coding_TSS[, c("ensembl_gene_id", "external_gene_name", "transcription_start_site")]
+
+# write to file
+write.table(protein_coding_TSS, file="protein_coding_TSS.tsv", sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
+
+```
+
+### Example 2: Getting a list of rat genes with orthologs in humans
+
+```{r}
+# connect to BioMart database for rat genes
+ensembl = useMart(biomart="ENSEMBL_MART_ENSEMBL", dataset = "rnorvegicus_gene_ensembl")
+
+# query all relevant data and store in a dataframe
+ortho_rat = getBM( attributes=
+                    c("ensembl_gene_id", 
+                      "hsapiens_homolog_ensembl_gene",
+                      "external_gene_name"),
+                  filters = "with_hsapiens_homolog",
+                  values =TRUE,
+                  mart = ensembl,
+                  bmHeader=FALSE)
+
+# write to file
+write.table(ortho_rat, file="ortholog_genes_rats_humans.tsv", sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
 ```
