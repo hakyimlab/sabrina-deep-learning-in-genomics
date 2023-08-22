@@ -14,6 +14,654 @@
 <item>
   <title>Correlation between human reference CAGE predictions to mean expression across GTEx genes</title>
   <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-21-comparing-enformer-CAGE-prediction-to-GTEx-brain-cortex-expression-across-genes/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>We learned that pieces of the hg38 reference epigenome are missing, including all gene regions on chromosomes 5, 6, and 7, and a handful (27 out of 1018) on chromosome 12. Based off the genes we could query, the correlation between predicted expression from human reference genome and mean expression in GTEx brain cortex tissues is 0.536, which is too low, even when we consider the missing genes.</p>
+<p>We will definitely need to rerun Enformer on chromosomes 5-7, but I’m still stuck on how we’ll debug the low correlation. I double checked that the fasta file and gene annotation were both in hg38.</p>
+<div class="cell" data-execution_count="69">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> h5py</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pd</span>
+<span id="cb1-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb1-4"></span>
+<span id="cb1-5">enfref_dir <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/grand/TFXcan/imlab/users/lvairus/reftile_project/enformer-reference-epigenome"</span></span>
+<span id="cb1-6"></span>
+<span id="cb1-7"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">def</span> query_epigenome(chr_num, center_bp, num_bins<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>, tracks<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>):</span>
+<span id="cb1-8">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb1-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    Parameters:</span></span>
+<span id="cb1-10"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
+<span id="cb1-11"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        chr_num (int/string): chromosome number</span></span>
+<span id="cb1-12"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        center_bp (int): center base pair position (1-indexed)</span></span>
+<span id="cb1-13"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        num_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
+<span id="cb1-14"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
+<span id="cb1-15"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
+<span id="cb1-16"></span>
+<span id="cb1-17"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    Returns:</span></span>
+<span id="cb1-18"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        epigen (np.array): enformer predictions centered at center_bp of shape (num_bins, len(tracks))</span></span>
+<span id="cb1-19"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    """</span></span>
+<span id="cb1-20"></span>
+<span id="cb1-21">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># from position choose center bin</span></span>
+<span id="cb1-22">    center_ind <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> center_bp <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb1-23">    center_bin <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> center_ind <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">128</span></span>
+<span id="cb1-24">    </span>
+<span id="cb1-25">    half_bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> num_bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb1-26">    start_bin <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> center_bin <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> half_bins</span>
+<span id="cb1-27">    end_bin <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> center_bin <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> half_bins</span>
+<span id="cb1-28">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> num_bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>: <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># if num_bins is odd</span></span>
+<span id="cb1-29">        end_bin <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb1-30"></span>
+<span id="cb1-31">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">with</span> h5py.File(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>enfref_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>chr_num<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">_cat.h5"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> f:</span>
+<span id="cb1-32">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># get tracks if list provided</span></span>
+<span id="cb1-33">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> tracks <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:</span>
+<span id="cb1-34">            epigen <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f[<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>chr_num<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>][start_bin:end_bin, :] </span>
+<span id="cb1-35">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">else</span>:</span>
+<span id="cb1-36">            epigen <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f[<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>chr_num<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>][start_bin:end_bin, tracks] </span>
+<span id="cb1-37"></span>
+<span id="cb1-38">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">return</span> epigen</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="70">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">hg38_annot <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/enformer_rat_data/annotation/hg38.protein_coding_TSS.txt"</span>, header<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, sep<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\t</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>, index_col<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'ensembl_gene_id'</span>)</span>
+<span id="cb2-2">hg38_annot.head()</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="70">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">external_gene_name</th>
+<th data-quarto-table-cell-role="th">chromosome_name</th>
+<th data-quarto-table-cell-role="th">transcription_start_site</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">ensembl_gene_id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000142611</td>
+<td>PRDM16</td>
+<td>1</td>
+<td>3069203</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSG00000157911</td>
+<td>PEX10</td>
+<td>1</td>
+<td>2412564</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000142655</td>
+<td>PEX14</td>
+<td>1</td>
+<td>10474950</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSG00000149527</td>
+<td>PLCH2</td>
+<td>1</td>
+<td>2476289</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000171621</td>
+<td>SPSB1</td>
+<td>1</td>
+<td>9292894</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="83">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">gene_list <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> hg38_annot[hg38_annot[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"chromosome_name"</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Y"</span>].index</span>
+<span id="cb3-2">CAGE_predictions <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb3-3">invalid_queries <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb3-4"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> gene_list:</span>
+<span id="cb3-5">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> hg38_annot.loc[gene][<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'chromosome_name'</span>]</span>
+<span id="cb3-6">    tss <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> hg38_annot.loc[gene][<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'transcription_start_site'</span>]</span>
+<span id="cb3-7">    bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> query_epigenome(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span>,tss, num_bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, tracks<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4980</span>])</span>
+<span id="cb3-8">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> np.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">any</span>(np.isnan(bins)):</span>
+<span id="cb3-9">        invalid_queries.append(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">:</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>tss<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb3-10">    CAGE_predictions.append(np.average(bins))</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="84">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(invalid_queries), <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"out of"</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(CAGE_predictions), <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"TSS regions missing from reference epigenome"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2849 out of 19625 TSS regions missing from reference epigenome</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="85">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> collections <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> Counter</span>
+<span id="cb6-2"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Number of missing regions by chromosme:"</span>)</span>
+<span id="cb6-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(Counter(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">map</span>(<span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">lambda</span> x: x.split(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">":"</span>)[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>], invalid_queries)))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Number of missing regions by chromosme:
+Counter({'6': 1031, '7': 919, '5': 872, '12': 27})</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="90">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Total number of genes on those chromosome:"</span>)</span>
+<span id="cb8-2"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>({key: Counter(hg38_annot[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'chromosome_name'</span>])[key] <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> key <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> [<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"6"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"7"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"5"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"12"</span>]})</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Total number of genes on those chromosome:
+{'6': 1031, '7': 919, '5': 872, '12': 1018}</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="75">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">gex_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.DataFrame({<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"enformer"</span>: CAGE_predictions}, index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>gene_list)</span>
+<span id="cb10-2">gex_df.head()</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="75">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">enformer</th>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">ensembl_gene_id</th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000142611</td>
+<td>4.474399</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSG00000157911</td>
+<td>6.886287</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000142655</td>
+<td>21.222824</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSG00000149527</td>
+<td>0.027461</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000171621</td>
+<td>10.673162</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="76">
+<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1">gtex_tpm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/enformer_rat_data/expression_data/gene_tpm_2017-06-05_v8_brain_cortex.gct.gz"</span>, header<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, sep<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\t</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb11-2">gtex_tpm[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Name'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gtex_tpm[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Name'</span>].<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">apply</span>(<span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">lambda</span> gene: gene.split(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'.'</span>)[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])</span>
+<span id="cb11-3">gtex_tpm.set_index(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Name'</span>, inplace<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="77">
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1">gene_list <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gex_df.index.intersection(gtex_tpm.index)</span>
+<span id="cb12-2">gtex_tpm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gtex_tpm.loc[gene_list]</span>
+<span id="cb12-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(gtex_tpm.shape[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>], <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"genes in both GTEx and BioMart datasets"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>19107 genes in both GTEx and BioMart datasets</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="80">
+<div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Calculate average gene expression</span></span>
+<span id="cb14-2">gtex_mean_tpm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gtex_tpm.drop(columns<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'id'</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Description'</span>]).mean(axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb14-3">gtex_mean_tpm.name <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gtex'</span></span>
+<span id="cb14-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Join observed gene expression with Enformer CAGE predicted</span></span>
+<span id="cb14-5">merged_gex_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gex_df.merge(gtex_mean_tpm, left_index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, right_index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, how<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'inner'</span>).dropna()</span>
+<span id="cb14-6">merged_gex_df.head()</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="80">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">enformer</th>
+<th data-quarto-table-cell-role="th">gtex</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000000003</td>
+<td>0.318157</td>
+<td>4.587454</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSG00000000005</td>
+<td>2.456774</td>
+<td>0.208880</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000000419</td>
+<td>36.233582</td>
+<td>26.515365</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSG00000000457</td>
+<td>6.147785</td>
+<td>2.538695</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000000460</td>
+<td>3.142622</td>
+<td>0.840966</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="81">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">merged_gex_df.corr()</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="81">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">enformer</th>
+<th data-quarto-table-cell-role="th">gtex</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">enformer</td>
+<td>1.000000</td>
+<td>0.535759</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">gtex</td>
+<td>0.535759</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+
+
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-21-comparing-enformer-CAGE-prediction-to-GTEx-brain-cortex-expression-across-genes/index.html</guid>
+  <pubDate>Tue, 22 Aug 2023 04:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Correlation between human reference CAGE predictions to mean expression across GTEx genes</title>
+  <dc:creator>Sabrina Mi</dc:creator>
   <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-21-comparing-enformer-to-observed-human-gene-expression/index.html</link>
   <description><![CDATA[ 
 
@@ -9708,1890 +10356,6 @@ font-style: inherit;">1</span>]</span></code></pre></div>
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-07-26-running-enformer-on-high-R2-rat-gene-target-intervals/index.html</guid>
   <pubDate>Wed, 26 Jul 2023 04:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Running the Enformer Pipeline locally</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/running-enformer-locally/run_locally.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1">SCRIPTS<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/Users/sabrinami/Github/shared_folder/enformer_pipeline/scripts/"</span> </span>
-<span id="cb1-2">MODULES<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>SCRIPTS<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"modules/"</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Collecting cyvcf2
-  Downloading cyvcf2-0.30.22-cp39-cp39-macosx_10_9_x86_64.whl (3.2 MB)
-     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.2/3.2 MB 5.3 MB/s eta 0:00:0000:0100:01
-Requirement already satisfied: numpy in /Users/sabrinami/miniconda3/envs/tf/lib/python3.9/site-packages (from cyvcf2) (1.24.3)
-Collecting coloredlogs (from cyvcf2)
-  Using cached coloredlogs-15.0.1-py2.py3-none-any.whl (46 kB)
-Requirement already satisfied: click in /Users/sabrinami/miniconda3/envs/tf/lib/python3.9/site-packages (from cyvcf2) (8.1.4)
-Collecting humanfriendly&gt;=9.1 (from coloredlogs-&gt;cyvcf2)
-  Downloading humanfriendly-10.0-py2.py3-none-any.whl (86 kB)
-     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 86.8/86.8 kB 1.4 MB/s eta 0:00:00a 0:00:01
-Installing collected packages: humanfriendly, coloredlogs, cyvcf2
-Successfully installed coloredlogs-15.0.1 cyvcf2-0.30.22 humanfriendly-10.0
-Note: you may need to restart the kernel to use updated packages.</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> os, sys, json, re</span>
-<span id="cb3-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># for manipulating dataframes</span></span>
-<span id="cb3-3"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> time</span>
-<span id="cb3-4"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">##import parsl ## local runs, no parsl</span></span>
-<span id="cb3-5"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">from</span> datetime <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> date</span>
-<span id="cb3-6"></span>
-<span id="cb3-7"></span>
-<span id="cb3-8"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># some locations and folders</span></span>
-<span id="cb3-9"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># whereis_script = os.path.dirname(__file__) #os.path.dirname(sys.argv[0]) # or os.path.dirname(__file__)</span></span>
-<span id="cb3-10">script_path <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> SCRIPTS</span>
-<span id="cb3-11"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># batch_utils_path = os.path.join(script_path, 'modules')</span></span>
-<span id="cb3-12"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># sys.path.append(batch_utils_path)</span></span>
-<span id="cb3-13"></span>
-<span id="cb3-14"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">## MODULES should be the location of the modules</span></span>
-<span id="cb3-15">sys.path.append(MODULES)</span>
-<span id="cb3-16"></span>
-<span id="cb3-17"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> loggerUtils</span>
-<span id="cb3-18"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> directives</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"></span>
-<span id="cb4-2"><span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">def</span> enformer_predict(parameters):</span>
-<span id="cb4-3"></span>
-<span id="cb4-4">    params_path <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters</span>
-<span id="cb4-5"></span>
-<span id="cb4-6">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> os.path.isabs(params_path):</span>
-<span id="cb4-7">        params_path <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.abspath(params_path)</span>
-<span id="cb4-8"></span>
-<span id="cb4-9">    p_two <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(script_path, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'modules'</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'predictUtils_two.py'</span>)</span>
-<span id="cb4-10"></span>
-<span id="cb4-11">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>params_path<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb4-12">        parameters <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> json.load(f)</span>
-<span id="cb4-13">        <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># The rest of the script remains the same</span></span>
-<span id="cb4-14"></span>
-<span id="cb4-15">        prediction_data_name <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'prediction_data_name'</span>]</span>
-<span id="cb4-16">        prediction_id <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'prediction_id'</span>]</span>
-<span id="cb4-17">        run_date <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'date'</span>] <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'date'</span>] <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">is</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span> date.today().strftime(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"%Y-%m-</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">%d</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb4-18"></span>
-<span id="cb4-19">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'sub_dir'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>:</span>
-<span id="cb4-20">            project_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'project_dir'</span>], <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'predictions_folder'</span>, <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_data_name<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_id<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>, <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'predictions_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>run_date<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb4-21">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">elif</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'sub_dir'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>:</span>
-<span id="cb4-22">            project_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'project_dir'</span>], <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_data_name<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_id<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>, <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'predictions_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>run_date<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb4-23">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb4-24">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">raise</span> <span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">Exception</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'ERROR - `sub_dir` argument must be a boolean, either true or false'</span>)</span>
-<span id="cb4-25"></span>
-<span id="cb4-26">        interval_list_file <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'interval_list_file'</span>]</span>
-<span id="cb4-27">        predictions_log_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(project_dir, parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'predictions_log_dir'</span>])</span>
-<span id="cb4-28">        job_log_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(project_dir, parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'write_log'</span>][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'logdir'</span>])</span>
-<span id="cb4-29">        n_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"n_regions"</span>]</span>
-<span id="cb4-30">        batch_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">int</span>(parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'batch_regions'</span>])</span>
-<span id="cb4-31">        use_parsl <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'use_parsl'</span>]</span>
-<span id="cb4-32">        parsl_parameters <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'parsl_parameters'</span>]</span>
-<span id="cb4-33">        sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'sequence_source'</span>]</span>
-<span id="cb4-34">        exclude_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"exclude_regions"</span>]</span>
-<span id="cb4-35">        reverse_complement <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"reverse_complement"</span>]</span>
-<span id="cb4-36">    </span>
-<span id="cb4-37">        metadata_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'metadata_dir'</span>]</span>
-<span id="cb4-38">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> os.path.isdir(metadata_dir):</span>
-<span id="cb4-39">            os.makedirs(metadata_dir)</span>
-<span id="cb4-40"></span>
-<span id="cb4-41">        output_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(project_dir, parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'output_dir'</span>])</span>
-<span id="cb4-42">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> os.path.isdir(output_dir):</span>
-<span id="cb4-43">            os.makedirs(output_dir)</span>
-<span id="cb4-44"></span>
-<span id="cb4-45">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">int</span>(n_regions) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>:</span>
-<span id="cb4-46">            n_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span></span>
-<span id="cb4-47">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">elif</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">int</span>(n_regions) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>:</span>
-<span id="cb4-48">            n_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> (n_regions) <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">isinstance</span>(n_regions, <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">int</span>) <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span></span>
-<span id="cb4-49"></span>
-<span id="cb4-50">        <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># personalized parameters </span></span>
-<span id="cb4-51">        individuals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'individuals'</span>] <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'personalized'</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span></span>
-<span id="cb4-52">        vcf_files_dict <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'vcf_files'</span>] <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'personalized'</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span></span>
-<span id="cb4-53"></span>
-<span id="cb4-54">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'personalized'</span>:</span>
-<span id="cb4-55">             <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># use only the chromosomes that have been made available in the config file vcf params</span></span>
-<span id="cb4-56">            <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Sequence source is </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>sequence_source<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">. Using a reference genome + vcf files.'</span>)</span>
-<span id="cb4-57">            chromosomes <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(vcf_files_dict[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'files'</span>].keys())</span>
-<span id="cb4-58"></span>
-<span id="cb4-59">            batch_individuals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"batch_individuals"</span>]</span>
-<span id="cb4-60">            n_individuals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">int</span>(parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'n_individuals'</span>])</span>
-<span id="cb4-61">        <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># list of chromosomes (if the sequence source is reference)</span></span>
-<span id="cb4-62">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">elif</span> sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'reference'</span>:</span>
-<span id="cb4-63">            <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Sequence source is </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>sequence_source<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">. Using a reference genome.'</span>)</span>
-<span id="cb4-64">            chromosomes <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'chr</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>i<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> i <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">23</span>)]</span>
-<span id="cb4-65">            chromosomes.extend([<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'chrX'</span>])</span>
-<span id="cb4-66"></span>
-<span id="cb4-67">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> reverse_complement:</span>
-<span id="cb4-68">            <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Predicting on reverse complements too'</span>)</span>
-<span id="cb4-69"></span>
-<span id="cb4-70">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># # write the params_path to a config.json file in a predefined folder</span></span>
-<span id="cb4-71">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># tmp_config_data = {'params_path': params_path}</span></span>
-<span id="cb4-72">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># tmp_config_file = os.path.join(batch_utils_path, f'tmp_config_{prediction_data_name}_{prediction_id}.json')</span></span>
-<span id="cb4-73">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># with open(tmp_config_file, mode='w') as cj:</span></span>
-<span id="cb4-74">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#     json.dump(tmp_config_data, cj)</span></span>
-<span id="cb4-75"></span>
-<span id="cb4-76">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># modify parsl parameters to add the working directory</span></span>
-<span id="cb4-77">    parsl_parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'working_dir'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> project_dir</span>
-<span id="cb4-78"></span>
-<span id="cb4-79">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> os.path.isdir(job_log_dir):</span>
-<span id="cb4-80">        os.makedirs(job_log_dir)</span>
-<span id="cb4-81"></span>
-<span id="cb4-82">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># set parsl directives</span></span>
-<span id="cb4-83">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> use_parsl:</span>
-<span id="cb4-84">        directives.parsl_directives(use_parsl, parsl_parameters)</span>
-<span id="cb4-85">    </span>
-<span id="cb4-86">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># importing this module does not work; best to execute it here</span></span>
-<span id="cb4-87">    predict_utils_one <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(script_path, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'modules'</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'predictUtils_one.py'</span>)</span>
-<span id="cb4-88">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">exec</span>(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(predict_utils_one).read(), <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">globals</span>(), <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">globals</span>())</span>
-<span id="cb4-89"></span>
-<span id="cb4-90">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># decorate the prediction function with or without parsl</span></span>
-<span id="cb4-91">    prediction_fxn <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> return_prediction_function(use_parsl)</span>
-<span id="cb4-92"></span>
-<span id="cb4-93">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># determine what individuals to predict on and all that</span></span>
-<span id="cb4-94">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'personalized'</span>:</span>
-<span id="cb4-95">        </span>
-<span id="cb4-96">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">isinstance</span>(individuals, <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>):</span>
-<span id="cb4-97">            id_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> individuals</span>
-<span id="cb4-98">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">pass</span></span>
-<span id="cb4-99">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">elif</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">isinstance</span>(individuals, <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">type</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'str'</span>)):</span>
-<span id="cb4-100">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> os.path.isfile(individuals):</span>
-<span id="cb4-101">                <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> n_individuals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>:</span>
-<span id="cb4-102">                    id_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_table(individuals, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>)[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>].tolist()[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>:]</span>
-<span id="cb4-103">                <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">elif</span> n_individuals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>:</span>
-<span id="cb4-104">                    id_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_table(individuals, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>)[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>].tolist()[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>:(n_individuals)]</span>
-<span id="cb4-105">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb4-106">                id_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [individuals]</span>
-<span id="cb4-107">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Found </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">len</span>(id_list)<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> individuals to predict on'</span>)</span>
-<span id="cb4-108"></span>
-<span id="cb4-109">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">elif</span> sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'reference'</span>:</span>
-<span id="cb4-110">        id_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [prediction_data_name]</span>
-<span id="cb4-111">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Found one reference set named </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>id_list[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>]<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> to predict on'</span>)</span>
-<span id="cb4-112">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">elif</span> sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'random'</span>:</span>
-<span id="cb4-113">        id_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [prediction_data_name]</span>
-<span id="cb4-114">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Prediction will be on a randomly generated set'</span>)</span>
-<span id="cb4-115"></span>
-<span id="cb4-116">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># set log files to be put in a folder and touch the log files per sample</span></span>
-<span id="cb4-117">    prediction_logfiles_folder <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> predictions_log_dir</span>
-<span id="cb4-118">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> os.path.isdir(prediction_logfiles_folder):</span>
-<span id="cb4-119">        os.makedirs(prediction_logfiles_folder)</span>
-<span id="cb4-120">        </span>
-<span id="cb4-121">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># list of intervals to be predicted on</span></span>
-<span id="cb4-122">    a <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_table(interval_list_file, sep<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">' '</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>).dropna(axis<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>) <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#.drop_duplicates(subset=['region', 'sample', 'status', 'sequence_source'], keep='last')</span></span>
-<span id="cb4-123">    list_of_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> a[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>].tolist()[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>:(n_regions)] <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># a list of queries</span></span>
-<span id="cb4-124">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Found </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">len</span>(list_of_regions)<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> regions to be split into batches with at most </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>batch_regions<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> regions in each batch.'</span>)</span>
-<span id="cb4-125"></span>
-<span id="cb4-126">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># filter the list of chromosomes to be compatible with the available regions</span></span>
-<span id="cb4-127">    chromosomes <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">set</span>([r.split(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'_'</span>)[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>] <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> r <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> list_of_regions]))</span>
-<span id="cb4-128">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#print(f'INFO - Chromosomes to predict on are: {chromosomes}')</span></span>
-<span id="cb4-129"></span>
-<span id="cb4-130">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># should some regions be excluded?</span></span>
-<span id="cb4-131">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> exclude_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>:</span>
-<span id="cb4-132">        <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># seach for the invalid_regions.csv file</span></span>
-<span id="cb4-133">        exclude_file <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(job_log_dir, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'invalid_queries.csv'</span>)</span>
-<span id="cb4-134">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> os.path.isfile(exclude_file):</span>
-<span id="cb4-135">            exclude_these_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(exclude_file)[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'region'</span>].tolist()</span>
-<span id="cb4-136">            <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Found regions to be excluded from the input regions.'</span>)</span>
-<span id="cb4-137">            list_of_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [l <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> l <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> list_of_regions <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> l <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> exclude_these_regions]  </span>
-<span id="cb4-138">            <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Updated number of regions to predict on is </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">len</span>(list_of_regions)<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb4-139">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb4-140">            <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - No regions to exclude yet. You either did not supply a file, this is the first run, or there are truly no regions to exclude'</span>)</span>
-<span id="cb4-141">            exclude_these_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span></span>
-<span id="cb4-142">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb4-143">        exclude_file <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span></span>
-<span id="cb4-144">    </span>
-<span id="cb4-145">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># batch the samples too</span></span>
-<span id="cb4-146">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># if you have 1000 individuals, it may be too much</span></span>
-<span id="cb4-147">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">len</span>(id_list) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>:</span>
-<span id="cb4-148">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> batch_individuals <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">is</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>:</span>
-<span id="cb4-149">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">isinstance</span>(batch_individuals, <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">int</span>):</span>
-<span id="cb4-150">                sample_batches <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(generate_batch_n_elems(id_list, n <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> batch_individuals)) <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 5 samples in each batch</span></span>
-<span id="cb4-151">                <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - There are more than 10 individuals. Predictions will be done for every </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>batch_individuals<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> individuals.'</span>)</span>
-<span id="cb4-152">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb4-153">                <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">raise</span> <span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">Exception</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'ERROR - argument `batch_individuals` is not a str type. You supplied a </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">type</span>(batch_individuals)<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">.</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">__name__</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb4-154">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb4-155">            <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - You have multiple individuals/samples and have not supplied how to batch them. For efficient use of resources, use the `batch_individuals` argument.'</span>)</span>
-<span id="cb4-156">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb4-157">        sample_batches <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [id_list] <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># put the list in a list</span></span>
-<span id="cb4-158">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - There seem to be just one sample i.e. </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>sample_batches<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">. No need to batch.'</span>)</span>
-<span id="cb4-159"></span>
-<span id="cb4-160">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># to make this fast, pass multiple regions to one parsl app</span></span>
-<span id="cb4-161">    sample_app_futures <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> []</span>
-<span id="cb4-162">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> sample_list <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> sample_batches:</span>
-<span id="cb4-163">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> chromosome <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> chromosomes:</span>
-<span id="cb4-164">            <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#print(chromosome)</span></span>
-<span id="cb4-165">            chr_list_of_regions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [r <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> r <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> list_of_regions <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> r.startswith(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>chromosome<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_"</span>)]</span>
-<span id="cb4-166">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'personalized'</span>:</span>
-<span id="cb4-167">                chr_vcf_file <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(vcf_files_dict[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'folder'</span>], vcf_files_dict[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'files'</span>][chromosome])</span>
-<span id="cb4-168">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">elif</span> sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'reference'</span>:</span>
-<span id="cb4-169">                chr_vcf_file <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span></span>
-<span id="cb4-170"></span>
-<span id="cb4-171">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> chr_list_of_regions:</span>
-<span id="cb4-172">                <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'WARNING - </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>chromosome<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> sites are not available.'</span>)</span>
-<span id="cb4-173">                <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">continue</span></span>
-<span id="cb4-174"></span>
-<span id="cb4-175">            <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># I want many regions to be put in a parsl app</span></span>
-<span id="cb4-176">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">len</span>(chr_list_of_regions) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&gt;</span> batch_regions:</span>
-<span id="cb4-177">                region_batches <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> generate_batch_n_elems(chr_list_of_regions, n<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>batch_regions) <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># batch_regions total batches</span></span>
-<span id="cb4-178">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb4-179">                region_batches <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [chr_list_of_regions]</span>
-<span id="cb4-180">            </span>
-<span id="cb4-181">            count <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span></span>
-<span id="cb4-182">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> region_list <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> region_batches:</span>
-<span id="cb4-183">                <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#print(len(sample_list))</span></span>
-<span id="cb4-184">                <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#print(f'{len(region_list)} regions in {chromosome} for {len(sample_list)} samples')</span></span>
-<span id="cb4-185">                sample_app_futures.append(prediction_fxn(batch_regions<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(region_list), samples<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(sample_list), path_to_vcf <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> chr_vcf_file, batch_num <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> count, script_path<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>script_path, output_dir<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>output_dir, prediction_logfiles_folder<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>prediction_logfiles_folder, sequence_source<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>sequence_source, tmp_config_path<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>params_path, p_two<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>p_two))   </span>
-<span id="cb4-186"></span>
-<span id="cb4-187">                count <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> count <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span> </span>
-<span id="cb4-188"></span>
-<span id="cb4-189">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> use_parsl <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>:</span>
-<span id="cb4-190">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Executing parsl futures for </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">len</span>(sample_app_futures)<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> parsl apps'</span>)</span>
-<span id="cb4-191">        exec_futures <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [q.result() <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> q <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> sample_app_futures] </span>
-<span id="cb4-192">        <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#print(sample_app_futures)</span></span>
-<span id="cb4-193">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Finished predictions for all'</span>)</span>
-<span id="cb4-194">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">elif</span> use_parsl <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>:</span>
-<span id="cb4-195">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Finished predictions for: </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>sample_app_futures<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> ...'</span>)</span>
-<span id="cb4-196"></span>
-<span id="cb4-197">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># just so I don't have to deal with having too many resources, I can request a small amount of resource</span></span>
-<span id="cb4-198">    check_fxn <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> return_check_function(use_parsl)</span>
-<span id="cb4-199">    SUMMARY_FILE <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(job_log_dir, <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_data_name<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_id<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>run_date<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.summary'</span>)</span>
-<span id="cb4-200">    summary_exec <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> []</span>
-<span id="cb4-201">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> sample <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> id_list:</span>
-<span id="cb4-202">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> os.path.isfile(os.path.join(prediction_logfiles_folder, <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>sample<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_log.csv"</span>)):</span>
-<span id="cb4-203">            summary_exec.append(check_fxn(sample<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>sample, predictions_folder<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>output_dir, log_folder<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>prediction_logfiles_folder, interval_list_file<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>interval_list_file, exclude_csv<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>exclude_file, sequence_source<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>sequence_source))</span>
-<span id="cb4-204"></span>
-<span id="cb4-205">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> use_parsl:</span>
-<span id="cb4-206">        summary_exec <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [q.result() <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> q <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> summary_exec]</span>
-<span id="cb4-207">        parsl.clear() <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># end parsl</span></span>
-<span id="cb4-208"></span>
-<span id="cb4-209">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#summary_exec = list(set(summary_exec))</span></span>
-<span id="cb4-210">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> i, qr <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">enumerate</span>(summary_exec):</span>
-<span id="cb4-211">        loggerUtils.write_logger(log_msg_type<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>qr[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'logtype'</span>], logfile<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>SUMMARY_FILE, message<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>qr[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'logmessage'</span>])</span>
-<span id="cb4-212"></span>
-<span id="cb4-213">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># regex the summary file and save the failed ones e.t.c to csv</span></span>
-<span id="cb4-214">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># --- there is a better way to do this but for now, this will do</span></span>
-<span id="cb4-215"></span>
-<span id="cb4-216">    warning_pattern <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="vs" style="color: #20794D;
-background-color: null;
-font-style: inherit;">r"^\[WARNING.*For\s(\w+|\d+).*"</span></span>
-<span id="cb4-217">    success_pattern <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="vs" style="color: #20794D;
-background-color: null;
-font-style: inherit;">r"^\[INFO.*For\s(\w+|\d+).*"</span></span>
-<span id="cb4-218">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(SUMMARY_FILE, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'r'</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb4-219">        lines <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">set</span>(f.readlines()))</span>
-<span id="cb4-220">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># print(line)</span></span>
-<span id="cb4-221">    warning_result <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [re.search(warning_pattern, l).group(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>) <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> l <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> lines <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> re.search(warning_pattern, l) <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">is</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>]</span>
-<span id="cb4-222">    success_result <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [re.search(success_pattern, l).group(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>) <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> l <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> lines <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> re.search(success_pattern, l) <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">is</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>]</span>
-<span id="cb4-223"></span>
-<span id="cb4-224">    pd.DataFrame(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">set</span>(warning_result))).to_csv(os.path.join(metadata_dir, <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_data_name<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_id<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>run_date<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.unsuccessful_predictions.csv'</span>), index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>)</span>
-<span id="cb4-225"></span>
-<span id="cb4-226">    pd.DataFrame(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">set</span>(success_result))).to_csv(os.path.join(metadata_dir, <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_data_name<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_id<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>run_date<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.successful_predictions.csv'</span>), index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>)</span>
-<span id="cb4-227"></span>
-<span id="cb4-228">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># collect the successfule predictions</span></span>
-<span id="cb4-229">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># successful_predictions = list(set([q['sample'] for q in summary_exec if q['logtype'] == 'INFO']))</span></span>
-<span id="cb4-230">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># unsuccessful_predictions = list(set([q['sample'] for q in summary_exec if q['logtype'] == 'WARNING']))</span></span>
-<span id="cb4-231">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># pd.DataFrame({'successful_predictions':successful_predictions}).to_csv(os.path.join(metadata_dir, f'{prediction_data_name}_{prediction_id}_{run_date}.successful_predictions.csv'), index=False, header=False)</span></span>
-<span id="cb4-232">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># pd.DataFrame({'unsuccessful_predictions':unsuccessful_predictions}).to_csv(os.path.join(metadata_dir, f'{prediction_data_name}_{prediction_id}_{run_date}.unsuccessful_predictions.csv'), index=False, header=False)</span></span>
-<span id="cb4-233"></span>
-<span id="cb4-234">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Check </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>SUMMARY_FILE<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> for a summary of the entire run.'</span>)</span>
-<span id="cb4-235">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Check `</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>metadata_dir<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">` for successful and unsucessful predictions.'</span>)</span>
-<span id="cb4-236"></span>
-<span id="cb4-237">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># == After predictions are complete, a json file will be written out to help with aggregation</span></span>
-<span id="cb4-238">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'INFO - Writing `aggregation_config_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_data_name<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_id<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.json` file to </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>metadata_dir<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb4-239">    agg_dt <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'predictions_folder'</span>: project_dir, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'enformer_prediction_path'</span>: <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>output_dir<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'prediction_logfiles_folder'</span>:prediction_logfiles_folder, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'prediction_data_name'</span>:prediction_data_name, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'sequence_source'</span>: sequence_source, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'run_date'</span>:run_date, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'prediction_id'</span>:prediction_id, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'individuals'</span>: <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> sequence_source <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> [<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'reference'</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'random'</span>] <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span> individuals, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'n_individuals'</span>:n_individuals <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> sequence_source <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'personalized'</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>}</span>
-<span id="cb4-240"></span>
-<span id="cb4-241">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span>(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>metadata_dir<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">/aggregation_config_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_data_name<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>prediction_id<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.json'</span>, mode<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'w'</span>)) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> wj:</span>
-<span id="cb4-242">        json.dump(agg_dt, wj)</span>
-<span id="cb4-243"></span>
-<span id="cb4-244">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># remove temporatry config file</span></span>
-<span id="cb4-245">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># print(f"INFO - Cleaning up: Removing temporary config file at {tmp_config_file}")</span></span>
-<span id="cb4-246">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># os.remove(tmp_config_file)</span></span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">enformer_predict(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'run_locally.json'</span>)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>INFO - Sequence source is reference. Using a reference genome.
-INFO - Found one reference set named reference_enformer_minimal to predict on
-INFO - Found 2 regions to be split into batches with at most 5 regions in each batch.
-INFO - No regions to exclude yet. You either did not supply a file, this is the first run, or there are truly no regions to exclude
-INFO - There seem to be just one sample i.e. [['reference_enformer_minimal']]. No need to batch.
-Using this config file: /Users/sabrinami/Github/shared_folder/enformer_pipeline/run_locally.json
-Sample reference_enformer_minimal chr1_65419_71585 haplotype0 predictions are of the correct shape:  (896, 5313)
-Sample reference_enformer_minimal chr1_65419_71585 haplotypes predictions have been saved.
-Sample reference_enformer_minimal chr1_65419_71585 haplotypes predictions have been logged.
-Sample reference_enformer_minimal chr1_450740_451678 haplotype0 predictions are of the correct shape:  (896, 5313)
-Sample reference_enformer_minimal chr1_450740_451678 haplotypes predictions have been saved.
-Sample reference_enformer_minimal chr1_450740_451678 haplotypes predictions have been logged.
-[INFO] (time) to predict on batch 0 is 90.45835176800006
-INFO - Finished predictions for: [[0, 0]] ...
-INFO - Check /Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/reference_enformer_minimal_some_regions/predictions_2023-07-24/job_logs/reference_enformer_minimal_some_regions_2023-07-24.summary for a summary of the entire run.
-INFO - Check `/Users/sabrinami/Github/shared_folder/enformer_pipeline/metadata` for successful and unsucessful predictions.
-INFO - Writing `aggregation_config_reference_enformer_minimal_some_regions.json` file to /Users/sabrinami/Github/shared_folder/enformer_pipeline/metadata</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>WARNING:kipoi_utils.external.related.mixins:Unrecognized fields for DataLoaderDescription: {'postprocessing'}. Available fields are {'info', 'output_schema', 'type', 'args', 'dependencies', 'writers', 'path', 'defined_as'}
-WARNING:kipoi_utils.external.related.mixins:Unrecognized fields for DataLoaderDescription: {'postprocessing'}. Available fields are {'info', 'output_schema', 'type', 'args', 'dependencies', 'writers', 'path', 'defined_as'}
-WARNING:kipoi_utils.external.related.mixins:Unrecognized fields for DataLoaderDescription: {'postprocessing'}. Available fields are {'info', 'output_schema', 'type', 'args', 'dependencies', 'writers', 'path', 'defined_as'}
-[INFO: 07/24/2023 10:43:13 AM] [CACHE] (fasta) [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1) for chr1_65419_71585]
-INFO:cache_log:[CACHE] (fasta) [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1) for chr1_65419_71585]
-[INFO: 07/24/2023 10:43:58 AM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1)]
-[INFO: 07/24/2023 10:43:58 AM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1)]
-INFO:cache_log:[CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1)]
-[INFO: 07/24/2023 10:43:58 AM] [CACHE] (fasta) [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1) for chr1_450740_451678]
-[INFO: 07/24/2023 10:43:58 AM] [CACHE] (fasta) [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1) for chr1_450740_451678]
-[INFO: 07/24/2023 10:43:58 AM] [CACHE] (fasta) [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1) for chr1_450740_451678]
-INFO:cache_log:[CACHE] (fasta) [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1) for chr1_450740_451678]
-[INFO: 07/24/2023 10:44:42 AM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1)]
-[INFO: 07/24/2023 10:44:42 AM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1)]
-[INFO: 07/24/2023 10:44:42 AM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1)]
-[INFO: 07/24/2023 10:44:42 AM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1)]
-INFO:cache_log:[CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=1, maxsize=5, currsize=1)]
-[WARNING: 07/24/2023 10:44:42 AM] WARNING - For reference_enformer_minimal, either all predictions don't match all logged queries in the interval list files minus excluded regions or vice versa. This can happen if you have supplied a list of intervals but have chosen to predict on a subset. If this is the case, this behavior is normal. If you are unsure, please re-run the enformer prediction pipeline with the same parameters. You may supply a csv file of regions to exclude if available, but this should not matter.
-WARNING:summary_log:WARNING - For reference_enformer_minimal, either all predictions don't match all logged queries in the interval list files minus excluded regions or vice versa. This can happen if you have supplied a list of intervals but have chosen to predict on a subset. If this is the case, this behavior is normal. If you are unsure, please re-run the enformer prediction pipeline with the same parameters. You may supply a csv file of regions to exclude if available, but this should not matter.</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> h5py</span>
-<span id="cb8-2">file_path<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/reference_enformer_minimal_some_regions/predictions_2023-07-24/enformer_predictions/reference_enformer_minimal/haplotype0/chr1_65419_71585_predictions.h5"</span></span>
-<span id="cb8-3"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(file_path, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>:</span>
-<span id="cb8-4">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># List all the groups and datasets in the file</span></span>
-<span id="cb8-5">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Groups and Datasets in the HDF5 file:"</span>)</span>
-<span id="cb8-6">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> name <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>:</span>
-<span id="cb8-7">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(name)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Groups and Datasets in the HDF5 file:
-chr1_65419_71585</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(file_path, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>:</span>
-<span id="cb10-2">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Step 2: Access datasets and attributes within the file</span></span>
-<span id="cb10-3">    dataset_name <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"chr1_65419_71585"</span></span>
-<span id="cb10-4">    dataset <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>[dataset_name]</span>
-<span id="cb10-5"></span>
-<span id="cb10-6">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Example: Read the entire dataset into a NumPy array</span></span>
-<span id="cb10-7">    data <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> dataset[()]</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(data.shape)</span>
-<span id="cb11-2"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(data)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>(896, 5313)
-[[0.5291589  0.5204935  0.57351285 ... 0.00935043 0.01473221 0.01198051]
- [0.65397567 0.6207656  0.7431343  ... 0.01434602 0.02783546 0.02128439]
- [0.5326947  0.5510576  0.767584   ... 0.01038613 0.03195343 0.0286333 ]
- ...
- [0.00713983 0.0077101  0.00634603 ... 0.00115762 0.01039891 0.00428226]
- [0.00585703 0.00676019 0.00490488 ... 0.0047263  0.0377146  0.01976843]
- [0.00355603 0.00391064 0.00305343 ... 0.00085077 0.00762693 0.00313292]]</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1">enformer_predict(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'run_local_personalized.json'</span>)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>INFO - Sequence source is personalized. Using a reference genome + vcf files.
-INFO - Found 2 individuals to predict on
-INFO - Found 2 regions to be split into batches with at most 5 regions in each batch.
-INFO - No regions to exclude yet. You either did not supply a file, this is the first run, or there are truly no regions to exclude
-INFO - There seem to be just one sample i.e. [['HG00096', 'HG00097']]. No need to batch.
-Using this config file: /Users/sabrinami/Github/shared_folder/enformer_pipeline/run_local_personalized.json
-Sample HG00096 chr1_65419_71585 haplotype1 predictions are of the correct shape:  (896, 5313)
-Sample HG00096 chr1_65419_71585 haplotype2 predictions are of the correct shape:  (896, 5313)
-Sample HG00096 chr1_65419_71585 haplotypes predictions have been saved.
-Sample HG00096 chr1_65419_71585 haplotypes predictions have been logged.
-Sample HG00097 chr1_65419_71585 haplotype1 predictions are of the correct shape:  (896, 5313)
-Sample HG00097 chr1_65419_71585 haplotype2 predictions are of the correct shape:  (896, 5313)
-Sample HG00097 chr1_65419_71585 haplotypes predictions have been saved.
-Sample HG00097 chr1_65419_71585 haplotypes predictions have been logged.
-Sample HG00096 chr1_450740_451678 haplotype1 predictions are of the correct shape:  (896, 5313)
-Sample HG00096 chr1_450740_451678 haplotype2 predictions are of the correct shape:  (896, 5313)
-Sample HG00096 chr1_450740_451678 haplotypes predictions have been saved.
-Sample HG00096 chr1_450740_451678 haplotypes predictions have been logged.
-Sample HG00097 chr1_450740_451678 haplotype1 predictions are of the correct shape:  (896, 5313)
-Sample HG00097 chr1_450740_451678 haplotype2 predictions are of the correct shape:  (896, 5313)
-Sample HG00097 chr1_450740_451678 haplotypes predictions have been saved.
-Sample HG00097 chr1_450740_451678 haplotypes predictions have been logged.
-[INFO] (time) to predict on batch 0 is 1503.2652588659985
-INFO - Finished predictions for: [[0, 0, 0, 0]] ...
-INFO - Check /Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_minimal_some_regions/predictions_2023-07-24/job_logs/personalized_enformer_minimal_some_regions_2023-07-24.summary for a summary of the entire run.
-INFO - Check `/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline/metadata` for successful and unsucessful predictions.
-INFO - Writing `aggregation_config_personalized_enformer_minimal_some_regions.json` file to /Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline/metadata</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>[INFO: 07/24/2023 03:25:05 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_65419_71585]
-[INFO: 07/24/2023 03:25:05 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_65419_71585]
-[INFO: 07/24/2023 03:25:05 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_65419_71585]
-[INFO: 07/24/2023 03:25:05 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_65419_71585]
-[INFO: 07/24/2023 03:25:05 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_65419_71585]
-INFO:cache_log:[CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_65419_71585]
-/Users/sabrinami/Github/shared_folder/enformer_pipeline/scripts/modules/sequencesUtils.py:177: UserWarning: no intervals found for b'/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/Reference-Data/1000G/vcf_snps_only/ALL.chr1.shapeit2_integrated_SNPs_v2a_27022019.GRCh38.phased.vcf.gz' at chr1:-128105-265111
-  variants_dictionary['positions'] = tuple(variant.POS for variant in cyvcf2_object(query))
-[E::hts_parse_region] Coordinates must be &gt; 0
-[INFO: 07/24/2023 03:34:49 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:34:49 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:34:49 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:34:49 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:34:49 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:34:49 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-INFO:cache_log:[CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:34:50 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_450740_451678]
-[INFO: 07/24/2023 03:34:50 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_450740_451678]
-[INFO: 07/24/2023 03:34:50 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_450740_451678]
-[INFO: 07/24/2023 03:34:50 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_450740_451678]
-[INFO: 07/24/2023 03:34:50 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_450740_451678]
-[INFO: 07/24/2023 03:34:50 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_450740_451678]
-[INFO: 07/24/2023 03:34:50 PM] [CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_450740_451678]
-INFO:cache_log:[CACHE] (fasta) [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2) for chr1_450740_451678]
-[INFO: 07/24/2023 03:38:37 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:38:37 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:38:37 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:38:37 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:38:37 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:38:37 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:38:37 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[INFO: 07/24/2023 03:38:37 PM] [CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-INFO:cache_log:[CACHE] (model) at batch 0: [CacheInfo(hits=1, misses=2, maxsize=5, currsize=2)]
-[WARNING: 07/24/2023 03:38:38 PM] WARNING - For HG00096, either all predictions don't match all logged queries in the interval list files minus excluded regions or vice versa. This can happen if you have supplied a list of intervals but have chosen to predict on a subset. If this is the case, this behavior is normal. If you are unsure, please re-run the enformer prediction pipeline with the same parameters. You may supply a csv file of regions to exclude if available, but this should not matter.
-[WARNING: 07/24/2023 03:38:38 PM] WARNING - For HG00096, either all predictions don't match all logged queries in the interval list files minus excluded regions or vice versa. This can happen if you have supplied a list of intervals but have chosen to predict on a subset. If this is the case, this behavior is normal. If you are unsure, please re-run the enformer prediction pipeline with the same parameters. You may supply a csv file of regions to exclude if available, but this should not matter.
-WARNING:summary_log:WARNING - For HG00096, either all predictions don't match all logged queries in the interval list files minus excluded regions or vice versa. This can happen if you have supplied a list of intervals but have chosen to predict on a subset. If this is the case, this behavior is normal. If you are unsure, please re-run the enformer prediction pipeline with the same parameters. You may supply a csv file of regions to exclude if available, but this should not matter.
-[WARNING: 07/24/2023 03:38:38 PM] WARNING - For HG00097, either all predictions don't match all logged queries in the interval list files minus excluded regions or vice versa. This can happen if you have supplied a list of intervals but have chosen to predict on a subset. If this is the case, this behavior is normal. If you are unsure, please re-run the enformer prediction pipeline with the same parameters. You may supply a csv file of regions to exclude if available, but this should not matter.
-[WARNING: 07/24/2023 03:38:38 PM] WARNING - For HG00097, either all predictions don't match all logged queries in the interval list files minus excluded regions or vice versa. This can happen if you have supplied a list of intervals but have chosen to predict on a subset. If this is the case, this behavior is normal. If you are unsure, please re-run the enformer prediction pipeline with the same parameters. You may supply a csv file of regions to exclude if available, but this should not matter.
-[WARNING: 07/24/2023 03:38:38 PM] WARNING - For HG00097, either all predictions don't match all logged queries in the interval list files minus excluded regions or vice versa. This can happen if you have supplied a list of intervals but have chosen to predict on a subset. If this is the case, this behavior is normal. If you are unsure, please re-run the enformer prediction pipeline with the same parameters. You may supply a csv file of regions to exclude if available, but this should not matter.
-WARNING:summary_log:WARNING - For HG00097, either all predictions don't match all logged queries in the interval list files minus excluded regions or vice versa. This can happen if you have supplied a list of intervals but have chosen to predict on a subset. If this is the case, this behavior is normal. If you are unsure, please re-run the enformer prediction pipeline with the same parameters. You may supply a csv file of regions to exclude if available, but this should not matter.</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> h5py</span>
-<span id="cb16-2">file_path<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_minimal_some_regions/predictions_2023-07-24/enformer_predictions/HG00096/haplotype1/chr1_65419_71585_predictions.h5"</span></span>
-<span id="cb16-3"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(file_path, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>:</span>
-<span id="cb16-4">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># List all the groups and datasets in the file</span></span>
-<span id="cb16-5">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Groups and Datasets in the HDF5 file:"</span>)</span>
-<span id="cb16-6">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> name <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>:</span>
-<span id="cb16-7">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(name)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Groups and Datasets in the HDF5 file:
-chr1_65419_71585</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(file_path, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>:</span>
-<span id="cb18-2">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Step 2: Access datasets and attributes within the file</span></span>
-<span id="cb18-3">    dataset_name <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"chr1_65419_71585"</span></span>
-<span id="cb18-4">    dataset <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>[dataset_name]</span>
-<span id="cb18-5"></span>
-<span id="cb18-6">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Example: Read the entire dataset into a NumPy array</span></span>
-<span id="cb18-7">    data <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> dataset[()]</span>
-<span id="cb18-8"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(data.shape)</span>
-<span id="cb18-9"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(data)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>(896, 5313)
-[[0.5291589  0.5204935  0.57351285 ... 0.00935043 0.01473221 0.01198051]
- [0.65397567 0.6207656  0.7431343  ... 0.01434602 0.02783546 0.02128439]
- [0.5326947  0.5510576  0.767584   ... 0.01038613 0.03195343 0.0286333 ]
- ...
- [0.00713983 0.0077101  0.00634603 ... 0.00115762 0.01039891 0.00428226]
- [0.00585703 0.00676019 0.00490488 ... 0.0047263  0.0377146  0.01976843]
- [0.00355603 0.00391064 0.00305343 ... 0.00085077 0.00762693 0.00313292]]</code></pre>
-</div>
-</div>
-
-
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/running-enformer-locally/run_locally.html</guid>
-  <pubDate>Tue, 25 Jul 2023 04:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
