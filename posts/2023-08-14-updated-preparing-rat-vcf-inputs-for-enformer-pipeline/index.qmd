@@ -10,7 +10,7 @@ format: html
 
 ```{bash}
 cd enformer_rat_data
-wget https://ratgtex.org/data/geno/Brain.rn7.vcf.gz
+wget https://ratgtex.org/data/geno/genotypes/Brain.rn7.vcf.gz
 
 ```
 
@@ -18,8 +18,8 @@ wget https://ratgtex.org/data/geno/Brain.rn7.vcf.gz
 ### Changing VCF CHROM notation
 
 ```{bash}
-gunzip Brain.rn7.vcf.gz
-awk '{if($0 !~ /^#/) print "chr"$0; else print $0}' Brain.rn7.vcf > output.rn7.vcf
+gunzip genotypes/Brain.rn7.vcf.gz
+awk '{if($0 !~ /^#/) print "chr"$0; else print $0}' genotypes/Brain.rn7.vcf > output.rn7.vcf
 
 ```
 

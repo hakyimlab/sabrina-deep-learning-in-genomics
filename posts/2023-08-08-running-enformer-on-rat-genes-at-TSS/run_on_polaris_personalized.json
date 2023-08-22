@@ -37,7 +37,7 @@
   "sub_dir": true,
   "use_parsl": true,
   "model_path": "/lus/grand/projects/TFXcan/imlab/data/enformer/raw",
-  "fasta_file": "/lus/grand/projects/TFXcan/imlab/users/sabrina/enformer_rat_data/rn7_genome.fasta",
+  "fasta_file": "/lus/grand/projects/TFXcan/imlab/users/sabrina/enformer_rat_data/reference_genome/rn7_genome.fasta",
   "metadata_dir": "/home/s1mi/Github/deep-learning-in-genomics/posts/running-enformer-on-rat-genes-at-TSS/metadata",
   "output_dir": "enformer_predictions",
   "tracks_to_save":-1,
