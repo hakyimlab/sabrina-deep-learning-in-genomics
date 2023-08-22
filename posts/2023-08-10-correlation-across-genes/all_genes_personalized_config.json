@@ -10,7 +10,7 @@
   "n_individuals": 3,
   "batch_individuals": 3,
   "vcf_files": {
-    "folder": "/lus/grand/projects/TFXcan/imlab/users/sabrina/enformer_rat_data/BrainVCFs",
+    "folder": "/lus/grand/projects/TFXcan/imlab/users/sabrina/enformer_rat_data/genotypes/BrainVCFs",
     "files": {
       "chr1": "chr1.vcf.gz",
       "chr2": "chr2.vcf.gz",

@@ -1,0 +1,45 @@
+{
+  "project_dir": "/home/s1mi/Br_predictions",
+  "interval_list_file": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-16-correlation-across-genes-human-and-mouse-tracks/metadata/intervals.txt",
+  "prediction_data_name": "reference_Br",
+  "prediction_id": "all_genes",
+  "reverse_complement": false,
+  "head": "human",
+  "date": null,
+  "create_hdf5_file": false,
+  "exclude_regions": true,
+  "sub_dir": true,
+  "use_parsl": true,
+  "model_path": "/lus/grand/projects/TFXcan/imlab/data/enformer/raw",
+  "fasta_file": "/lus/grand/projects/TFXcan/imlab/users/sabrina/enformer_rat_data/reference_genome/rn7_genome.fasta",
+  "metadata_dir": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-16-correlation-across-genes-human-and-mouse-tracks/metadata",
+  "output_dir": "enformer_predictions",
+  "tracks_to_save": -1,
+  "bins_to_save": -1,
+  "sequence_source": "reference",
+  "predictions_log_dir": "predictions_log",
+  "batch_regions": 25,
+  "n_regions": 30057,
+  "write_log": {
+    "logdir": "job_logs",
+    "logtypes": {
+      "memory": true,
+      "error": true,
+      "time": false,
+      "cache": true
+    }
+  },
+  "parsl_parameters": {
+    "job_name": "enformer_predict_regions_reference",
+    "num_of_full_nodes": 1,
+    "walltime": "01:00:00",
+    "init_blocks":1,
+    "min_num_blocks": 0,
+    "max_num_blocks": 4,
+    "queue": "preemptable",
+    "account": "AIHPC4EDU",
+    "hpc": "polaris",
+    "provider": "highthroughput",
+    "worker_init":"module load conda; conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools; which python; export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools/lib"
+  }
+}

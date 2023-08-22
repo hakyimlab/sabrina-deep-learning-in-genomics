@@ -44,11 +44,11 @@ First by chromosome number:
 
 ```{bash}
 
-mkdir BrainVCFs
+mkdir genotypes/BrainVCFs
 # Split VCF by chromosome
 vcf_in=Brain.rn7.no_missing.vcf.gz
 
-vcf_out_prefix=BrainVCFs/chr
+vcf_out_prefix=genotypes/BrainVCFs/chr
 
 for i in {1..20}
 do
@@ -61,7 +61,7 @@ done
 for i in {1..20}
 do
     echo "Indexing chromosome ${i}..."
-    bcftools index -t BrainVCFs/chr${i}.vcf.gz
+    bcftools index -t genotypes/BrainVCFs/chr${i}.vcf.gz
 done
 ```
 
@@ -69,12 +69,12 @@ Then for the sex chromosomes:
 
 ```{bash}
 vcf_in=Brain.rn7.no_missing.vcf.gz
-vcf_out_prefix=BrainVCFs/chr
+vcf_out_prefix=genotypes/BrainVCFs/chr
 
 bcftools view ${vcf_in} --regions X -o ${vcf_out_prefix}X.vcf.gz -Oz
 bcftools view ${vcf_in} --regions Y -o ${vcf_out_prefix}Y.vcf.gz -Oz
 
-bcftools index -t BrainVCFs/chrX.vcf.gz
-bcftools index -t BrainVCFs/chrY.vcf.gz
+bcftools index -t genotypes/BrainVCFs/chrX.vcf.gz
+bcftools index -t genotypes/BrainVCFs/chrY.vcf.gz
 
 ```
