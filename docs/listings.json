@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/2023-08-21-comparing-enformer-to-observed-human-gene-expression/index.html",
       "/posts/2023-08-18-gene-annotation-query-example-hg38/index.html",
       "/posts/2023-08-17-querying-human-reference-epigenome/all_hg38_genes.html",
       "/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/average_haplotype_test.html",

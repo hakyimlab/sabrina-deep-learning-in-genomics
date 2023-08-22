@@ -188,61 +188,63 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="setup" class="level2">
 <h2 class="anchored" data-anchor-id="setup">Setup</h2>
-<div class="cell" data-execution_count="19">
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>reference_dir <span class="op">=</span> <span class="st">"/grand/TFXcan/imlab/users/lvairus/reftile_project/enformer-reference-epigenome"</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> kipoiseq <span class="im">import</span> Interval</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> query_epigenome(path_to_enfref, chr_num, center_bp, num_bins<span class="op">=</span><span class="dv">896</span>, tracks<span class="op">=-</span><span class="dv">1</span>):</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">        chr_num (int/string): chromosome number</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">        center_bp (int): center base pair position (1-indexed)</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">        num_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co">        epigen (np.array): enformer predictions centered at center_bp of shape (num_bins, len(tracks))</span></span>
-<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># from chr_num choose file</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    filename <span class="op">=</span> <span class="ss">f"chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">_cat.h5"</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>enfref_dir <span class="op">=</span> <span class="st">"/grand/TFXcan/imlab/users/lvairus/reftile_project/enformer-reference-epigenome"</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> query_epigenome(chr_num, center_bp, num_bins<span class="op">=</span><span class="dv">3</span>, tracks<span class="op">=-</span><span class="dv">1</span>):</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">        chr_num (int/string): chromosome number</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">        center_bp (int): center base pair position (1-indexed)</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">        num_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co">        epigen (np.array): enformer predictions centered at center_bp of shape (num_bins, len(tracks))</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># from position choose center bin</span></span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    center_ind <span class="op">=</span> center_bp <span class="op">-</span> <span class="dv">1</span></span>
 <span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    center_bin <span class="op">=</span> center_ind <span class="op">//</span> <span class="dv">128</span></span>
 <span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    <span class="co"># from bins choose number of bins</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    half_bins <span class="op">=</span> num_bins <span class="op">//</span> <span class="dv">2</span></span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    start_bin <span class="op">=</span> center_bin <span class="op">-</span> half_bins</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    end_bin <span class="op">=</span> center_bin <span class="op">+</span> half_bins</span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> num_bins <span class="op">%</span> <span class="dv">2</span> <span class="op">!=</span> <span class="dv">0</span>: <span class="co"># if num_bins is odd</span></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>        end_bin <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>    <span class="co"># get bins (with all tracks)</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>path_to_enfref<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>filename<span class="sc">}</span><span class="ss">"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>        epigen <span class="op">=</span> f[<span class="ss">f'chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">'</span>][()][start_bin:end_bin] <span class="co"># np.array (num_bins, 5313)</span></span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>    <span class="co"># get tracks if list provided</span></span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> tracks <span class="op">!=</span> <span class="op">-</span><span class="dv">1</span>:</span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>        epigen <span class="op">=</span> epigen[:, tracks] <span class="co"># np.array (num_bins, len(tracks))</span></span>
-<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> epigen</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    half_bins <span class="op">=</span> num_bins <span class="op">//</span> <span class="dv">2</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    start_bin <span class="op">=</span> center_bin <span class="op">-</span> half_bins</span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    end_bin <span class="op">=</span> center_bin <span class="op">+</span> half_bins</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> num_bins <span class="op">%</span> <span class="dv">2</span> <span class="op">!=</span> <span class="dv">0</span>: <span class="co"># if num_bins is odd</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        end_bin <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>enfref_dir<span class="sc">}</span><span class="ss">/chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">_cat.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>        <span class="co"># get tracks if list provided</span></span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> tracks <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>:</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>            epigen <span class="op">=</span> f[<span class="ss">f'chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">'</span>][start_bin:end_bin, :] </span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>            epigen <span class="op">=</span> f[<span class="ss">f'chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">'</span>][start_bin:end_bin, tracks] </span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> epigen</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="collect-tss-for-all-human-genes" class="level2">
 <h2 class="anchored" data-anchor-id="collect-tss-for-all-human-genes">Collect TSS for all human genes</h2>
 <p>We collected all protein-coding genes and their cannonical TSS using the biomaRt package.</p>
-<div class="cell" data-execution_count="10">
+<div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>hg38_annot <span class="op">=</span> pd.read_csv(<span class="st">"protein_coding_TSS.tsv"</span>, header<span class="op">=</span><span class="dv">0</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, index_col<span class="op">=</span><span class="st">'ensembl_gene_id'</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>hg38_annot.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(hg38_annot.shape[<span class="dv">0</span>], <span class="st">"genes with TSS annotation"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>hg38_annot.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>19688 genes with TSS annotation</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
 <div>
 
 
@@ -251,10 +253,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="header">
 <th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">external_gene_name</th>
+<th data-quarto-table-cell-role="th">chromosome_name</th>
 <th data-quarto-table-cell-role="th">transcription_start_site</th>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">ensembl_gene_id</th>
+<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th"></th>
 </tr>
@@ -263,26 +267,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tr class="odd">
 <td data-quarto-table-cell-role="th">ENSG00000142611</td>
 <td>PRDM16</td>
+<td>1</td>
 <td>3069203</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">ENSG00000157911</td>
 <td>PEX10</td>
+<td>1</td>
 <td>2412564</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">ENSG00000142655</td>
 <td>PEX14</td>
+<td>1</td>
 <td>10474950</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">ENSG00000149527</td>
 <td>PLCH2</td>
+<td>1</td>
 <td>2476289</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">ENSG00000171621</td>
 <td>SPSB1</td>
+<td>1</td>
 <td>9292894</td>
 </tr>
 </tbody>
@@ -292,21 +301,54 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>We computed the predicted human reference epigenome by running Enformer on all intervals spanning the genome and concatenting the results. Now we extract the CAGE:Brain track at the bins where each gene’s TSS fall in order to quantify relative expression across genes.</p>
-<div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>gene <span class="op">=</span> <span class="st">'ENSG00000142611'</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> quantify_expression(gene):</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    tss <span class="op">=</span> hg38_annot.loc[gene][<span class="st">'transcription_start_site'</span>]</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(query_epigenome)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>quantify_expression(gene)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="query-reference-epigenome-at-tss" class="level2">
+<h2 class="anchored" data-anchor-id="query-reference-epigenome-at-tss">Query reference epigenome at TSS</h2>
+<p>I found that querying the epigenome at certain positions returned NA, so I investigated those positions further by querying a larger window and plotting the CAGE track 4980.</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>CAGE_predictions <span class="op">=</span> []</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> hg38_annot.index:</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">chr</span> <span class="op">=</span> hg38_annot.loc[gene][<span class="st">'chromosome_name'</span>]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    tss <span class="op">=</span> hg38_annot.loc[gene][<span class="st">'transcription_start_site'</span>]</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">bin</span> <span class="op">=</span> query_epigenome(<span class="bu">chr</span>,tss, num_bins <span class="op">=</span> <span class="dv">1</span>, tracks<span class="op">=</span>[<span class="dv">4980</span>])</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> np.isnan(<span class="bu">bin</span>):</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Invalid query:"</span>, gene, <span class="st">"at"</span>, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">:</span><span class="sc">{</span>tss<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    CAGE_predictions.append(<span class="bu">bin</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>3069203</code></pre>
+<pre><code>Invalid query: ENSG00000173451 at 12:71664301</code></pre>
 </div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#rn7_gene_list = pd.read_csv("reference_epigenome_predicted_vs_observed.csv", header=0, usecols=['gene_id'])</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#ortho_genes = pd.read_csv("ortholog_genes_rats_humans.tsv", header=0, sep="\t", usecols=['ensembl_gene_id', 'rnorvegicus_homolog_ensembl_gene'])</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>enfref_dir<span class="sc">}</span><span class="ss">/chr12_cat.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"matrix shape:"</span>, f[<span class="st">'chr12'</span>].shape)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    center <span class="op">=</span> <span class="dv">71664301</span><span class="op">//</span><span class="dv">128</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"ENSG00000173451 TTS at bin"</span>, center)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    epigen <span class="op">=</span> f[<span class="st">'chr12'</span>][center<span class="op">-</span><span class="dv">448</span>:center<span class="op">+</span><span class="dv">448</span>, <span class="dv">4980</span>]</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Number of NA along track:"</span>, <span class="bu">sum</span>(np.isnan(epigen)))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>matrix shape: (1041214, 5313)
+ENSG00000173451 TTS at bin 559877
+Number of NA along track: 448</code></pre>
+</div>
+</div>
+<p>We adapted a function from the Enformer usage notebook to plot a single track.</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_track(title, y, interval, height<span class="op">=</span><span class="fl">1.5</span>):</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">20</span>, height))</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  ax.fill_between(np.linspace(interval.start, interval.end, num<span class="op">=</span><span class="bu">len</span>(y)), y)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  ax.set_title(title)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  sns.despine(top<span class="op">=</span><span class="va">True</span>, right<span class="op">=</span><span class="va">True</span>, bottom<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  ax.set_xlabel(<span class="bu">str</span>(interval))</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  plt.tight_layout()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>tss <span class="op">=</span> Interval(<span class="st">'chr12'</span>, <span class="dv">71664301</span>, <span class="dv">71664301</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>plot_track(<span class="st">'CAGE:Brain, ENSG00000173451'</span>, epigen, tss.resize(<span class="dv">114688</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="all_hg38_genes_files/figure-html/cell-7-output-1.png" class="img-fluid"></p>
+</div>
 </div>
 
 

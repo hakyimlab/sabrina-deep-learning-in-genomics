@@ -10,7 +10,154 @@
 <atom:link href="https://sabrinami.quarto.pub/deep-learning-in-genomics/index.xml" rel="self" type="application/rss+xml"/>
 <description>Sabrina&#39;s blog for Deep Learning in Genomics course</description>
 <generator>quarto-1.3.361</generator>
-<lastBuildDate>Fri, 18 Aug 2023 05:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 22 Aug 2023 04:00:00 GMT</lastBuildDate>
+<item>
+  <title>Correlation between human reference CAGE predictions to mean expression across GTEx genes</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-21-comparing-enformer-to-observed-human-gene-expression/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1">hg38_annot <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"protein_coding_TSS.tsv"</span>, header<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, sep<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\t</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>, index_col<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'ensembl_gene_id'</span>)</span>
+<span id="cb1-2">gex_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.DataFrame({<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"enformer"</span>: CAGE_predictions}, index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>hg38_annot.index)</span>
+<span id="cb1-3">gex_df.head()</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">gtex_tpm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gene_tpm_2017-06-05_v8_brain_cortex.gct.gz"</span>, header<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, sep<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\t</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb2-2">gtex_tpm[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Name'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gtex_tpm[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Name'</span>].<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">apply</span>(<span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">lambda</span> gene: gene.split(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'.'</span>)[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])</span>
+<span id="cb2-3">gtex_tpm.set_index(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Name'</span>, inplace<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">gene_list <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gex_df.index.intersection(gtex_tpm.index)</span>
+<span id="cb3-2">gtex_tpm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gtex_tpm.loc[gene_list]</span>
+<span id="cb3-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(gtex_tpm.shape[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>], <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"genes in both GTEx and BioMart datasets"</span>)</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Calculate average gene expression</span></span>
+<span id="cb4-2">gtex_mean_tpm <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gtex_tpm.drop(columns<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'id'</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Description'</span>]).mean(axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb4-3">gtex_mean_tpm.name <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gtex'</span></span></code></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Join observed gene expression with Enformer CAGE predicted</span></span>
+<span id="cb5-2">gex_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gex_df.merge(gtex_mean_tpm, left_index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, right_index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, how<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'inner'</span>).dropna()</span>
+<span id="cb5-3">gex_df.head()</span></code></pre></div>
+</div>
+
+
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-21-comparing-enformer-to-observed-human-gene-expression/index.html</guid>
+  <pubDate>Tue, 22 Aug 2023 04:00:00 GMT</pubDate>
+</item>
 <item>
   <title>biomaRt tutorial for querying gene annotation</title>
   <dc:creator>Sabrina Mi</dc:creator>
@@ -294,7 +441,7 @@ font-style: inherit;">FALSE</span>)</span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-18-gene-annotation-query-example-hg38/index.html</guid>
-  <pubDate>Fri, 18 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Fri, 18 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Querying Human Reference Epigenome</title>
@@ -307,7 +454,7 @@ font-style: inherit;">FALSE</span>)</span></code></pre></div>
 
 <section id="setup" class="level2">
 <h2 class="anchored" data-anchor-id="setup">Setup</h2>
-<div class="cell" data-execution_count="19">
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">import</span> h5py</span>
@@ -321,74 +468,74 @@ background-color: null;
 font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">as</span> np</span>
-<span id="cb1-4"></span>
-<span id="cb1-5"></span>
-<span id="cb1-6">reference_dir <span class="op" style="color: #5E5E5E;
+<span id="cb1-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> kipoiseq <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> Interval</span>
+<span id="cb1-5"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> plt</span>
+<span id="cb1-6"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> seaborn <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> sns</span>
+<span id="cb1-7"></span>
+<span id="cb1-8"></span>
+<span id="cb1-9">enfref_dir <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"/grand/TFXcan/imlab/users/lvairus/reftile_project/enformer-reference-epigenome"</span></span>
-<span id="cb1-7"></span>
-<span id="cb1-8"><span class="kw" style="color: #003B4F;
+<span id="cb1-10"></span>
+<span id="cb1-11"><span class="kw" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">def</span> query_epigenome(path_to_enfref, chr_num, center_bp, num_bins<span class="op" style="color: #5E5E5E;
+font-style: inherit;">def</span> query_epigenome(chr_num, center_bp, num_bins<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">896</span>, tracks<span class="op" style="color: #5E5E5E;
+font-style: inherit;">3</span>, tracks<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=-</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>):</span>
-<span id="cb1-9">    <span class="co" style="color: #5E5E5E;
+<span id="cb1-12">    <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">"""</span></span>
-<span id="cb1-10"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    Parameters:</span></span>
-<span id="cb1-11"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
-<span id="cb1-12"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">        chr_num (int/string): chromosome number</span></span>
 <span id="cb1-13"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">        center_bp (int): center base pair position (1-indexed)</span></span>
+font-style: inherit;">    Parameters:</span></span>
 <span id="cb1-14"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">        num_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
+font-style: inherit;">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
 <span id="cb1-15"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
+font-style: inherit;">        chr_num (int/string): chromosome number</span></span>
 <span id="cb1-16"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
-<span id="cb1-17"></span>
+font-style: inherit;">        center_bp (int): center base pair position (1-indexed)</span></span>
+<span id="cb1-17"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        num_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
 <span id="cb1-18"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">    Returns:</span></span>
+font-style: inherit;">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
 <span id="cb1-19"><span class="co" style="color: #5E5E5E;
 background-color: null;
+font-style: inherit;">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
+<span id="cb1-20"></span>
+<span id="cb1-21"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    Returns:</span></span>
+<span id="cb1-22"><span class="co" style="color: #5E5E5E;
+background-color: null;
 font-style: inherit;">        epigen (np.array): enformer predictions centered at center_bp of shape (num_bins, len(tracks))</span></span>
-<span id="cb1-20"><span class="co" style="color: #5E5E5E;
+<span id="cb1-23"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">    """</span></span>
-<span id="cb1-21"></span>
-<span id="cb1-22">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># from chr_num choose file</span></span>
-<span id="cb1-23">    filename <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"chr</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>chr_num<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_cat.h5"</span></span>
 <span id="cb1-24"></span>
 <span id="cb1-25">    <span class="co" style="color: #5E5E5E;
 background-color: null;
@@ -408,27 +555,24 @@ font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">128</span></span>
 <span id="cb1-28">    </span>
-<span id="cb1-29">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># from bins choose number of bins</span></span>
-<span id="cb1-30">    half_bins <span class="op" style="color: #5E5E5E;
+<span id="cb1-29">    half_bins <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> num_bins <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">2</span></span>
-<span id="cb1-31">    start_bin <span class="op" style="color: #5E5E5E;
+<span id="cb1-30">    start_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> center_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">-</span> half_bins</span>
-<span id="cb1-32">    end_bin <span class="op" style="color: #5E5E5E;
+<span id="cb1-31">    end_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> center_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span> half_bins</span>
-<span id="cb1-33">    <span class="cf" style="color: #003B4F;
+<span id="cb1-32">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">if</span> num_bins <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -441,37 +585,46 @@ background-color: null;
 font-style: inherit;">0</span>: <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># if num_bins is odd</span></span>
-<span id="cb1-34">        end_bin <span class="op" style="color: #5E5E5E;
+<span id="cb1-33">        end_bin <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span></span>
-<span id="cb1-35"></span>
-<span id="cb1-36">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># get bins (with all tracks)</span></span>
-<span id="cb1-37">    <span class="cf" style="color: #003B4F;
+<span id="cb1-34"></span>
+<span id="cb1-35">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">with</span> h5py.File(<span class="ss" style="color: #20794D;
 background-color: null;
 font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">{</span>path_to_enfref<span class="sc" style="color: #5E5E5E;
+font-style: inherit;">{</span>enfref_dir<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">}</span><span class="ss" style="color: #20794D;
 background-color: null;
-font-style: inherit;">/</span><span class="sc" style="color: #5E5E5E;
+font-style: inherit;">/chr</span><span class="sc" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">{</span>filename<span class="sc" style="color: #5E5E5E;
+font-style: inherit;">{</span>chr_num<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">}</span><span class="ss" style="color: #20794D;
 background-color: null;
-font-style: inherit;">"</span>, <span class="st" style="color: #20794D;
+font-style: inherit;">_cat.h5"</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">as</span> f:</span>
-<span id="cb1-38">        epigen <span class="op" style="color: #5E5E5E;
+<span id="cb1-36">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># get tracks if list provided</span></span>
+<span id="cb1-37">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> tracks <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>:</span>
+<span id="cb1-38">            epigen <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> f[<span class="ss" style="color: #20794D;
 background-color: null;
@@ -481,29 +634,23 @@ font-style: inherit;">{</span>chr_num<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">}</span><span class="ss" style="color: #20794D;
 background-color: null;
-font-style: inherit;">'</span>][()][start_bin:end_bin] <span class="co" style="color: #5E5E5E;
+font-style: inherit;">'</span>][start_bin:end_bin, :] </span>
+<span id="cb1-39">        <span class="cf" style="color: #003B4F;
 background-color: null;
-font-style: inherit;"># np.array (num_bins, 5313)</span></span>
-<span id="cb1-39"></span>
-<span id="cb1-40">    <span class="co" style="color: #5E5E5E;
+font-style: inherit;">else</span>:</span>
+<span id="cb1-40">            epigen <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;"># get tracks if list provided</span></span>
-<span id="cb1-41">    <span class="cf" style="color: #003B4F;
+font-style: inherit;">=</span> f[<span class="ss" style="color: #20794D;
 background-color: null;
-font-style: inherit;">if</span> tracks <span class="op" style="color: #5E5E5E;
+font-style: inherit;">f'chr</span><span class="sc" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">!=</span> <span class="op" style="color: #5E5E5E;
+font-style: inherit;">{</span>chr_num<span class="sc" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
 background-color: null;
-font-style: inherit;">1</span>:</span>
-<span id="cb1-42">        epigen <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> epigen[:, tracks] <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># np.array (num_bins, len(tracks))</span></span>
-<span id="cb1-43"></span>
-<span id="cb1-44">    <span class="cf" style="color: #003B4F;
+font-style: inherit;">'</span>][start_bin:end_bin, tracks] </span>
+<span id="cb1-41"></span>
+<span id="cb1-42">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">return</span> epigen</span></code></pre></div>
 </div>
@@ -511,7 +658,7 @@ font-style: inherit;">return</span> epigen</span></code></pre></div>
 <section id="collect-tss-for-all-human-genes" class="level2">
 <h2 class="anchored" data-anchor-id="collect-tss-for-all-human-genes">Collect TSS for all human genes</h2>
 <p>We collected all protein-coding genes and their cannonical TSS using the biomaRt package.</p>
-<div class="cell" data-execution_count="10">
+<div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"></span>
 <span id="cb2-2">hg38_annot <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -534,8 +681,18 @@ background-color: null;
 font-style: inherit;">=</span><span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'ensembl_gene_id'</span>)</span>
-<span id="cb2-3">hg38_annot.head()</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="10">
+<span id="cb2-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(hg38_annot.shape[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>], <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"genes with TSS annotation"</span>)</span>
+<span id="cb2-4">hg38_annot.head()</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>19688 genes with TSS annotation</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
 <div>
 
 
@@ -544,10 +701,12 @@ font-style: inherit;">'ensembl_gene_id'</span>)</span>
 <tr class="header">
 <th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th">external_gene_name</th>
+<th data-quarto-table-cell-role="th">chromosome_name</th>
 <th data-quarto-table-cell-role="th">transcription_start_site</th>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">ensembl_gene_id</th>
+<th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th"></th>
 <th data-quarto-table-cell-role="th"></th>
 </tr>
@@ -556,26 +715,31 @@ font-style: inherit;">'ensembl_gene_id'</span>)</span>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">ENSG00000142611</td>
 <td>PRDM16</td>
+<td>1</td>
 <td>3069203</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">ENSG00000157911</td>
 <td>PEX10</td>
+<td>1</td>
 <td>2412564</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">ENSG00000142655</td>
 <td>PEX14</td>
+<td>1</td>
 <td>10474950</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">ENSG00000149527</td>
 <td>PLCH2</td>
+<td>1</td>
 <td>2476289</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">ENSG00000171621</td>
 <td>SPSB1</td>
+<td>1</td>
 <td>9292894</td>
 </tr>
 </tbody>
@@ -585,37 +749,208 @@ font-style: inherit;">'ensembl_gene_id'</span>)</span>
 </div>
 </div>
 <p>We computed the predicted human reference epigenome by running Enformer on all intervals spanning the genome and concatenting the results. Now we extract the CAGE:Brain track at the bins where each gene’s TSS fall in order to quantify relative expression across genes.</p>
-<div class="cell" data-execution_count="17">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">gene <span class="op" style="color: #5E5E5E;
+</section>
+<section id="query-reference-epigenome-at-tss" class="level2">
+<h2 class="anchored" data-anchor-id="query-reference-epigenome-at-tss">Query reference epigenome at TSS</h2>
+<p>I found that querying the epigenome at certain positions returned NA, so I investigated those positions further by querying a larger window and plotting the CAGE track 4980.</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">CAGE_predictions <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+font-style: inherit;">=</span> []</span>
+<span id="cb4-2"><span class="cf" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">'ENSG00000142611'</span></span>
-<span id="cb3-2"><span class="kw" style="color: #003B4F;
+font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">def</span> quantify_expression(gene):</span>
-<span id="cb3-3">    tss <span class="op" style="color: #5E5E5E;
+font-style: inherit;">in</span> hg38_annot.index:</span>
+<span id="cb4-3">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> hg38_annot.loc[gene][<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'chromosome_name'</span>]</span>
+<span id="cb4-4">    tss <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> hg38_annot.loc[gene][<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'transcription_start_site'</span>]</span>
-<span id="cb3-4">    <span class="bu" style="color: null;
+<span id="cb4-5">    <span class="bu" style="color: null;
 background-color: null;
-font-style: inherit;">print</span>(query_epigenome)</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="18">
-<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">quantify_expression(gene)</span></code></pre></div>
+font-style: inherit;">bin</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> query_epigenome(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span>,tss, num_bins <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, tracks<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4980</span>])</span>
+<span id="cb4-6">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> np.isnan(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bin</span>):</span>
+<span id="cb4-7">        <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Invalid query:"</span>, gene, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"at"</span>, <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">:</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>tss<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb4-8">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">break</span></span>
+<span id="cb4-9">    CAGE_predictions.append(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bin</span>)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>3069203</code></pre>
+<pre><code>Invalid query: ENSG00000173451 at 12:71664301</code></pre>
 </div>
 </div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="co" style="color: #5E5E5E;
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="cf" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">#rn7_gene_list = pd.read_csv("reference_epigenome_predicted_vs_observed.csv", header=0, usecols=['gene_id'])</span></span>
-<span id="cb6-2"><span class="co" style="color: #5E5E5E;
+font-style: inherit;">with</span> h5py.File(<span class="ss" style="color: #20794D;
 background-color: null;
-font-style: inherit;">#ortho_genes = pd.read_csv("ortholog_genes_rats_humans.tsv", header=0, sep="\t", usecols=['ensembl_gene_id', 'rnorvegicus_homolog_ensembl_gene'])</span></span></code></pre></div>
+font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>enfref_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/chr12_cat.h5"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> f:</span>
+<span id="cb6-2">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"matrix shape:"</span>, f[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'chr12'</span>].shape)</span>
+<span id="cb6-3">    center <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">71664301</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">//</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">128</span></span>
+<span id="cb6-4">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ENSG00000173451 TTS at bin"</span>, center)</span>
+<span id="cb6-5">    epigen <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'chr12'</span>][center<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">448</span>:center<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">448</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4980</span>]</span>
+<span id="cb6-6">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Number of NA along track:"</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(np.isnan(epigen)))</span>
+<span id="cb6-7">    </span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>matrix shape: (1041214, 5313)
+ENSG00000173451 TTS at bin 559877
+Number of NA along track: 448</code></pre>
+</div>
+</div>
+<p>We adapted a function from the Enformer usage notebook to plot a single track.</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">def</span> plot_track(title, y, interval, height<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.5</span>):</span>
+<span id="cb8-2">  fig, ax <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> plt.subplots(figsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>, height))</span>
+<span id="cb8-3">  ax.fill_between(np.linspace(interval.start, interval.end, num<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(y)), y)</span>
+<span id="cb8-4">  ax.set_title(title)</span>
+<span id="cb8-5">  sns.despine(top<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, right<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, bottom<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb8-6">  ax.set_xlabel(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>(interval))</span>
+<span id="cb8-7">  plt.tight_layout()</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1">tss <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> Interval(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'chr12'</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">71664301</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">71664301</span>)</span>
+<span id="cb9-2">plot_track(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'CAGE:Brain, ENSG00000173451'</span>, epigen, tss.resize(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">114688</span>))</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-17-querying-human-reference-epigenome/all_hg38_genes_files/figure-html/cell-7-output-1.png" class="img-fluid"></p>
+</div>
 </div>
 
 
@@ -623,7 +958,7 @@ font-style: inherit;">#ortho_genes = pd.read_csv("ortholog_genes_rats_humans.tsv
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-17-querying-human-reference-epigenome/all_hg38_genes.html</guid>
-  <pubDate>Thu, 17 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Thu, 17 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Testing the Enformer pipeline’s handling of unphased VCFs</title>
@@ -768,7 +1103,7 @@ font-style: inherit;">"differences between the two matrices."</span>)</span></co
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/average_haplotype_test.html</guid>
-  <pubDate>Wed, 16 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Wed, 16 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Correlation of Enformer CAGE predictions and observed expression across all rn7 genes</title>
@@ -1182,13 +1517,13 @@ font-style: inherit;">#         continue</span></span>
 <span id="cb10-13"></span>
 <span id="cb10-14"><span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;"># corr_df.dropna().to_csv("reference_epigenome_predicted_vs_observed.csv", index=True)</span></span>
+font-style: inherit;"># corr_df.dropna().to_csv("rn7_reference_epigenome_predicted_vs_observed.csv", index=True)</span></span>
 <span id="cb10-15"></span>
 <span id="cb10-16">corr_df <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">"reference_epigenome_predicted_vs_observed.csv"</span>, header <span class="op" style="color: #5E5E5E;
+font-style: inherit;">"rn7_reference_epigenome_predicted_vs_observed.csv"</span>, header <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
@@ -1931,7 +2266,7 @@ font-style: inherit;">"/home/s1mi/Br_predictions/2023-08-16_predictions_some_mis
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/index.html</guid>
-  <pubDate>Tue, 15 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Tue, 15 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Preparing rat VCFs for Enformer pipeline</title>
@@ -2001,7 +2336,7 @@ bcftools index -t BrainVCFs/chrY.vcf.gz
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-14-updated-preparing-rat-vcf-inputs-for-enformer-pipeline/index.html</guid>
-  <pubDate>Mon, 14 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Mon, 14 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>An introduction to cyvcf2</title>
@@ -2156,7 +2491,7 @@ font-style: inherit;">break</span></span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-14-cyvcf2-tutorial/test_vcf_query.html</guid>
-  <pubDate>Mon, 14 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Mon, 14 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Testing the Enformer pipeline with added parameters for personalized prediction on rats</title>
@@ -2376,7 +2711,7 @@ python scripts/enformer_predict.py --parameters /Users/sabrinami/Github/deep-lea
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/index.html</guid>
-  <pubDate>Sat, 12 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Sat, 12 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Debugging Enformer predictions for eQTL genes</title>
@@ -2548,7 +2883,7 @@ font-style: inherit;">-</span>Oz</span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-11-comparing-enformer-CAGE-predictions-for-high-var-genes/debugging.html</guid>
-  <pubDate>Fri, 11 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Fri, 11 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Comparing predicted vs observed gene expression for rat genes selected for variation in expression across Br population, number of eQTLs, and elastic net prediction performance</title>
@@ -3261,7 +3596,7 @@ font-style: inherit;">break</span></span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-11-comparing-enformer-CAGE-predictions-for-high-var-genes/index.html</guid>
-  <pubDate>Fri, 11 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Fri, 11 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Selecting Rat genes for Enformer CAGE predictions</title>
@@ -3889,7 +4224,7 @@ python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-10-selecting-genes/selecting-well-predicted-gene-regions.html</guid>
-  <pubDate>Thu, 10 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Thu, 10 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Running Enformer across all rn7 genes</title>
@@ -4572,7 +4907,7 @@ python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/running-enformer-across-all-rat-genes.html</guid>
-  <pubDate>Thu, 10 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Thu, 10 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Running Enformer across all rn7 genes (continued)</title>
@@ -4666,7 +5001,7 @@ font-style: inherit;">"</span>.join(predicted_regions))</span></code></pre></div
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-16-correlation-across-genes-human-and-mouse-tracks/index.html</guid>
-  <pubDate>Thu, 10 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Thu, 10 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Debugging the issue of low variance in Enformer CAGE prediction</title>
@@ -5867,7 +6202,7 @@ New Range: [0.01251906 0.01252023]</code></pre>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/variance_at_peaks.html</guid>
-  <pubDate>Wed, 09 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Wed, 09 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Generating plots of Enformer CAGE predictions centered at TSS</title>
@@ -6482,7 +6817,7 @@ font-style: inherit;">in</span> gene_list:</span>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/compare-CAGE-expression.html</guid>
-  <pubDate>Tue, 08 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Tue, 08 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Preparing pipeline inputs for Enformer predictions centered at canonical TSS”</title>
@@ -6999,7 +7334,7 @@ font-style: inherit;">"Br_2023-08-08_predictions.h5"</span>)</span></code></pre>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/pipeline.html</guid>
-  <pubDate>Tue, 08 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Tue, 08 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>CAGE Brain plots for three well-predicted genes</title>
@@ -8167,7 +8502,7 @@ font-style: inherit;">4980</span>])</span>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-07-CAGE-Brain-plots-at-TSS/index.html</guid>
-  <pubDate>Fri, 04 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Fri, 04 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>First attempt of comparing predicted vs observed gene expression</title>
@@ -9040,7 +9375,7 @@ font-style: inherit;"># Show the plot</span></span>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-03-comparing-enformer-CAGE-to-observed-gene-expression/comparing-gene-expression.html</guid>
-  <pubDate>Thu, 03 Aug 2023 05:00:00 GMT</pubDate>
+  <pubDate>Thu, 03 Aug 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Running Enformer pipeline on 3 well-predicted genes</title>
@@ -9372,7 +9707,7 @@ font-style: inherit;">1</span>]</span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-07-26-running-enformer-on-high-R2-rat-gene-target-intervals/index.html</guid>
-  <pubDate>Wed, 26 Jul 2023 05:00:00 GMT</pubDate>
+  <pubDate>Wed, 26 Jul 2023 04:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Running the Enformer Pipeline locally</title>
@@ -11256,94 +11591,7 @@ font-style: inherit;">print</span>(data)</span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/running-enformer-locally/run_locally.html</guid>
-  <pubDate>Tue, 25 Jul 2023 05:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Comparing Enformer results on an arbitrary interval in different positions relative to window coordinates</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-07-21-comparing-enformer-predictions-in-overlapping-intervals/results.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="check-predictions-for-a-single-individual-region-and-haplotype" class="level3">
-<h3 class="anchored" data-anchor-id="check-predictions-for-a-single-individual-region-and-haplotype">Check predictions for a single individual, region, and haplotype</h3>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Import Libraries</span></span>
-<span id="cb1-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> np</span>
-<span id="cb1-3"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> h5py</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"metadata/intervals.txt"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb2-2">    lines <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> f.readlines()</span>
-<span id="cb2-3">    intervals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [line.strip().strip(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'"'</span>) <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> line <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> lines]</span>
-<span id="cb2-4"></span>
-<span id="cb2-5">predictions_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/lus/grand/projects/TFXcan/imlab/users/sabrina/enformer_test/predictions_folder/reference_enformer_minimal_chr2_region/predictions_2023-07-20/enformer_predictions/reference_enformer_minimal/haplotype0/"</span></span></code></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">predictions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {}</span>
-<span id="cb3-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> interval <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> intervals:</span>
-<span id="cb3-3">        f <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> h5py.File(predictions_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'_predictions.h5'</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'r'</span>)</span>
-<span id="cb3-4">        predictions[interval] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> f[interval][()]</span></code></pre></div>
-</div>
-
-
-</section>
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-07-21-comparing-enformer-predictions-in-overlapping-intervals/results.html</guid>
-  <pubDate>Fri, 21 Jul 2023 05:00:00 GMT</pubDate>
+  <pubDate>Tue, 25 Jul 2023 04:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
