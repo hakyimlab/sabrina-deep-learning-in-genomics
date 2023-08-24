@@ -1,0 +1,50 @@
+---
+title: "Home Page for Enformer Human and Rat Cross-species Analysis"
+descriptions: Updates, links to analysis in the rat project
+format: html
+---
+
+## Introduction
+
+### Data Inventory
+
+* Genotype and gene expression data for 340 rats in the Br study
+    * Mean gene expression used as ground truth reference gene expression
+* GTEx gene expression data used as ground truth reference gene expression
+* Rat reference genome as input to Enformer to predict reference gene expression 
+* Human reference genome as input to Enformer to predict reference gene expression
+
+### Goals
+
+* Determine whether Enformer models (human and mouse) can predict expression across genes
+* Use genotypes to predict gene expression in the Br rats with the Enformer models
+
+
+## Correlation across genes
+
+We are currently using the CAGE:Brain human track at a gene's TSS to estimate gene expression in rats. For all GTEx gene expression comparisons, we used mean TPM in brain cortex tissue. We want to make 3 types of comparison:
+
+1. $\rho^h_{Hh}$: Correlation between human reference gene expression predicted with Enformer human head and GTEx mean gene expression
+2. $\rho^h_{Rr}$: Correlation between rat reference gene expression predicted with Enformer human head and Br reference gene expression
+3. $\rho^h_{HR}$: Correlation between rat reference gene expression and human reference gene expression
+
+Enformer is optimized to predict variation across the genome, so we use $\rho^h_{Hh}$ as the baseline performance. Intuitively, we hope to see $\rho^h_{Rr} = \rho^h_{HR} \rho^h_{Hh}$.
+
+### Analysis Summary
+
+Right now, we are missing chunks of the human and rat epigenome, probably because we ran out of time or memory in our jobs. We are filling in the gaps and updating numbers as we go. Both numbers are lower than we expect, but we'll start with debugging the human Enformer predictions.
+
+1. [$\rho^h_{Hh} = 0.536$](https://sabrina-dl.hakyimlab.org/posts/2023-08-21-comparing-enformer-cage-prediction-to-gtex-brain-cortex-expression-across-genes/)
+    * [Breakdown by chromosome](https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-between-Enformer-and-GTEx-expression-across-genes-by-chromosome/)
+2. [$\rho^h_{Rr} = 0.456$](https://sabrina-dl.hakyimlab.org/posts/2023-08-10-correlation-across-genes/)
+    * [Breakdown by chromosome](https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-across-rn7-genes-by-chromosome/)
+
+
+## Correlation across individuals
+
+Our progress so far is developing the pipeline. I added support for unphased VCFs, which cuts the number of Enformer runs in half by averaging the two haplotypes.
+
+* [How I processed VCFs to be compatible](https://sabrina-dl.hakyimlab.org/posts/2023-08-14-updated-preparing-rat-vcf-inputs-for-enformer-pipeline/)
+* [Test run a single individual and gene](https://sabrina-dl.hakyimlab.org/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/)
+* [Validating test run predictions](https://sabrina-dl.hakyimlab.org/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/average_haplotype_test)
+

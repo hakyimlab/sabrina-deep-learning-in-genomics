@@ -8,7 +8,7 @@
 
 <meta name="author" content="Sabrina Mi">
 <meta name="dcterms.date" content="2023-08-15">
-<meta name="description" content="We calculate correlation for two comparisons: (1) Enformer predictions on rn7 reference genome against average gene expression in the Brain study and (2) Enformer predictions for a small sample of rats against their individual gene expression.">
+<meta name="description" content="We calculated correlation of 0.45 between Enformer predictions on rn7 reference genome and average gene expression in the Brain study.">
 
 <title>deep-learning-in-genomics - Correlation of Enformer CAGE predictions and observed expression across all rn7 genes</title>
 <style>
@@ -149,7 +149,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <h1 class="title">Correlation of Enformer CAGE predictions and observed expression across all rn7 genes</h1>
                   <div>
         <div class="description">
-          We calculate correlation for two comparisons: (1) Enformer predictions on rn7 reference genome against average gene expression in the Brain study and (2) Enformer predictions for a small sample of rats against their individual gene expression.
+          We calculated correlation of 0.45 between Enformer predictions on rn7 reference genome and average gene expression in the Brain study.
         </div>
       </div>
                 </div>
@@ -186,7 +186,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<p>Our goal is to test whether Enformer can determine relative gene expression levels in rat Brain tissues. We used mean gene expression in Br rats as the ground truth, and predicted the CAGE Brain track at each gene’s TSS. We found a correlation of 0.45 between reference genome CAGE predictions for humans and observed mean gene expression, compared to a correlation of 0.63 in our baseline comparison of CAGE predictions against mean gene expression in GTEx Brain cortex tissues.</p>
+<p>Our goal is to test whether Enformer can determine relative gene expression levels in rat Brain tissues. We used mean gene expression in Br rats as the ground truth, and predicted the CAGE Brain track at each gene’s TSS. We found a correlation of 0.45, which we still need to compare to the same experiment with human data to determine whether this is high or low.</p>
 <section id="reference-genome" class="level2">
 <h2 class="anchored" data-anchor-id="reference-genome">Reference Genome</h2>
 <section id="read-in-expression-files" class="level3">
@@ -199,7 +199,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tpm.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
@@ -471,9 +471,9 @@ Length: 30231, dtype: float64</code></pre>
 <span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co">#         continue</span></span>
 <span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="co"># corr_df.dropna().to_csv("rn7_reference_epigenome_predicted_vs_observed.csv", index=True)</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="co"># corr_df.dropna().to_csv("reference_epigenome_predicted_vs_observed.csv", index=True)</span></span>
 <span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>corr_df <span class="op">=</span> pd.read_csv(<span class="st">"rn7_reference_epigenome_predicted_vs_observed.csv"</span>, header <span class="op">=</span> <span class="dv">0</span>, index_col <span class="op">=</span> <span class="st">'gene_id'</span>)</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>corr_df <span class="op">=</span> pd.read_csv(<span class="st">"reference_epigenome_predicted_vs_observed.csv"</span>, header <span class="op">=</span> <span class="dv">0</span>, index_col <span class="op">=</span> <span class="st">'gene_id'</span>)</span>
 <span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(corr_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>                         tpm  predicted  chr
@@ -548,473 +548,22 @@ ENSRNOG00000069552  0.001088   0.001822    Y
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>gtex_tpm <span class="op">=</span> pd.read_csv(<span class="st">"gene_tpm_2017-06-05_v8_brain_cortex.gct.gz"</span>, header<span class="op">=</span><span class="dv">2</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>gtex_tpm.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co"># strip off ensembl version tag</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>gtex_tpm[<span class="st">'Name'</span>] <span class="op">=</span> gtex_tpm[<span class="st">'Name'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> gene: gene.split(<span class="st">'.'</span>)[<span class="dv">0</span>])</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>gtex_tpm.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="15">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">id</th>
-<th data-quarto-table-cell-role="th">Name</th>
-<th data-quarto-table-cell-role="th">Description</th>
-<th data-quarto-table-cell-role="th">GTEX-1117F-3226-SM-5N9CT</th>
-<th data-quarto-table-cell-role="th">GTEX-111FC-3126-SM-5GZZ2</th>
-<th data-quarto-table-cell-role="th">GTEX-1128S-2726-SM-5H12C</th>
-<th data-quarto-table-cell-role="th">GTEX-117XS-3026-SM-5N9CA</th>
-<th data-quarto-table-cell-role="th">GTEX-1192X-3126-SM-5N9BY</th>
-<th data-quarto-table-cell-role="th">GTEX-11DXW-1126-SM-5H12Q</th>
-<th data-quarto-table-cell-role="th">GTEX-11DXY-3226-SM-5GIDE</th>
-<th data-quarto-table-cell-role="th">...</th>
-<th data-quarto-table-cell-role="th">GTEX-ZAK1-3026-SM-5S2MJ</th>
-<th data-quarto-table-cell-role="th">GTEX-ZDXO-2126-SM-4WKFI</th>
-<th data-quarto-table-cell-role="th">GTEX-ZE7O-3126-SM-5HL5X</th>
-<th data-quarto-table-cell-role="th">GTEX-ZE9C-3026-SM-4WKHB</th>
-<th data-quarto-table-cell-role="th">GTEX-ZF28-3026-SM-4WKHP</th>
-<th data-quarto-table-cell-role="th">GTEX-ZUA1-3026-SM-59HJC</th>
-<th data-quarto-table-cell-role="th">GTEX-ZVT3-3026-SM-5E43N</th>
-<th data-quarto-table-cell-role="th">GTEX-ZYFD-3026-SM-5E44C</th>
-<th data-quarto-table-cell-role="th">GTEX-ZYY3-3126-SM-5SI9L</th>
-<th data-quarto-table-cell-role="th">GTEX-ZZPT-3026-SM-5GZXH</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
-<td>0</td>
-<td>ENSG00000223972</td>
-<td>DDX11L1</td>
-<td>0.0178</td>
-<td>0.0000</td>
-<td>0.0171</td>
-<td>0.0000</td>
-<td>0.0260</td>
-<td>0.0000</td>
-<td>0.000</td>
-<td>...</td>
-<td>0.0000</td>
-<td>0.0184</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.000</td>
-<td>0.0355</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0187</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
-<td>1</td>
-<td>ENSG00000227232</td>
-<td>WASH7P</td>
-<td>6.8920</td>
-<td>4.2250</td>
-<td>2.3590</td>
-<td>3.6930</td>
-<td>5.0400</td>
-<td>2.2010</td>
-<td>2.394</td>
-<td>...</td>
-<td>2.4190</td>
-<td>3.0860</td>
-<td>3.6510</td>
-<td>1.9050</td>
-<td>3.7270</td>
-<td>2.542</td>
-<td>1.8740</td>
-<td>2.3140</td>
-<td>4.3050</td>
-<td>2.1230</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
-<td>2</td>
-<td>ENSG00000278267</td>
-<td>MIR6859-1</td>
-<td>0.0000</td>
-<td>0.4912</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.000</td>
-<td>...</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
-<td>3</td>
-<td>ENSG00000243485</td>
-<td>MIR1302-2HG</td>
-<td>0.0000</td>
-<td>0.0771</td>
-<td>0.0341</td>
-<td>0.0308</td>
-<td>0.0519</td>
-<td>0.0000</td>
-<td>0.000</td>
-<td>...</td>
-<td>0.1409</td>
-<td>0.0367</td>
-<td>0.0427</td>
-<td>0.0551</td>
-<td>0.0336</td>
-<td>0.000</td>
-<td>0.0000</td>
-<td>0.0374</td>
-<td>0.0468</td>
-<td>0.0000</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
-<td>4</td>
-<td>ENSG00000237613</td>
-<td>FAM138A</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0242</td>
-<td>0.0219</td>
-<td>0.0000</td>
-<td>0.0231</td>
-<td>0.000</td>
-<td>...</td>
-<td>0.0000</td>
-<td>0.0261</td>
-<td>0.0304</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-</tr>
-</tbody>
-</table>
-
-<p>5 rows × 258 columns</p>
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="19">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># human to rat gene dictionary</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>ortho_genes <span class="op">=</span> pd.read_csv(<span class="st">"ortholog_genes_rats_humans.tsv"</span>, header<span class="op">=</span><span class="dv">0</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, usecols<span class="op">=</span>[<span class="st">'ensembl_gene_id'</span>, <span class="st">'rnorvegicus_homolog_ensembl_gene'</span>])</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>ortho_genes.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="19">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">ensembl_gene_id</th>
-<th data-quarto-table-cell-role="th">rnorvegicus_homolog_ensembl_gene</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
-<td>ENSG00000198888</td>
-<td>ENSRNOG00000030644</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
-<td>ENSG00000198763</td>
-<td>ENSRNOG00000031033</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
-<td>ENSG00000198804</td>
-<td>ENSRNOG00000034234</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
-<td>ENSG00000198712</td>
-<td>ENSRNOG00000030371</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
-<td>ENSG00000228253</td>
-<td>ENSRNOG00000033299</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># use this map to swap human gene names with rat orthologs</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>merged_df <span class="op">=</span> gtex_tpm.merge(ortho_genes, left_on<span class="op">=</span><span class="st">'Name'</span>, right_on<span class="op">=</span><span class="st">'ensembl_gene_id'</span>, how<span class="op">=</span><span class="st">'inner'</span>)</span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>merged_df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">id</th>
-<th data-quarto-table-cell-role="th">Name</th>
-<th data-quarto-table-cell-role="th">Description</th>
-<th data-quarto-table-cell-role="th">GTEX-1117F-3226-SM-5N9CT</th>
-<th data-quarto-table-cell-role="th">GTEX-111FC-3126-SM-5GZZ2</th>
-<th data-quarto-table-cell-role="th">GTEX-1128S-2726-SM-5H12C</th>
-<th data-quarto-table-cell-role="th">GTEX-117XS-3026-SM-5N9CA</th>
-<th data-quarto-table-cell-role="th">GTEX-1192X-3126-SM-5N9BY</th>
-<th data-quarto-table-cell-role="th">GTEX-11DXW-1126-SM-5H12Q</th>
-<th data-quarto-table-cell-role="th">GTEX-11DXY-3226-SM-5GIDE</th>
-<th data-quarto-table-cell-role="th">...</th>
-<th data-quarto-table-cell-role="th">GTEX-ZE7O-3126-SM-5HL5X</th>
-<th data-quarto-table-cell-role="th">GTEX-ZE9C-3026-SM-4WKHB</th>
-<th data-quarto-table-cell-role="th">GTEX-ZF28-3026-SM-4WKHP</th>
-<th data-quarto-table-cell-role="th">GTEX-ZUA1-3026-SM-59HJC</th>
-<th data-quarto-table-cell-role="th">GTEX-ZVT3-3026-SM-5E43N</th>
-<th data-quarto-table-cell-role="th">GTEX-ZYFD-3026-SM-5E44C</th>
-<th data-quarto-table-cell-role="th">GTEX-ZYY3-3126-SM-5SI9L</th>
-<th data-quarto-table-cell-role="th">GTEX-ZZPT-3026-SM-5GZXH</th>
-<th data-quarto-table-cell-role="th">ensembl_gene_id</th>
-<th data-quarto-table-cell-role="th">rnorvegicus_homolog_ensembl_gene</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
-<td>7</td>
-<td>ENSG00000186092</td>
-<td>OR4F5</td>
-<td>0.1004</td>
-<td>0.0364</td>
-<td>0.0322</td>
-<td>0.0581</td>
-<td>0.0489</td>
-<td>0.0919</td>
-<td>0.045</td>
-<td>...</td>
-<td>0.0</td>
-<td>0.052</td>
-<td>0.0634</td>
-<td>0.1199</td>
-<td>0.2343</td>
-<td>0.0705</td>
-<td>0.0</td>
-<td>0.0</td>
-<td>ENSG00000186092</td>
-<td>ENSRNOG00000047700</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
-<td>7</td>
-<td>ENSG00000186092</td>
-<td>OR4F5</td>
-<td>0.1004</td>
-<td>0.0364</td>
-<td>0.0322</td>
-<td>0.0581</td>
-<td>0.0489</td>
-<td>0.0919</td>
-<td>0.045</td>
-<td>...</td>
-<td>0.0</td>
-<td>0.052</td>
-<td>0.0634</td>
-<td>0.1199</td>
-<td>0.2343</td>
-<td>0.0705</td>
-<td>0.0</td>
-<td>0.0</td>
-<td>ENSG00000186092</td>
-<td>ENSRNOG00000046942</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
-<td>7</td>
-<td>ENSG00000186092</td>
-<td>OR4F5</td>
-<td>0.1004</td>
-<td>0.0364</td>
-<td>0.0322</td>
-<td>0.0581</td>
-<td>0.0489</td>
-<td>0.0919</td>
-<td>0.045</td>
-<td>...</td>
-<td>0.0</td>
-<td>0.052</td>
-<td>0.0634</td>
-<td>0.1199</td>
-<td>0.2343</td>
-<td>0.0705</td>
-<td>0.0</td>
-<td>0.0</td>
-<td>ENSG00000186092</td>
-<td>ENSRNOG00000055449</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
-<td>7</td>
-<td>ENSG00000186092</td>
-<td>OR4F5</td>
-<td>0.1004</td>
-<td>0.0364</td>
-<td>0.0322</td>
-<td>0.0581</td>
-<td>0.0489</td>
-<td>0.0919</td>
-<td>0.045</td>
-<td>...</td>
-<td>0.0</td>
-<td>0.052</td>
-<td>0.0634</td>
-<td>0.1199</td>
-<td>0.2343</td>
-<td>0.0705</td>
-<td>0.0</td>
-<td>0.0</td>
-<td>ENSG00000186092</td>
-<td>ENSRNOG00000042991</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
-<td>14</td>
-<td>ENSG00000222623</td>
-<td>RNU6-1100P</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.000</td>
-<td>...</td>
-<td>0.0</td>
-<td>0.000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0000</td>
-<td>0.0</td>
-<td>0.0</td>
-<td>ENSG00000222623</td>
-<td>ENSRNOG00000055395</td>
-</tr>
-</tbody>
-</table>
-
-<p>5 rows × 260 columns</p>
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="42">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>gtex_mean_tpm <span class="op">=</span> merged_df.iloc[:,<span class="dv">3</span>:<span class="op">-</span><span class="dv">2</span>].mean(axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>gtex_mean_tpm.index <span class="op">=</span> merged_df[<span class="st">'rnorvegicus_homolog_ensembl_gene'</span>]</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>gtex_mean_tpm.name <span class="op">=</span> <span class="st">'gtex'</span></span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(gtex_mean_tpm)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>rnorvegicus_homolog_ensembl_gene
-ENSRNOG00000047700        0.143794
-ENSRNOG00000046942        0.143794
-ENSRNOG00000055449        0.143794
-ENSRNOG00000042991        0.143794
-ENSRNOG00000055395        0.001240
-                          ...     
-ENSRNOG00000031053    26848.819608
-ENSRNOG00000029707    54407.450980
-ENSRNOG00000029971    10158.058824
-ENSRNOG00000029042     9048.839216
-ENSRNOG00000031766    31076.035294
-Name: gtex, Length: 22411, dtype: float64</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="52">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a scatter plot with colors based on column z</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(corr_df[<span class="st">'gtex'</span>], corr_df[<span class="st">'predicted'</span>])</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Set labels and title</span></span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'GTEx Brain Cortex Mean TPM'</span>)</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Predicted Rat Reference Gene Expression'</span>)</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Predicted vs Observed Gene Expression'</span>)</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="index_files/figure-html/cell-16-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-execution_count="51">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">#corr_df.join(gtex_mean_tpm).dropna()</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>corr_df[[<span class="st">'tpm'</span>,<span class="st">'predicted'</span>,<span class="st">'gtex'</span>]].corr()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="51">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">tpm</th>
-<th data-quarto-table-cell-role="th">predicted</th>
-<th data-quarto-table-cell-role="th">gtex</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">tpm</td>
-<td>1.000000</td>
-<td>0.456471</td>
-<td>0.629975</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">predicted</td>
-<td>0.456471</td>
-<td>1.000000</td>
-<td>0.306466</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">gtex</td>
-<td>0.629975</td>
-<td>0.306466</td>
-<td>1.000000</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
 <p>Lastly, we’ll concatenate all the prediction matrices into one h5 file.</p>
 </section>
 </section>
 <section id="concatenate-predictions" class="level2">
 <h2 class="anchored" data-anchor-id="concatenate-predictions">Concatenate Predictions</h2>
 <div class="cell" data-execution_count="20">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> concatenate_predictions(predictions_dir, output_path):</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(output_path, <span class="st">"w"</span>) <span class="im">as</span> output_file:</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>        files <span class="op">=</span> os.listdir(predictions_dir)</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> files:</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>            interval <span class="op">=</span> <span class="bu">file</span>.replace(<span class="st">"_predictions.h5"</span>, <span class="st">""</span>)</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(os.path.join(predictions_dir, <span class="bu">file</span>), <span class="st">"r"</span>) <span class="im">as</span> input_file:</span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>                output_file.create_dataset(interval, data<span class="op">=</span>input_file[interval][()], shape<span class="op">=</span>(<span class="dv">896</span>,<span class="dv">5313</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> concatenate_predictions(predictions_dir, output_path):</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(output_path, <span class="st">"w"</span>) <span class="im">as</span> output_file:</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>        files <span class="op">=</span> os.listdir(predictions_dir)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> files:</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>            interval <span class="op">=</span> <span class="bu">file</span>.replace(<span class="st">"_predictions.h5"</span>, <span class="st">""</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(os.path.join(predictions_dir, <span class="bu">file</span>), <span class="st">"r"</span>) <span class="im">as</span> input_file:</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>                output_file.create_dataset(interval, data<span class="op">=</span>input_file[interval][()], shape<span class="op">=</span>(<span class="dv">896</span>,<span class="dv">5313</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>concatenate_predictions(reference_predictions, <span class="st">"/home/s1mi/Br_predictions/2023-08-16_predictions_some_missing_genes.h5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>concatenate_predictions(reference_predictions, <span class="st">"/home/s1mi/Br_predictions/2023-08-16_predictions_some_missing_genes.h5"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

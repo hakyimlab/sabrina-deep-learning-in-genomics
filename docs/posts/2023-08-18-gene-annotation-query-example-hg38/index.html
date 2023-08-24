@@ -198,38 +198,55 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(biomaRt)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>We first want to verify gene annotation is in build hg38.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to BioMart database for human genes</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>mart <span class="ot">&lt;-</span> <span class="fu">useMart</span>(<span class="at">biomart =</span> <span class="st">"ENSEMBL_MART_ENSEMBL"</span>, <span class="at">dataset =</span> <span class="st">"hsapiens_gene_ensembl"</span>, <span class="at">host =</span> <span class="st">'https://www.ensembl.org'</span>)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># query canonical TSS for protein-coding genes on chr 1-22, X, and Y</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>protein_coding_TSS <span class="ot">&lt;-</span> biomaRt<span class="sc">::</span><span class="fu">getBM</span>(<span class="at">attributes =</span> <span class="fu">c</span>(<span class="st">"ensembl_gene_id"</span>,<span class="st">"external_gene_name"</span>, <span class="st">"chromosome_name"</span>,<span class="st">"transcript_start"</span>,<span class="st">"transcript_end"</span>,<span class="st">"transcript_biotype"</span>,<span class="st">"transcription_start_site"</span>, <span class="st">"transcript_is_canonical"</span>, <span class="st">"strand"</span>), <span class="at">filters =</span> <span class="fu">c</span>(<span class="st">"transcript_biotype"</span>,<span class="st">"chromosome_name"</span>, <span class="st">"transcript_is_canonical"</span>),<span class="at">values =</span> <span class="fu">list</span>(<span class="st">"protein_coding"</span>,<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">22</span>, <span class="st">'X'</span>, <span class="st">'Y'</span>), <span class="cn">TRUE</span>), <span class="at">mart =</span> mart)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># extract columns of interest</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>protein_coding_TSS <span class="ot">=</span> protein_coding_TSS[, <span class="fu">c</span>(<span class="st">"ensembl_gene_id"</span>, <span class="st">"external_gene_name"</span>, <span class="st">"chromosome_name"</span>, <span class="st">"transcription_start_site"</span>)]</span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="co"># write to file</span></span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">write.table</span>(protein_coding_TSS, <span class="at">file=</span><span class="st">"protein_coding_TSS.tsv"</span>, <span class="at">sep=</span><span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">row.names=</span><span class="cn">FALSE</span>, <span class="at">col.names=</span><span class="cn">TRUE</span>, <span class="at">quote=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ensembl <span class="ot">&lt;-</span> <span class="fu">useEnsembl</span>(<span class="at">biomart =</span> <span class="st">"genes"</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">searchDatasets</span>(<span class="at">mart =</span> ensembl, <span class="at">pattern =</span> <span class="st">"hsapiens"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                 dataset              description    version
+80 hsapiens_gene_ensembl Human genes (GRCh38.p14) GRCh38.p14</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to BioMart database for human genes</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>ensembl <span class="ot">&lt;-</span> <span class="fu">useEnsembl</span>(<span class="at">biomart =</span> <span class="st">"genes"</span>, <span class="at">dataset =</span> <span class="st">"hsapiens_gene_ensembl"</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># query canonical TSS for protein-coding genes on chr 1-22, X, and Y</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>protein_coding_TSS <span class="ot">&lt;-</span> biomaRt<span class="sc">::</span><span class="fu">getBM</span>(<span class="at">attributes =</span> <span class="fu">c</span>(<span class="st">"ensembl_gene_id"</span>,<span class="st">"external_gene_name"</span>, <span class="st">"chromosome_name"</span>,<span class="st">"transcript_start"</span>,<span class="st">"transcript_end"</span>,<span class="st">"transcript_biotype"</span>,<span class="st">"transcription_start_site"</span>, <span class="st">"transcript_is_canonical"</span>, <span class="st">"strand"</span>), <span class="at">filters =</span> <span class="fu">c</span>(<span class="st">"transcript_biotype"</span>,<span class="st">"chromosome_name"</span>, <span class="st">"transcript_is_canonical"</span>),<span class="at">values =</span> <span class="fu">list</span>(<span class="st">"protein_coding"</span>,<span class="fu">c</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">22</span>, <span class="st">'X'</span>, <span class="st">'Y'</span>), <span class="cn">TRUE</span>), <span class="at">mart =</span> ensembl)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># extract columns of interest</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>protein_coding_TSS <span class="ot">=</span> protein_coding_TSS[, <span class="fu">c</span>(<span class="st">"ensembl_gene_id"</span>, <span class="st">"external_gene_name"</span>, <span class="st">"chromosome_name"</span>, <span class="st">"transcription_start_site"</span>)]</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co"># write to file</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="fu">write.table</span>(protein_coding_TSS, <span class="at">file=</span><span class="st">"protein_coding_TSS.tsv"</span>, <span class="at">sep=</span><span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">row.names=</span><span class="cn">FALSE</span>, <span class="at">col.names=</span><span class="cn">TRUE</span>, <span class="at">quote=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="example-2-getting-a-list-of-rat-genes-with-orthologs-in-humans" class="level3">
 <h3 class="anchored" data-anchor-id="example-2-getting-a-list-of-rat-genes-with-orthologs-in-humans">Example 2: Getting a list of rat genes with orthologs in humans</h3>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to BioMart database for rat genes</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ensembl <span class="ot">=</span> <span class="fu">useMart</span>(<span class="at">biomart=</span><span class="st">"ENSEMBL_MART_ENSEMBL"</span>, <span class="at">dataset =</span> <span class="st">"rnorvegicus_gene_ensembl"</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># query all relevant data and store in a dataframe</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>ortho_rat <span class="ot">=</span> <span class="fu">getBM</span>( <span class="at">attributes=</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">c</span>(<span class="st">"ensembl_gene_id"</span>, </span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"hsapiens_homolog_ensembl_gene"</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"external_gene_name"</span>),</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">filters =</span> <span class="st">"with_hsapiens_homolog"</span>,</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">values =</span><span class="cn">TRUE</span>,</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>                  <span class="at">mart =</span> ensembl,</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>                  <span class="at">bmHeader=</span><span class="cn">FALSE</span>)</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co"># write to file</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="fu">write.table</span>(ortho_rat, <span class="at">file=</span><span class="st">"ortholog_genes_rats_humans.tsv"</span>, <span class="at">sep=</span><span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">row.names=</span><span class="cn">FALSE</span>, <span class="at">col.names=</span><span class="cn">TRUE</span>, <span class="at">quote=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">listMarts</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               biomart                version
+1 ENSEMBL_MART_ENSEMBL      Ensembl Genes 110
+2   ENSEMBL_MART_MOUSE      Mouse strains 110
+3     ENSEMBL_MART_SNP  Ensembl Variation 110
+4 ENSEMBL_MART_FUNCGEN Ensembl Regulation 110</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># connect to BioMart database for rat genes</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>ensembl <span class="ot">=</span> <span class="fu">useEnsembl</span>(<span class="at">biomart =</span> <span class="st">"genes"</span>, <span class="at">dataset =</span> <span class="st">"rnorvegicus_gene_ensembl"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># query all relevant data and store in a dataframe</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>ortho_rat <span class="ot">=</span> <span class="fu">getBM</span>( <span class="at">attributes=</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">c</span>(<span class="st">"ensembl_gene_id"</span>, </span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"hsapiens_homolog_ensembl_gene"</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"external_gene_name"</span>),</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>                  <span class="at">filters =</span> <span class="st">"with_hsapiens_homolog"</span>,</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>                  <span class="at">values =</span><span class="cn">TRUE</span>,</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>                  <span class="at">mart =</span> ensembl)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># write to file</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="fu">write.table</span>(ortho_rat, <span class="at">file=</span><span class="st">"ortholog_genes_rats_humans.tsv"</span>, <span class="at">sep=</span><span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">row.names=</span><span class="cn">FALSE</span>, <span class="at">col.names=</span><span class="cn">TRUE</span>, <span class="at">quote=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 

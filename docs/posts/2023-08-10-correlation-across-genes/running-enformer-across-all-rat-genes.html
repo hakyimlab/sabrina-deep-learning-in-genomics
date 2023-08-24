@@ -197,7 +197,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>annot_df <span class="op">=</span> pd.read_csv(<span class="st">'/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt'</span>, sep <span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>,  index_col<span class="op">=</span><span class="st">'geneId'</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>annot_df.head(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_69524/1963999151.py:2: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
+<pre><code>/tmp/ipykernel_150641/1963999151.py:2: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
   annot_df = pd.read_csv('/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt', sep ='\t',  index_col='geneId')</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="2">
@@ -336,11 +336,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>obs_gene_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>obs_gene_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>obs_gene_expr.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>/tmp/ipykernel_69524/3189498692.py:1: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
-  obs_gene_expr = pd.read_csv("/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed", sep="\t", header=0, index_col='gene_id')</code></pre>
+  obs_gene_expr = pd.read_csv("/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed", sep="\t", header=0, index_col='gene_id')</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="3">
 <div>
@@ -542,7 +542,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>We want to filter to genes on chromosomes 1 through 20 and X.</p>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>keys <span class="op">=</span> [<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span>, <span class="st">"6"</span>, <span class="st">"7"</span>, <span class="st">"8"</span>, <span class="st">"9"</span>, <span class="st">"10"</span>, <span class="st">"11"</span>, <span class="st">"12"</span>, <span class="st">"13"</span>, <span class="st">"14"</span>, <span class="st">"15"</span>, <span class="st">"16"</span>, <span class="st">"17"</span>, <span class="st">"18"</span>, <span class="st">"19"</span>, <span class="st">"20"</span>, <span class="st">"X"</span>, <span class="st">"Y"</span>]</span>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>keys <span class="op">=</span> [<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span>, <span class="st">"6"</span>, <span class="st">"7"</span>, <span class="st">"8"</span>, <span class="st">"9"</span>, <span class="st">"10"</span>, <span class="st">"11"</span>, <span class="st">"12"</span>, <span class="st">"13"</span>, <span class="st">"14"</span>, <span class="st">"15"</span>, <span class="st">"16"</span>, <span class="st">"17"</span>, <span class="st">"18"</span>, <span class="st">"19"</span>, <span class="st">"20"</span>, <span class="st">"X"</span>]</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> []</span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>interval_list <span class="op">=</span> []</span>

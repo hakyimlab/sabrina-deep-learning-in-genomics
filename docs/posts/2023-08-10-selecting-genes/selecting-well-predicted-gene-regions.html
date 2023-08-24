@@ -194,13 +194,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Read in expression data</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed"</span>, header <span class="op">=</span> <span class="dv">0</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>,  index_col<span class="op">=</span> <span class="st">'gene_id'</span>)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>iqn <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/Brain.rn7.expr.iqn.bed"</span>, header <span class="op">=</span> <span class="dv">0</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>,  index_col<span class="op">=</span> <span class="st">'gene_id'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span>, header <span class="op">=</span> <span class="dv">0</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>,  index_col<span class="op">=</span> <span class="st">'gene_id'</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>iqn <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.iqn.bed"</span>, header <span class="op">=</span> <span class="dv">0</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>,  index_col<span class="op">=</span> <span class="st">'gene_id'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>/tmp/ipykernel_238845/1386399847.py:2: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
-  tpm = pd.read_csv("/home/s1mi/enformer_rat_data/Brain.rn7.expr.tpm.bed", header = 0, sep="\t",  index_col= 'gene_id')
+  tpm = pd.read_csv("/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed", header = 0, sep="\t",  index_col= 'gene_id')
 /tmp/ipykernel_238845/1386399847.py:3: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
-  iqn = pd.read_csv("/home/s1mi/enformer_rat_data/Brain.rn7.expr.iqn.bed", header = 0, sep="\t",  index_col= 'gene_id')</code></pre>
+  iqn = pd.read_csv("/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.iqn.bed", header = 0, sep="\t",  index_col= 'gene_id')</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="6">
@@ -528,7 +528,7 @@ Name: gene_id, dtype: float64</code></pre>
 </div>
 <p>Use all 340 individuals:</p>
 <div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>bcftools query <span class="op">-</span>l <span class="op">/</span>home<span class="op">/</span>s1mi<span class="op">/</span>enformer_rat_data<span class="op">/</span>Brain.rn7.vcf.gz <span class="op">&gt;</span> metadata<span class="op">/</span>individuals.txt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="op">!</span>bcftools query <span class="op">-</span>l <span class="op">/</span>home<span class="op">/</span>s1mi<span class="op">/</span>enformer_rat_data<span class="op">/</span>genotypes<span class="op">/</span>Brain.rn7.vcf.gz <span class="op">&gt;</span> metadata<span class="op">/</span>individuals.txt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="submit-jobs" class="level3">
