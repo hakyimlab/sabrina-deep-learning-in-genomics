@@ -235,7 +235,7 @@ chr22   10522217    .   G   A   .   PASS    AC=89;AF=0.02;AFR_AF=0.07;AMR_AF=0;A
 </div>
 </div>
 <p>Because of the difference in chromosome notations, we have to query the rat VCFs without the extra “chr” string at the start. Unfortunately, we need the “chr” string for other parts of the pipeline, so we cannot just remove the “chr” prefix from our <code>intervals.txt</code> file, but rather we need to add “chr” to the CHROM column of our rn7 VCFs.</p>
-<pre><code>awk '{if($0 !~ /^#/) print "chr"$0; else print $0}' Brain.rn7.vcf &gt; output.vcf
+<pre><code>awk '{if($0 !~ /^#/) print "chr"$0; else print $0}' genotypes/Brain.rn7.vcf &gt; output.vcf
 
 </code></pre>
 <p>I will update the <a href="https://sabrina-dl.hakyimlab.org/posts/preparing-rat-vcfs-for-enformer/">Preparing Rat VCFs for Enformer</a> blog post.</p>

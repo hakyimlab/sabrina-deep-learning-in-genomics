@@ -206,13 +206,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell" data-execution_count="19">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>region <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>chromosome<span class="sc">}</span><span class="ss">:</span><span class="sc">{</span>start<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span>end<span class="sc">}</span><span class="ss">"</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Gene region:"</span>, region)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>vcf_file <span class="op">=</span> <span class="ss">f"/home/s1mi/enformer_rat_data/BrainVCFs/chr</span><span class="sc">{</span>chromosome<span class="sc">}</span><span class="ss">.vcf.gz"</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>vcf_file <span class="op">=</span> <span class="ss">f"/home/s1mi/enformer_rat_data/genotypes/BrainVCFs/chr</span><span class="sc">{</span>chromosome<span class="sc">}</span><span class="ss">.vcf.gz"</span></span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"VCF file:"</span>, vcf_file)</span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>output_file <span class="op">=</span> <span class="ss">f"/home/s1mi/enformer_rat_data/misc/</span><span class="sc">{</span>gene<span class="sc">}</span><span class="ss">.vcf.gz"</span></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Output VCF:"</span>, output_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Gene region: 20:11922154-12315370
-VCF file: /home/s1mi/enformer_rat_data/BrainVCFs/chr20.vcf.gz
+VCF file: /home/s1mi/enformer_rat_data/genotypes/BrainVCFs/chr20.vcf.gz
 Output VCF: /home/s1mi/enformer_rat_data/misc/ENSRNOG00000054549.vcf.gz</code></pre>
 </div>
 </div>
