@@ -8,7 +8,7 @@
     "create_hdf5_file": false,
     "exclude_regions": true,
     "sub_dir": true,
-    "use_parsl": true,
+    "use_parsl": false,
     "model_path": "/lus/grand/projects/TFXcan/imlab/data/enformer/raw",
     "fasta_file": "/lus/grand/projects/TFXcan/imlab/data/hg_sequences/hg38/Homo_sapiens_assembly38.fasta",
     "metadata_dir": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-07-21-running-enformer-on-all-regions-reference/metadata",
@@ -31,7 +31,7 @@
     "parsl_parameters": {
       "job_name": "enformer_predict_regions_reference",
       "num_of_full_nodes": 1,
-      "walltime": "00:01:00",
+      "walltime": "00:05:00",
       "init_blocks":1,
       "min_num_blocks": 0,
       "max_num_blocks": 4,

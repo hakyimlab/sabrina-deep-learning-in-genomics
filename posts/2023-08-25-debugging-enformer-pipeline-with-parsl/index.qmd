@@ -5,3 +5,10 @@ cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-25-debugging-enform
 python /home/s1mi/Github/shared_pipelines/enformer_pipeline_reference/scripts/enformer_predict.py --parameters test_reference.json
 
 ```
+
+```{python}
+import h5py
+with h5py.File("/grand/TFXcan/imlab/users/sabrina/reftile_project/predictions_folder/chr5_reference_overlapping_regions/predictions_2023-08-25/enformer_predictions/chr5_reference/haplotype0/chr5_0_114688_predictions.h5", "r") as f:
+    predictions = f['chr5_0_114688'][()]
+    print(predictions)
+```
