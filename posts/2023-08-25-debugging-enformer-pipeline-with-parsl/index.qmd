@@ -1,0 +1,7 @@
+```
+module load conda
+conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
+cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-25-debugging-enformer-pipeline-with-parsl
+python /home/s1mi/Github/shared_pipelines/enformer_pipeline_reference/scripts/enformer_predict.py --parameters test_reference.json
+
+```
