@@ -10,7 +10,33 @@
 <atom:link href="https://sabrinami.quarto.pub/deep-learning-in-genomics/index.xml" rel="self" type="application/rss+xml"/>
 <description>Sabrina&#39;s blog for Deep Learning in Genomics course</description>
 <generator>quarto-1.3.361</generator>
-<lastBuildDate>Thu, 24 Aug 2023 04:00:00 GMT</lastBuildDate>
+<lastBuildDate>Fri, 25 Aug 2023 05:00:00 GMT</lastBuildDate>
+<item>
+  <title>Testing Enformer pipeline on reference genome</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-25-debugging-enformer-pipeline-with-parsl/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>Our changes to the pipeline worked!</p>
+<pre class="{bash}"><code>module load conda
+conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
+cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-25-debugging-enformer-pipeline-with-parsl
+python /home/s1mi/Github/shared_pipelines/enformer_pipeline_reference/scripts/enformer_predict.py --parameters test_reference.json
+</code></pre>
+<pre class="{python}"><code>import h5py
+with h5py.File("/grand/TFXcan/imlab/users/sabrina/reftile_project/predictions_folder/chr5_reference_overlapping_regions/predictions_2023-08-25/enformer_predictions/chr5_reference/haplotype0/chr5_0_114688_predictions.h5", "r") as f:
+    predictions = f['chr5_0_114688'][()]
+    print(predictions)</code></pre>
+
+
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-25-debugging-enformer-pipeline-with-parsl/index.html</guid>
+  <pubDate>Fri, 25 Aug 2023 05:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Cisd2 Correlation across rats</title>
   <dc:creator>Sabrina Mi</dc:creator>
@@ -234,7 +260,7 @@ font-style: inherit;"># Show the plot</span></span>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-24-Cisd2-correlation-across-rats/index.html</guid>
-  <pubDate>Thu, 24 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Thu, 24 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Correlation of Enformer CAGE predictions on rn7 reference genome and measured gene expression in Br rats by chromosome</title>
@@ -358,7 +384,7 @@ Chromosome Y correlation: 0.894836988624044</code></pre>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-22-correlation-across-rn7-genes-by-chromosome/index.html</guid>
-  <pubDate>Wed, 23 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Wed, 23 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Correlation between Enformer reference CAGE prediction and GTEx brain tissue expression across genes</title>
@@ -931,7 +957,7 @@ Chromosome X correlation: 0.560185751334359</code></pre>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-22-correlation-between-Enformer-and-GTEx-expression-across-genes-by-chromosome/index.html</guid>
-  <pubDate>Tue, 22 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Tue, 22 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Correlation between human reference CAGE predictions to mean expression across GTEx genes</title>
@@ -1579,7 +1605,7 @@ font-style: inherit;">'inner'</span>).dropna()</span>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-21-comparing-enformer-CAGE-prediction-to-GTEx-brain-cortex-expression-across-genes/index.html</guid>
-  <pubDate>Tue, 22 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Tue, 22 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>biomaRt tutorial for querying gene annotation</title>
@@ -1891,7 +1917,7 @@ font-style: inherit;">FALSE</span>)</span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-18-gene-annotation-query-example-hg38/index.html</guid>
-  <pubDate>Fri, 18 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Fri, 18 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Querying Human Reference Epigenome</title>
@@ -2408,7 +2434,7 @@ font-style: inherit;">114688</span>))</span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-17-querying-human-reference-epigenome/all_hg38_genes.html</guid>
-  <pubDate>Thu, 17 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Thu, 17 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Testing the Enformer pipeline’s handling of unphased VCFs</title>
@@ -2553,7 +2579,7 @@ font-style: inherit;">"differences between the two matrices."</span>)</span></co
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/average_haplotype_test.html</guid>
-  <pubDate>Wed, 16 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Wed, 16 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Correlation of Enformer CAGE predictions and observed expression across all rn7 genes</title>
@@ -3163,7 +3189,7 @@ font-style: inherit;">"/home/s1mi/Br_predictions/2023-08-16_predictions_some_mis
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/index.html</guid>
-  <pubDate>Tue, 15 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Tue, 15 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Preparing rat VCFs for Enformer pipeline</title>
@@ -3233,7 +3259,7 @@ bcftools index -t genotypes/BrainVCFs/chrY.vcf.gz
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-14-updated-preparing-rat-vcf-inputs-for-enformer-pipeline/index.html</guid>
-  <pubDate>Mon, 14 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Mon, 14 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>An introduction to cyvcf2</title>
@@ -3388,7 +3414,7 @@ font-style: inherit;">break</span></span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-14-cyvcf2-tutorial/test_vcf_query.html</guid>
-  <pubDate>Mon, 14 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Mon, 14 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Testing the Enformer pipeline with added parameters for personalized prediction on rats</title>
@@ -3416,41 +3442,51 @@ python scripts/enformer_predict.py --parameters /Users/sabrinami/Github/deep-lea
 <div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="im" style="color: #00769E;
 background-color: null;
-font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> np</span>
+font-style: inherit;">import</span> h5py</span>
 <span id="cb2-2"><span class="im" style="color: #00769E;
 background-color: null;
-font-style: inherit;">import</span> h5py</span></code></pre></div>
+font-style: inherit;">import</span> EnformerVCF</span>
+<span id="cb2-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> kipoiseq</span>
+<span id="cb2-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-08-26 14:55:53.212214: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.</code></pre>
+</div>
 </div>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">f <span class="op" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">f <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> h5py.File(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-15/enformer_predictions/000789972A/haplotype1/chr20_12118762_12118762_predictions.h5'</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'r'</span>)</span>
-<span id="cb3-2">haplotype1 <span class="op" style="color: #5E5E5E;
+<span id="cb4-2">haplotype1 <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> f[<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'chr20_12118762_12118762'</span>][()]</span>
-<span id="cb3-3">f <span class="op" style="color: #5E5E5E;
+<span id="cb4-3">f <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> h5py.File(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-15/enformer_predictions/000789972A/haplotype2/chr20_12118762_12118762_predictions.h5'</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'r'</span>)</span>
-<span id="cb3-4">haplotype2 <span class="op" style="color: #5E5E5E;
+<span id="cb4-4">haplotype2 <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> f[<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'chr20_12118762_12118762'</span>][()]</span></code></pre></div>
 </div>
 <div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="bu" style="color: null;
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
@@ -3459,7 +3495,7 @@ background-color: null;
 font-style: inherit;">\n</span><span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"</span>, haplotype1)</span>
-<span id="cb4-2"><span class="bu" style="color: null;
+<span id="cb5-2"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
@@ -3469,7 +3505,7 @@ font-style: inherit;">\n</span><span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"</span>, haplotype2)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>haplo1:
+<pre><code>haplotype1:
  [[0.24076067 0.30101207 0.5132549  ... 0.20521325 1.1217918  0.25558835]
  [0.15946281 0.20442429 0.37761706 ... 0.04465578 0.24607326 0.08344302]
  [0.15568599 0.21775411 0.4520394  ... 0.05306218 0.20978831 0.08246609]
@@ -3477,7 +3513,7 @@ font-style: inherit;">"</span>, haplotype2)</span></code></pre></div>
  [0.17938398 0.22463004 0.29506153 ... 0.01107231 0.02651541 0.0338815 ]
  [0.16948122 0.2044945  0.2620006  ... 0.01690046 0.04069382 0.06031117]
  [0.15266503 0.201914   0.22262897 ... 0.02438843 0.03895664 0.05986918]]
-haplo2:
+haplotype2:
  [[0.23317184 0.29741773 0.5182305  ... 0.20385785 1.1424272  0.26008573]
  [0.15613721 0.20323968 0.37887666 ... 0.04524086 0.257699   0.08468267]
  [0.15380262 0.21736239 0.45358157 ... 0.05439655 0.22475001 0.08432709]
@@ -3491,32 +3527,20 @@ haplo2:
 <section id="run-non-pipeline-enformer" class="level3">
 <h3 class="anchored" data-anchor-id="run-non-pipeline-enformer">Run non-pipeline Enformer</h3>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> EnformerVCF</span>
-<span id="cb6-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> kipoiseq</span></code></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>2023-08-16 15:01:14.430478: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
-To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">fasta_file <span class="op" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">fasta_file <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/reference_genome/rn7_genome.fasta'</span></span>
-<span id="cb8-2">fasta_extractor <span class="op" style="color: #5E5E5E;
+font-style: inherit;">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/rn7_genome.fasta'</span></span>
+<span id="cb7-2">fasta_extractor <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> EnformerVCF.FastaStringExtractor(fasta_file)</span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="co" style="color: #5E5E5E;
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">## read vcf and encode haplotypes</span></span>
-<span id="cb9-2">target_interval <span class="op" style="color: #5E5E5E;
+<span id="cb8-2">target_interval <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> kipoiseq.Interval(<span class="st" style="color: #20794D;
 background-color: null;
@@ -3525,39 +3549,39 @@ background-color: null;
 font-style: inherit;">12118762</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">12118762</span>)</span>
-<span id="cb9-3">chr20_vcf <span class="op" style="color: #5E5E5E;
+<span id="cb8-3">chr20_vcf <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> EnformerVCF.read_vcf(<span class="st" style="color: #20794D;
 background-color: null;
-font-style: inherit;">"/Users/sabrinami/enformer_rat_data/genotypes/BrainVCFs/chr20.vcf.gz"</span>)</span>
-<span id="cb9-4">haplo1, haplo2 <span class="op" style="color: #5E5E5E;
+font-style: inherit;">"/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/chr20.vcf.gz"</span>)</span>
+<span id="cb8-4">haplo1, haplo2 <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> EnformerVCF.vcf_to_seq(target_interval, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'000789972A'</span>, chr20_vcf, fasta_extractor)</span>
-<span id="cb9-5">haplo1_enc <span class="op" style="color: #5E5E5E;
+<span id="cb8-5">haplo1_enc <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> EnformerVCF.one_hot_encode(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">""</span>.join(haplo1))[np.newaxis]</span>
-<span id="cb9-6">haplo2_enc <span class="op" style="color: #5E5E5E;
+<span id="cb8-6">haplo2_enc <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> EnformerVCF.one_hot_encode(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">""</span>.join(haplo2))[np.newaxis]</span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><span class="co" style="color: #5E5E5E;
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">## run predictions</span></span>
-<span id="cb10-2">prediction1 <span class="op" style="color: #5E5E5E;
+<span id="cb9-2">prediction1 <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> EnformerVCF.model.predict_on_batch(haplo1_enc)[<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'human'</span>][<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>]</span>
-<span id="cb10-3">prediction2 <span class="op" style="color: #5E5E5E;
+<span id="cb9-3">prediction2 <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> EnformerVCF.model.predict_on_batch(haplo2_enc)[<span class="st" style="color: #20794D;
 background-color: null;
@@ -3565,8 +3589,8 @@ font-style: inherit;">'human'</span>][<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>]</span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><span class="bu" style="color: null;
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
@@ -3602,13 +3626,85 @@ cd /Users/sabrinami/Github/shared_pipelines/enformer_pipeline
 
 python scripts/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/local_test_reference.json
 </code></pre>
+</section>
+<section id="compare-results-to-non-pipeline-method-1" class="level2">
+<h2 class="anchored" data-anchor-id="compare-results-to-non-pipeline-method-1">Compare results to non-pipeline method</h2>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## Read prediction file</span></span>
+<span id="cb13-2">f <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> h5py.File(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/reference_enformer_rat_single_gene/predictions_2023-08-26/enformer_predictions/reference_enformer_rat/haplotype0/chr20_12118762_12118762_predictions.h5"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"r"</span>)</span>
+<span id="cb13-3">haplotype0 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"chr20_12118762_12118762"</span>][()]</span>
+<span id="cb13-4"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"shape:"</span>, haplotype0.shape)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (896, 1643)</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">SEQUENCE_LENGTH <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">393216</span></span>
+<span id="cb15-2">target_interval <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> kipoiseq.Interval(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"chr20"</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">12118762</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">12118762</span>)</span>
+<span id="cb15-3">sequence_one_hot <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> EnformerVCF.one_hot_encode(fasta_extractor.extract(target_interval.resize(SEQUENCE_LENGTH)))</span>
+<span id="cb15-4">predictions <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> EnformerVCF.model.predict_on_batch(sequence_one_hot[np.newaxis])[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'mouse'</span>][<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"There are"</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">sum</span>(haplotype0 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!=</span> predictions)), <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"differences between pipeline and non-pipeline outputs."</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>There are 0 differences between pipeline and non-pipeline outputs.</code></pre>
+</div>
+</div>
 
 
 </section>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/index.html</guid>
-  <pubDate>Sat, 12 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Sat, 12 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Debugging Enformer predictions for eQTL genes</title>
@@ -3780,7 +3876,7 @@ font-style: inherit;">-</span>Oz</span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-11-comparing-enformer-CAGE-predictions-for-high-var-genes/debugging.html</guid>
-  <pubDate>Fri, 11 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Fri, 11 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Comparing predicted vs observed gene expression for rat genes selected for variation in expression across Br population, number of eQTLs, and elastic net prediction performance</title>
@@ -4493,7 +4589,7 @@ font-style: inherit;">break</span></span></code></pre></div>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-11-comparing-enformer-CAGE-predictions-for-high-var-genes/index.html</guid>
-  <pubDate>Fri, 11 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Fri, 11 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Selecting Rat genes for Enformer CAGE predictions</title>
@@ -5123,7 +5219,7 @@ python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-10-selecting-genes/selecting-well-predicted-gene-regions.html</guid>
-  <pubDate>Thu, 10 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Thu, 10 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Running Enformer across all rn7 genes</title>
@@ -5804,7 +5900,7 @@ python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/running-enformer-across-all-rat-genes.html</guid>
-  <pubDate>Thu, 10 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Thu, 10 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Running Enformer across all rn7 genes (continued)</title>
@@ -5829,13 +5925,21 @@ python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning
 </section>
 <section id="mouse-head" class="level2">
 <h2 class="anchored" data-anchor-id="mouse-head">Mouse Head</h2>
+<pre class="{bash}"><code>module load conda
+
+conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
+
+cd /home/s1mi/Github/shared_pipelines/enformer_pipeline
+
+python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-16-correlation-across-genes-human-and-mouse-tracks/all_genes_reference_mouse_head.json
+</code></pre>
 
 
 </section>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-16-correlation-across-genes-human-and-mouse-tracks/pipeline.html</guid>
-  <pubDate>Thu, 10 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Thu, 10 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Running Enformer across all rn7 genes (continued)</title>
@@ -5929,7 +6033,7 @@ font-style: inherit;">"</span>.join(predicted_regions))</span></code></pre></div
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-16-correlation-across-genes-human-and-mouse-tracks/index.html</guid>
-  <pubDate>Thu, 10 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Thu, 10 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Debugging the issue of low variance in Enformer CAGE prediction</title>
@@ -7130,7 +7234,7 @@ New Range: [0.01251906 0.01252023]</code></pre>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/variance_at_peaks.html</guid>
-  <pubDate>Wed, 09 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Wed, 09 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Generating plots of Enformer CAGE predictions centered at TSS</title>
@@ -7745,526 +7849,7 @@ font-style: inherit;">in</span> gene_list:</span>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/compare-CAGE-expression.html</guid>
-  <pubDate>Tue, 08 Aug 2023 04:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Preparing pipeline inputs for Enformer predictions centered at canonical TSS”</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/pipeline.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="write-gene-intervals" class="level3">
-<h3 class="anchored" data-anchor-id="write-gene-intervals">Write Gene Intervals</h3>
-<div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span>
-<span id="cb1-2"></span>
-<span id="cb1-3">model_genes <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"highestR2genes.csv"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>)</span>
-<span id="cb1-4">model_genes.head()</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="2">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">gene</th>
-<th data-quarto-table-cell-role="th">genename</th>
-<th data-quarto-table-cell-role="th">pred.perf.R2</th>
-<th data-quarto-table-cell-role="th">n.snps.in.model</th>
-<th data-quarto-table-cell-role="th">pred.perf.pval</th>
-<th data-quarto-table-cell-role="th">cor</th>
-<th data-quarto-table-cell-role="th">pred.perf.qval</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
-<td>ENSRNOG00000001342</td>
-<td>Wdr66</td>
-<td>0.844361</td>
-<td>3</td>
-<td>7.502608e-93</td>
-<td>0.918891</td>
-<td>1.243114e-89</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
-<td>ENSRNOG00000020624</td>
-<td>Acadsb</td>
-<td>0.829218</td>
-<td>3</td>
-<td>2.602032e-88</td>
-<td>0.910614</td>
-<td>2.155665e-85</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
-<td>ENSRNOG00000060523</td>
-<td>AABR07044362.6</td>
-<td>0.820292</td>
-<td>8</td>
-<td>8.068512e-86</td>
-<td>0.905700</td>
-<td>4.456263e-83</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
-<td>ENSRNOG00000058006</td>
-<td>Sncg</td>
-<td>0.816705</td>
-<td>6</td>
-<td>7.472730e-85</td>
-<td>0.903717</td>
-<td>3.095408e-82</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
-<td>ENSRNOG00000060045</td>
-<td>Pi4ka</td>
-<td>0.815282</td>
-<td>3</td>
-<td>1.784460e-84</td>
-<td>0.902930</td>
-<td>5.913374e-82</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># gene annotation</span></span>
-<span id="cb2-2">annot_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt'</span>, sep <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>,  index_col<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'geneId'</span>)</span>
-<span id="cb2-3">annot_df.head(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>)</span></code></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_164253/1218160640.py:2: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
-  annot_df = pd.read_csv('/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt', sep ='\t',  index_col='geneId')</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="3">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">geneSymbol</th>
-<th data-quarto-table-cell-role="th">chromosome</th>
-<th data-quarto-table-cell-role="th">start</th>
-<th data-quarto-table-cell-role="th">end</th>
-<th data-quarto-table-cell-role="th">strand</th>
-<th data-quarto-table-cell-role="th">tss</th>
-<th data-quarto-table-cell-role="th">description</th>
-<th data-quarto-table-cell-role="th">hasEqtl</th>
-<th data-quarto-table-cell-role="th">expr_BLA</th>
-<th data-quarto-table-cell-role="th">expr_Brain</th>
-<th data-quarto-table-cell-role="th">...</th>
-<th data-quarto-table-cell-role="th">sqtl_BLA</th>
-<th data-quarto-table-cell-role="th">sqtl_Brain</th>
-<th data-quarto-table-cell-role="th">sqtl_Eye</th>
-<th data-quarto-table-cell-role="th">sqtl_IL</th>
-<th data-quarto-table-cell-role="th">sqtl_LHb</th>
-<th data-quarto-table-cell-role="th">sqtl_NAcc</th>
-<th data-quarto-table-cell-role="th">sqtl_NAcc2</th>
-<th data-quarto-table-cell-role="th">sqtl_OFC</th>
-<th data-quarto-table-cell-role="th">sqtl_PL</th>
-<th data-quarto-table-cell-role="th">sqtl_PL2</th>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">geneId</th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSRNOG00000066169</td>
-<td>ENSRNOG00000066169</td>
-<td>1</td>
-<td>36112690</td>
-<td>36122387</td>
-<td>-</td>
-<td>36122387</td>
-<td>NaN</td>
-<td>True</td>
-<td>True</td>
-<td>True</td>
-<td>...</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSRNOG00000070168</td>
-<td>Olr56</td>
-<td>1</td>
-<td>157231467</td>
-<td>157232417</td>
-<td>+</td>
-<td>157231467</td>
-<td>olfactory receptor family 51 subfamily F membe...</td>
-<td>True</td>
-<td>False</td>
-<td>True</td>
-<td>...</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSRNOG00000070901</td>
-<td>Irgq</td>
-<td>1</td>
-<td>80123925</td>
-<td>80131881</td>
-<td>+</td>
-<td>80123925</td>
-<td>immunity-related GTPase Q</td>
-<td>True</td>
-<td>True</td>
-<td>True</td>
-<td>...</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-<td>False</td>
-</tr>
-</tbody>
-</table>
-
-<p>3 rows × 68 columns</p>
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="33">
-<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">def</span> write_intervals(gene_list, <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>):</span>
-<span id="cb4-2">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'a'</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb4-3">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb4-4">            gene_annot <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> annot_df.loc[gene]</span>
-<span id="cb4-5">            tss <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gene_annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'tss'</span>]</span>
-<span id="cb4-6">            start <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> tss <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">57344</span></span>
-<span id="cb4-7">            end <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> tss <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">57344</span></span>
-<span id="cb4-8">            interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"chr</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>gene_annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'chromosome'</span>]<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>start<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>end<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span></span>
-<span id="cb4-9">            f.write(interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\n</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">gene_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [gene <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> model_genes[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'gene'</span>][:<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>] <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> annot_df.index]</span>
-<span id="cb5-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"gene_list.txt"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"w"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb5-3">    f.write(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\n</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>.join(gene_list))</span>
-<span id="cb5-4">write_intervals(gene_list, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"metadata/intervals.txt"</span>)</span></code></pre></div>
-</div>
-</section>
-<section id="write-individuals-list" class="level3">
-<h3 class="anchored" data-anchor-id="write-individuals-list">Write Individuals List</h3>
-<div class="cell" data-execution_count="38">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">!</span>bcftools query <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span>l <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span>home<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span>s1mi<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span>enformer_rat_data<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span>genotypes<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span>Brain.rn7.vcf.gz <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&gt;</span> metadata<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span>individuals.txt</span></code></pre></div>
-</div>
-<p>I added these parameters to the config file: <code>/home/s1mi/Github/deep-learning-in-genomics/posts/running-enformer-on-rat-genes-at-TSS/run_on_polaris_personalized.json</code></p>
-</section>
-<section id="run-enformer" class="level3">
-<h3 class="anchored" data-anchor-id="run-enformer">Run Enformer</h3>
-<pre><code>module load conda
-
-conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
-
-cd /home/s1mi/Github/shared_pipelines/enformer_pipeline
-python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/running-enformer-on-rat-genes-at-TSS/run_on_polaris_personalized.json
-</code></pre>
-</section>
-<section id="concatenate-predictions" class="level3">
-<h3 class="anchored" data-anchor-id="concatenate-predictions">Concatenate Predictions</h3>
-<div class="cell" data-execution_count="41">
-<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> os</span>
-<span id="cb8-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> h5py</span>
-<span id="cb8-3"></span>
-<span id="cb8-4"><span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">def</span> concatenate_predictions(predictions_dir, output_path):</span>
-<span id="cb8-5">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(output_path, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"w"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> output_file:</span>
-<span id="cb8-6">        individuals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.listdir(predictions_dir)</span>
-<span id="cb8-7">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> individuals:</span>
-<span id="cb8-8">            group <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> output_file.create_group(individual)</span>
-<span id="cb8-9"></span>
-<span id="cb8-10">            <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">dir</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(predictions_dir, individual, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"haplotype1"</span>)</span>
-<span id="cb8-11">            filenames <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.listdir(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">dir</span>)</span>
-<span id="cb8-12"></span>
-<span id="cb8-13">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> filenames:</span>
-<span id="cb8-14">                interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>.replace(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"_predictions.h5"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">""</span>)</span>
-<span id="cb8-15">                <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(os.path.join(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">dir</span>, <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>), <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> input_file:</span>
-<span id="cb8-16">                    group.create_dataset(interval, data<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>input_file[interval][()], shape<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">896</span>,<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5313</span>))</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="42">
-<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"></span>
-<span id="cb9-2">predictions_dir<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/Github/deep-learning-in-genomics/posts/running-enformer-on-rat-genes-at-TSS/predictions_folder/personalized_Br_genes/predictions_2023-08-08/enformer_predictions"</span></span>
-<span id="cb9-3">concatenate_predictions(predictions_dir, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Br_2023-08-08_predictions.h5"</span>)</span></code></pre></div>
-</div>
-
-
-</section>
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-08-running-enformer-on-rat-genes-at-TSS/pipeline.html</guid>
-  <pubDate>Tue, 08 Aug 2023 04:00:00 GMT</pubDate>
+  <pubDate>Tue, 08 Aug 2023 05:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>

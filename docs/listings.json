@@ -3,6 +3,7 @@
     "listing": "/index.html",
     "items": [
       "/posts/enformer-rat-human-analysis-overview/index.html",
+      "/posts/2023-08-25-debugging-enformer-pipeline-with-parsl/index.html",
       "/posts/2023-08-24-Cisd2-correlation-across-rats/index.html",
       "/posts/2023-08-22-correlation-across-rn7-genes-by-chromosome/index.html",
       "/posts/2023-08-22-correlation-between-Enformer-and-GTEx-expression-across-genes-by-chromosome/index.html",
