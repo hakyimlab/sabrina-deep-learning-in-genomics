@@ -6,7 +6,7 @@
   "reverse_complement": false,
   "date": null,
   "create_hdf5_file": false,
-  "exclude_regions": false,
+  "exclude_regions": true,
   "sub_dir": true,
   "use_parsl": true,
   "model_path": "/lus/grand/projects/TFXcan/imlab/data/enformer/raw",
@@ -39,6 +39,6 @@
     "account": "AIHPC4EDU",
     "hpc": "polaris",
     "provider": "highthroughput",
-    "worker_init":"source ~/.bashrc; conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools; which python; export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools/lib"
+    "worker_init":"source ~/.bashrc; conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools; export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools/lib"
   }
 }
