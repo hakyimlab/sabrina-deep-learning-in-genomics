@@ -197,7 +197,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>annot_df <span class="op">=</span> pd.read_csv(<span class="st">'/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt'</span>, sep <span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>,  index_col<span class="op">=</span><span class="st">'geneId'</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>annot_df.head(<span class="dv">3</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_150641/1963999151.py:2: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
+<pre><code>/tmp/ipykernel_53672/1963999151.py:2: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
   annot_df = pd.read_csv('/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt', sep ='\t',  index_col='geneId')</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="2">
@@ -339,7 +339,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>obs_gene_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>obs_gene_expr.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_69524/3189498692.py:1: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+<pre><code>/tmp/ipykernel_53672/1989937044.py:1: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
   obs_gene_expr = pd.read_csv("/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed", sep="\t", header=0, index_col='gene_id')</code></pre>
 </div>
 <div class="cell-output cell-output-display" data-execution_count="3">
@@ -563,76 +563,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    f.write(<span class="st">'</span><span class="ch">\n</span><span class="st">'</span>.join(gene_list))</span>
 <span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="sample-individuals" class="level3">
-<h3 class="anchored" data-anchor-id="sample-individuals">Sample Individuals</h3>
-<p>We “randomly” sampled three rats until we had a set that had at least some variety in color and sex.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>rat_info <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/annotation/rn7.RatGTEx_rats.tsv"</span>, sep <span class="op">=</span> <span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, index_col <span class="op">=</span> <span class="st">"rat_id"</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>all_individuals <span class="op">=</span> obs_gene_expr.columns.tolist()[<span class="dv">3</span>:]</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>sample <span class="op">=</span> random.sample(all_individuals, <span class="dv">3</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>rat_info.loc[sample]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="31">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">coatcolor</th>
-<th data-quarto-table-cell-role="th">tissues</th>
-<th data-quarto-table-cell-role="th">sex</th>
-</tr>
-<tr class="odd">
-<th data-quarto-table-cell-role="th">rat_id</th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th"></th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">00079FE6B4</td>
-<td>BLACKHOOD</td>
-<td>Brain</td>
-<td>F</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">0007899981</td>
-<td>BROWNHOOD</td>
-<td>Brain</td>
-<td>M</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">00078A19B2</td>
-<td>BROWN</td>
-<td>Brain</td>
-<td>M</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"metadata/individuals.txt"</span>, <span class="st">"a"</span>) <span class="im">as</span> f:</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    f.write(sample.join(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</section>
 </section>
 <section id="run-enformer-pipeline" class="level2">
 <h2 class="anchored" data-anchor-id="run-enformer-pipeline">Run Enformer Pipeline</h2>
-<p>Run personalized for sampled rats:</p>
-<pre><code>module load conda
-
-conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
-
-cd /home/s1mi/Github/shared_pipelines/enformer_pipeline
-
-python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/all_genes_personalized_config.json
-</code></pre>
-<p>Run on reference genome:</p>
 <pre><code>module load conda
 
 conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
@@ -640,6 +573,33 @@ conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enfor
 cd /home/s1mi/Github/shared_pipelines/enformer_pipeline
 
 python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/all_genes_reference_config.json</code></pre>
+</section>
+<section id="rerun-for-missing-genes" class="level2">
+<h2 class="anchored" data-anchor-id="rerun-for-missing-genes">Rerun for Missing Genes</h2>
+<p>For some reason, only ~19,000 genes in the rn7 reference epigenome were predicted on, and rerunning the same command above is not filling in the gaps. Instead, we’ll create a new intervals list with the missing genes.</p>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>successful_predictions <span class="op">=</span> os.listdir(<span class="st">"/home/s1mi/Br_predictions/predictions_folder/reference_Br_all_genes/predictions_2023-08-29/enformer_predictions/reference_Br/haplotype0"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>successful_intervals <span class="op">=</span> [<span class="bu">file</span>.replace(<span class="st">"_predictions.h5"</span>, <span class="st">""</span>) <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> successful_predictions]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">'metadata/intervals.txt'</span>, <span class="st">'r'</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    all_intervals <span class="op">=</span> <span class="bu">file</span>.read().splitlines()</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>unsuccessful_genes <span class="op">=</span> [interval <span class="cf">for</span> interval <span class="kw">in</span> all_intervals <span class="cf">if</span> interval <span class="kw">not</span> <span class="kw">in</span> successful_intervals]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">'metadata/intervals2.txt'</span>, <span class="st">'w'</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">file</span>.write(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(unsuccessful_genes))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>I ran with local provider on an interactive job so I could keep an eye on error messages.</p>
+<pre><code>module load conda
+
+conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
+
+cd /home/s1mi/Github/shared_pipelines/enformer_pipeline
+
+python3 scripts/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-10-correlation-across-genes/remaining_genes_reference_config.json</code></pre>
 
 
 </section>
