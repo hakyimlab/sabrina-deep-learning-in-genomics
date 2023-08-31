@@ -4,6 +4,13 @@ descriptions: Updates, links to analysis in the rat project
 format: html
 ---
 
+## Updates this Week
+
+* Completed the hg38 predicted reference epigenome
+* Some debugging on the low correlation between Enformer CAGE prediction on human reference genome and GTEx mean expression across all genes
+    * [Plots comparing Enformer runs centered at TSS vs 57,344 bp intervals](https://sabrina-dl.hakyimlab.org/posts/2023-08-28-comparing-enformer-at-gene-tss-vs-reference-epigenome-vs-encode-experiments/)
+    * [Correlation between Enformer CAGE:Brain predictions and various GTEx brain tissues](https://sabrina-dl.hakyimlab.org/posts/2023-08-30-comparing-predicted-reference-expression-to-various-GTEx-brain-tissues/)
+
 ## Introduction
 
 ### Data Inventory
@@ -34,8 +41,7 @@ Enformer is optimized to predict variation across the genome, so we use $\rho^h_
 
 Right now, we are missing chunks of the human and rat epigenome, probably because we ran out of time or memory in our jobs. We are filling in the gaps and updating numbers as we go. Both numbers are lower than we expect, but we'll start with debugging the human Enformer predictions.
 
-1. [$\rho^h_{Hh} = 0.536$](https://sabrina-dl.hakyimlab.org/posts/2023-08-21-comparing-enformer-cage-prediction-to-gtex-brain-cortex-expression-across-genes/)
-    * [Breakdown by chromosome](https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-between-Enformer-and-GTEx-expression-across-genes-by-chromosome/)
+1. [$\rho^h_{Hh} = 0.539$](https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-between-enformer-and-gtex-expression-across-genes-by-chromosome/)
 2. [$\rho^h_{Rr} = 0.456$](https://sabrina-dl.hakyimlab.org/posts/2023-08-10-correlation-across-genes/)
     * [Breakdown by chromosome](https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-across-rn7-genes-by-chromosome/)
 
@@ -47,4 +53,5 @@ Our progress so far is developing the pipeline. I added support for unphased VCF
 * [How I processed VCFs to be compatible](https://sabrina-dl.hakyimlab.org/posts/2023-08-14-updated-preparing-rat-vcf-inputs-for-enformer-pipeline/)
 * [Test run a single individual and gene](https://sabrina-dl.hakyimlab.org/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/)
 * [Validating test run predictions](https://sabrina-dl.hakyimlab.org/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/average_haplotype_test)
+* [Cisd2 personalized prediction for Br rats](https://sabrina-dl.hakyimlab.org/posts/2023-08-24-cisd2-correlation-across-rats/)
 
