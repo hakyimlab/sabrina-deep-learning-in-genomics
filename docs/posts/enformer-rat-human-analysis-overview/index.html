@@ -131,6 +131,17 @@ ul.task-list li input[type="checkbox"] {
 
 
 
+<section id="updates-this-week" class="level2">
+<h2 class="anchored" data-anchor-id="updates-this-week">Updates this Week</h2>
+<ul>
+<li>Completed the hg38 predicted reference epigenome</li>
+<li>Some debugging on the low correlation between Enformer CAGE prediction on human reference genome and GTEx mean expression across all genes
+<ul>
+<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-28-comparing-enformer-at-gene-tss-vs-reference-epigenome-vs-encode-experiments/">Plots comparing Enformer runs centered at TSS vs 57,344 bp intervals</a></li>
+<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-30-comparing-predicted-reference-expression-to-various-GTEx-brain-tissues/">Correlation between Enformer CAGE:Brain predictions and various GTEx brain tissues</a></li>
+</ul></li>
+</ul>
+</section>
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
 <section id="data-inventory" class="level3">
@@ -166,10 +177,7 @@ ul.task-list li input[type="checkbox"] {
 <h3 class="anchored" data-anchor-id="analysis-summary">Analysis Summary</h3>
 <p>Right now, we are missing chunks of the human and rat epigenome, probably because we ran out of time or memory in our jobs. We are filling in the gaps and updating numbers as we go. Both numbers are lower than we expect, but we’ll start with debugging the human Enformer predictions.</p>
 <ol type="1">
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-21-comparing-enformer-cage-prediction-to-gtex-brain-cortex-expression-across-genes/"><span class="math inline">\(\rho^h_{Hh} = 0.536\)</span></a>
-<ul>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-between-Enformer-and-GTEx-expression-across-genes-by-chromosome/">Breakdown by chromosome</a></li>
-</ul></li>
+<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-between-enformer-and-gtex-expression-across-genes-by-chromosome/"><span class="math inline">\(\rho^h_{Hh} = 0.539\)</span></a></li>
 <li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-10-correlation-across-genes/"><span class="math inline">\(\rho^h_{Rr} = 0.456\)</span></a>
 <ul>
 <li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-across-rn7-genes-by-chromosome/">Breakdown by chromosome</a></li>
@@ -184,6 +192,7 @@ ul.task-list li input[type="checkbox"] {
 <li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-14-updated-preparing-rat-vcf-inputs-for-enformer-pipeline/">How I processed VCFs to be compatible</a></li>
 <li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/">Test run a single individual and gene</a></li>
 <li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/average_haplotype_test">Validating test run predictions</a></li>
+<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-24-cisd2-correlation-across-rats/">Cisd2 personalized prediction for Br rats</a></li>
 </ul>
 
 
