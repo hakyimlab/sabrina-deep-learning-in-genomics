@@ -1,0 +1,53 @@
+{
+  "individuals": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-24-Cisd2-correlation-across-rats/metadata/individuals.txt",
+  "project_dir": "/home/s1mi/Br_predictions",
+  "interval_list_file": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-24-Cisd2-correlation-across-rats/metadata/intervals.txt",
+  "prediction_data_name": "personalized_Br",
+  "prediction_id": "genes",
+  "reverse_complement": false,
+  "date": null,
+  "exclude_regions": true,
+  "n_individuals": 340,
+  "batch_individuals": 20,
+  "vcf_files": {
+    "folder": "/lus/grand/projects/TFXcan/imlab/users/sabrina/enformer_rat_data/genotypes/BrainVCFs",
+    "files": {
+      "chr2": "chr2.vcf.gz"
+    } 
+  },
+  "vcf_mode": "unphased",
+  "sub_dir": true,
+  "use_parsl": true,
+  "model_path": "/lus/grand/projects/TFXcan/imlab/data/enformer/raw",
+  "fasta_file": "/lus/grand/projects/TFXcan/imlab/users/sabrina/enformer_rat_data/reference_genome/rn7_genome.fasta",
+  "metadata_dir": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-24-Cisd2-correlation-across-rats/metadata",
+  "output_dir": "enformer_predictions",
+  "tracks_to_save": "4980",
+  "bins_to_save": -1,
+  "sequence_source": "personalized",
+  "predictions_log_dir": "predictions_log",
+  "batch_regions": 1,
+  "n_regions": 1,
+  "write_log": {
+    "logdir": "job_logs",
+    "logtypes": {
+      "memory": true,
+      "error": true,
+      "time": false,
+      "cache": true
+    }
+  },
+  "parsl_parameters": {
+    "job_name": "enformer_predict_regions_personalized",
+    "num_of_full_nodes": 1,
+    "walltime": "00:30:00",
+    "init_blocks":1,
+    "min_num_blocks": 0,
+    "max_num_blocks": 4,
+    "queue": "preemptable",
+    "account": "AIHPC4EDU", 
+    "hpc": "polaris",
+    "provider": "local",
+    "worker_init":"source ~/.bashrc; module load conda; conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools; which python; export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools/lib"
+  }
+}
