@@ -1,0 +1,38 @@
+{
+    "individuals": "/Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-31-testing-multiple-heads-in-pipeline/metadata/individuals.txt",
+    "project_dir": "/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test",
+    "interval_list_file": "/Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-31-testing-multiple-heads-in-pipeline/metadata/intervals.txt",
+    "prediction_data_name": "personalized_enformer_rat",
+    "prediction_id": "single_gene",
+    "reverse_complement": false,
+    "date": null,
+    "exclude_regions": true,
+    "n_individuals": 1,
+    "batch_individuals": 1,
+    "vcf_files": {
+      "folder": "/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data",
+      "files": {
+        "chr20": "chr20.vcf.gz"
+      }
+    },
+    "vcf_mode": "unphased",
+    "sub_dir": true,
+    "use_parsl": false,
+    "model_path": "/Users/sabrinami/Desktop/2022-23/tutorials/enformer_data/enformer_1",
+    "fasta_file": "/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/rn7_genome.fasta",
+    "metadata_dir": "/Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-31-testing-multiple-heads-in-pipeline/metadata",
+    "output_dir": "enformer_predictions",
+    "sequence_source": "personalized",
+    "predictions_log_dir": "predictions_log",
+    "batch_regions": 1,
+    "n_regions": 1,
+    "write_log": {
+      "logdir": "job_logs",
+      "logtypes": {
+        "memory": true,
+        "error": true,
+        "time": false,
+        "cache": true
+      }
+    }
+  }
