@@ -1,30 +1,27 @@
 {
-    "individuals": "/Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/metadata/individuals.txt",
-    "project_dir": "/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test",
-    "interval_list_file": "/Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/metadata/intervals.txt",
+    "individuals": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-31-testing-multiple-heads-in-pipeline/metadata/individuals.txt",
+    "project_dir": "/home/s1mi/Br_predictions",
+    "interval_list_file": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-31-testing-multiple-heads-in-pipeline/metadata/intervals.txt",
     "prediction_data_name": "personalized_enformer_rat",
     "prediction_id": "single_gene",
     "reverse_complement": false,
-    "head": "human",
     "date": null,
     "exclude_regions": true,
     "n_individuals": 1,
     "batch_individuals": 1,
     "vcf_files": {
-      "folder": "/lus/grand/projects/TFXcan/imlab/data/GEUVADIS/vcf_snps_only",
+      "folder": "/home/s1mi/enformer_rat_data/genotypes/BrainVCFs",
       "files": {
-        "chr20": "/Users/sabrinami/enformer_rat_data/genotypes/BrainVCFs/chr20.vcf.gz"
+        "chr20": "chr20.vcf.gz"
       }
     },
     "vcf_mode": "unphased",
     "sub_dir": true,
-    "use_parsl": false,
-    "model_path": "/Users/sabrinami/Desktop/2022-23/tutorials/enformer_data/enformer_1",
-    "fasta_file": "/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/rn7_genome.fasta",
-    "metadata_dir": "/Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/metadata",
+    "use_parsl": true,
+    "model_path": "/lus/grand/projects/TFXcan/imlab/data/enformer/raw",
+    "fasta_file": "/home/s1mi/enformer_rat_data/reference_genome/rn7_genome.fasta",
+    "metadata_dir": "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-31-testing-multiple-heads-in-pipeline/metadata",
     "output_dir": "enformer_predictions",
-    "tracks_to_save": -1,
-    "bins_to_save": -1,
     "sequence_source": "personalized",
     "predictions_log_dir": "predictions_log",
     "batch_regions": 1,
@@ -37,5 +34,18 @@
         "time": false,
         "cache": true
       }
+    },
+    "parsl_parameters": {
+      "job_name": "enformer_predict_regions_personalized",
+      "num_of_full_nodes": 1,
+      "walltime": "00:05:00",
+      "init_blocks":1,
+      "min_num_blocks": 0,
+      "max_num_blocks": 4,
+      "queue": "debug",
+      "account": "TFXcan",
+      "hpc": "polaris",
+      "provider": "local",
+      "worker_init":"source ~/.bashrc; conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools; which python; export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools/lib"
     }
   }
