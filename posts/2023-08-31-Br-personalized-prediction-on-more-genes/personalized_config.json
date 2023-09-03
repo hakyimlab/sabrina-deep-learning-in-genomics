@@ -43,21 +43,21 @@
   "output_dir": "enformer_predictions",
   "sequence_source": "personalized",
   "predictions_log_dir": "predictions_log",
-  "batch_regions": 868,
-  "n_regions": 10,
+  "batch_regions": 10,
+  "n_regions": 868,
   "write_log": {
     "logdir": "job_logs",
     "logtypes": {
-      "memory": true,
+      "memory": false,
       "error": true,
       "time": false,
-      "cache": true
+      "cache": false
     }
   },
   "parsl_parameters": {
     "job_name": "enformer_predict_regions_personalized",
     "num_of_full_nodes": 1,
-    "walltime": "01:00:00",
+    "walltime": "00:30:00",
     "init_blocks":1,
     "min_num_blocks": 0,
     "max_num_blocks": 4,
