@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-08-25">
+<meta name="dcterms.date" content="2023-09-02">
 
-<title>deep-learning-in-genomics - Testing Enformer pipeline on reference genome</title>
+<title>deep-learning-in-genomics - Rerunning Enformer pipeline on missing individuals, intervals</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -108,7 +142,7 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Testing Enformer pipeline on reference genome</h1>
+      <h1 class="title">Rerunning Enformer pipeline on missing individuals, intervals</h1>
                       </div>
   </div>
     
@@ -125,7 +159,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">August 25, 2023</p>
+        <p class="date">September 2, 2023</p>
       </div>
     </div>
     
@@ -143,18 +177,79 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<p>Our changes to the pipeline worked!</p>
-<pre class="{bash}"><code>module load conda
+<section id="split-by-number-missing" class="level3">
+<h3 class="anchored" data-anchor-id="split-by-number-missing">Split by Number Missing</h3>
+<div class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="266">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_predictions/predictions_folder/personalized_Br_selected_genes/predictions_2023-09-02/enformer_predictions"</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>successful_predictions <span class="op">=</span> {}</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> individual <span class="kw">in</span> os.listdir(predictions_dir):</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    n_intervals <span class="op">=</span> <span class="bu">len</span>(os.listdir(os.path.join(predictions_dir, individual, <span class="st">"haplotype0"</span>)))</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_intervals <span class="op">&lt;</span> <span class="dv">868</span>:</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> n_intervals <span class="kw">not</span> <span class="kw">in</span> successful_predictions.keys():</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>            successful_predictions[n_intervals] <span class="op">=</span> [individual]</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>            successful_predictions[n_intervals].append(individual)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> n_intervals <span class="kw">in</span> successful_predictions.keys():</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"n individuals with"</span>, n_intervals, <span class="st">"predictions:"</span>, <span class="bu">len</span>(successful_predictions[n_intervals]))</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="257">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"metadata/intervals.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    all_intervals <span class="op">=</span> f.read().splitlines()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="write-metadata" class="level2">
+<h2 class="anchored" data-anchor-id="write-metadata">Write Metadata</h2>
+<div class="cell" data-execution_count="258">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, n_intervals <span class="kw">in</span> <span class="bu">enumerate</span>(successful_predictions.keys()):</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    individuals <span class="op">=</span> successful_predictions[n_intervals]</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="ss">f"metadata/individuals</span><span class="sc">{</span>index<span class="sc">}</span><span class="ss">.txt"</span>, <span class="st">"w"</span>) <span class="im">as</span> f:</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        f.write(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(individuals))</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    individual <span class="op">=</span> individuals[<span class="dv">0</span>]</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    files <span class="op">=</span> os.listdir(os.path.join(predictions_dir, individual, <span class="st">"haplotype0"</span>))</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    intervals <span class="op">=</span> [<span class="bu">file</span>.replace(<span class="st">"_predictions.h5"</span>, <span class="st">""</span>) <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> files]</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    missing_intervals <span class="op">=</span> [interval <span class="cf">for</span> interval <span class="kw">in</span> all_intervals <span class="cf">if</span> interval <span class="kw">not</span> <span class="kw">in</span> intervals]</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="ss">f"metadata/intervals</span><span class="sc">{</span>index<span class="sc">}</span><span class="ss">.txt"</span>, <span class="st">"w"</span>) <span class="im">as</span> f:</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        f.write(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(missing_intervals))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="write-config-files" class="level2">
+<h2 class="anchored" data-anchor-id="write-config-files">Write Config Files</h2>
+<div class="cell" data-execution_count="259">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"personalized_config.json"</span>, <span class="st">"r"</span>) <span class="im">as</span> input_json:</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    parameters <span class="op">=</span> json.load(input_json)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, n_intervals <span class="kw">in</span> <span class="bu">enumerate</span>(successful_predictions.keys()):</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    parameters[<span class="st">"individuals"</span>] <span class="op">=</span> <span class="ss">f"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/metadata/individuals</span><span class="sc">{</span>index<span class="sc">}</span><span class="ss">.txt"</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    parameters[<span class="st">"interval_list_file"</span>] <span class="op">=</span> <span class="ss">f"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/metadata/intervals</span><span class="sc">{</span>index<span class="sc">}</span><span class="ss">.txt"</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    parameters[<span class="st">"n_individuals"</span>] <span class="op">=</span> <span class="bu">len</span>(successful_predictions[n_intervals])</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    parameters[<span class="st">"batch_individuals"</span>] <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    parameters[<span class="st">"n_regions"</span>] <span class="op">=</span> <span class="dv">868</span> <span class="op">-</span> n_intervals</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    parameters[<span class="st">"batch_regions"</span>] <span class="op">=</span> <span class="dv">5</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    parameters[<span class="st">"date"</span>] <span class="op">=</span> <span class="st">"2023-09-02"</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    parameters[<span class="st">"parsl_parameters"</span>][<span class="st">"walltime"</span>] <span class="op">=</span> <span class="st">"00:30:00"</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="ss">f"personalized_config</span><span class="sc">{</span>index<span class="sc">}</span><span class="ss">.json"</span>, <span class="st">"w"</span>) <span class="im">as</span> output_json:</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        json.dump(parameters, output_json, indent<span class="op">=</span><span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="run-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="run-pipeline">Run Pipeline</h2>
+<pre><code>module load conda
 conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
-cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-25-debugging-enformer-pipeline-with-parsl
-python /home/s1mi/Github/shared_pipelines/enformer_pipeline_reference/scripts/enformer_predict.py --parameters test_reference.json
-</code></pre>
-<pre class="{python}"><code>import h5py
-with h5py.File("/grand/TFXcan/imlab/users/sabrina/reftile_project/predictions_folder/chr5_reference_overlapping_regions/predictions_2023-08-25/enformer_predictions/chr5_reference/haplotype0/chr5_0_114688_predictions.h5", "r") as f:
-    predictions = f['chr5_0_114688'][()]
-    print(predictions)</code></pre>
+
+for i in {0..2}; do
+    python /home/s1mi/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/personalized_config${i}.json &amp;
+    sleep 20
+done</code></pre>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
