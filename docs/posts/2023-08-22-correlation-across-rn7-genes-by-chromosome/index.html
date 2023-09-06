@@ -8,9 +8,9 @@
 
 <meta name="author" content="Sabrina Mi">
 <meta name="dcterms.date" content="2023-08-23">
-<meta name="description" content="We make a template for computing correlation between two columns grouped by category. We also learned that the correlation between predicted and observed reference gene expression varies widely by chromosome, with the lowest being 0.226 for chromosome 5, and the highest being 0.895 for chromosome Y.">
+<meta name="description" content="Correlation of predicted reference gene expression and Br mean gene expression is 0.45, with the chromosome with lowest correlation being 0.19 on chromosome 18 and the highest being 0.61 on chromosome 7. While this is reasonable compared to 0.54 correlation between Enformer predictions and GTEx observed expression across human genes, I believe the correlation across rat genes would be even higher if we used Br population data for the reference genome, as the Br population noticeably diverges from reference rats (many alternative homozygotes).">
 
-<title>deep-learning-in-genomics - Correlation of Enformer CAGE predictions on rn7 reference genome and measured gene expression in Br rats by chromosome</title>
+<title>deep-learning-in-genomics - Correlation of Enformer CAGE predictions on rn7 reference genome and measured gene expression in Br rats</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -143,10 +143,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Correlation of Enformer CAGE predictions on rn7 reference genome and measured gene expression in Br rats by chromosome</h1>
+      <h1 class="title">Correlation of Enformer CAGE predictions on rn7 reference genome and measured gene expression in Br rats</h1>
                   <div>
         <div class="description">
-          We make a template for computing correlation between two columns grouped by category. We also learned that the correlation between predicted and observed reference gene expression varies widely by chromosome, with the lowest being 0.226 for chromosome 5, and the highest being 0.895 for chromosome Y.
+          Correlation of predicted reference gene expression and Br mean gene expression is 0.45, with the chromosome with lowest correlation being 0.19 on chromosome 18 and the highest being 0.61 on chromosome 7. While this is reasonable compared to 0.54 correlation between Enformer predictions and GTEx observed expression across human genes, I believe the correlation across rat genes would be even higher if we used Br population data for the reference genome, as the Br population noticeably diverges from reference rats (many alternative homozygotes).
         </div>
       </div>
                 </div>
@@ -183,42 +183,175 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<section id="concatenate-predictions" class="level2">
+<h2 class="anchored" data-anchor-id="concatenate-predictions">Concatenate Predictions</h2>
+<p>We start with concatenating our predictions into separate files by chromosome number, firstly because our predictions are currently split between two directories and secondly, by grouping intervals together by chromosome, we can parallelize computing gene expression.</p>
 <div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>corr_df <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/rn7_reference_predicted_vs_observed_gene_expression.csv"</span>, header <span class="op">=</span> <span class="dv">0</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>gene_dict <span class="op">=</span> corr_df.groupby(<span class="st">'chr'</span>)[<span class="st">'gene_id'</span>].<span class="bu">apply</span>(<span class="bu">list</span>).to_dict()</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>corr_df.set_index(<span class="st">'gene_id'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> glob</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> parsl</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> parsl <span class="im">import</span> python_app</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> parsl.configs.local_threads <span class="im">import</span> config</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>parsl.load(config)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<pre><code>&lt;parsl.dataflow.dflow.DataFlowKernel at 0x7ff1b2188070&gt;</code></pre>
 </div>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>chr_list <span class="op">=</span> <span class="bu">list</span>(gene_dict.keys())</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>corr_dict <span class="op">=</span> {<span class="bu">chr</span>: pd.DataFrame() <span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list}</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    gene_list <span class="op">=</span> gene_dict[<span class="bu">chr</span>]</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    corr_dict[<span class="bu">chr</span>] <span class="op">=</span> corr_df.loc[gene_list].drop(columns<span class="op">=</span>[<span class="st">'chr'</span>])</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Chromosome"</span>, <span class="bu">chr</span>, <span class="st">"correlation:"</span>, corr_dict[<span class="bu">chr</span>].corr().iloc[<span class="dv">0</span>,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_predictions/predictions_folder/reference_Br_all_genes"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>chr_list <span class="op">=</span> [<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span>, <span class="st">"6"</span>, <span class="st">"7"</span>, <span class="st">"8"</span>, <span class="st">"9"</span>, <span class="st">"10"</span>, <span class="st">"11"</span>, <span class="st">"12"</span>, <span class="st">"13"</span>, <span class="st">"14"</span>, <span class="st">"15"</span>, <span class="st">"16"</span>, <span class="st">"17"</span>, <span class="st">"18"</span>, <span class="st">"19"</span>, <span class="st">"20"</span>, <span class="st">"X"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="at">@python_app</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> concatenate_predictions_by_chromosome(predictions_dir, <span class="bu">chr</span>, output_dir):</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    output_path <span class="op">=</span> os.path.join(output_dir, <span class="ss">f"chr</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_predictions.h5"</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(output_path, <span class="st">"a"</span>) <span class="im">as</span> output_file:</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        files <span class="op">=</span> glob.glob(<span class="ss">f"</span><span class="sc">{</span>predictions_dir<span class="sc">}</span><span class="ss">/chr</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">*_predictions.h5"</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> files:</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            interval <span class="op">=</span> os.path.basename(<span class="bu">file</span>).replace(<span class="st">"_predictions.h5"</span>, <span class="st">""</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(<span class="bu">file</span>, <span class="st">"r"</span>) <span class="im">as</span> input_file:</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>                output_file[interval] <span class="op">=</span> input_file[interval][()]</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>            </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">## concatenate files in first prediction run</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>output_dir<span class="sc">}</span><span class="ss">/predictions_2023-08-16/enformer_predictions/reference_Br/haplotype0"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>app_futures <span class="op">=</span> []</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    app_futures.append(concatenate_predictions_by_chromosome(predictions_dir, <span class="bu">chr</span>, output_dir))</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>exec_futures <span class="op">=</span> [q.result() <span class="cf">for</span> q <span class="kw">in</span> app_futures]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">## concatenate files in second prediction run</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="ss">f"</span><span class="sc">{</span>output_dir<span class="sc">}</span><span class="ss">/predictions_2023-08-29/enformer_predictions/reference_Br/haplotype0"</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>app_futures <span class="op">=</span> []</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    app_futures.append(concatenate_predictions_by_chromosome(predictions_dir, <span class="bu">chr</span>, output_dir))</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>exec_futures <span class="op">=</span> [q.result() <span class="cf">for</span> q <span class="kw">in</span> app_futures]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Chromosome 1 correlation: 0.4332344991649219
-Chromosome 12 correlation: 0.6223371189015416
-Chromosome 13 correlation: 0.47875298103605657
-Chromosome 14 correlation: 0.4418574220509124
-Chromosome 17 correlation: 0.508232166894913
-Chromosome 19 correlation: 0.5805874016394152
-Chromosome 2 correlation: 0.5214255605049084
-Chromosome 20 correlation: 0.6361443363364743
-Chromosome 3 correlation: 0.46132605944208854
-Chromosome 4 correlation: 0.5244393504977051
-Chromosome 5 correlation: 0.22608843633604256
-Chromosome 6 correlation: 0.5757699229647969
-Chromosome 9 correlation: 0.5372756452275411
-Chromosome X correlation: 0.3264607697555213
-Chromosome Y correlation: 0.894836988624044</code></pre>
+<pre><code>Second prediction folder done</code></pre>
+</div>
+</div>
+</section>
+<section id="compare-predicted-and-observed" class="level2">
+<h2 class="anchored" data-anchor-id="compare-predicted-and-observed">Compare Predicted and Observed</h2>
+<div class="cell" data-execution_count="11">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> parsl</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> parsl <span class="im">import</span> python_app</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> parsl.configs.local_threads <span class="im">import</span> config</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>parsl.load(config)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<pre><code>&lt;parsl.dataflow.dflow.DataFlowKernel at 0x7f5325796800&gt;</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>project_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_predictions/predictions_folder/reference_Br_all_genes"</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>chr_list <span class="op">=</span> [<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span>, <span class="st">"6"</span>, <span class="st">"7"</span>, <span class="st">"8"</span>, <span class="st">"9"</span>, <span class="st">"10"</span>, <span class="st">"11"</span>, <span class="st">"12"</span>, <span class="st">"13"</span>, <span class="st">"14"</span>, <span class="st">"15"</span>, <span class="st">"16"</span>, <span class="st">"17"</span>, <span class="st">"18"</span>, <span class="st">"19"</span>, <span class="st">"20"</span>, <span class="st">"X"</span>]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>rn7_annot <span class="op">=</span> pd.read_csv(<span class="st">'/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt'</span>, sep <span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>gene_dict <span class="op">=</span> rn7_annot.groupby(<span class="st">'chromosome'</span>)[<span class="st">'geneId'</span>].<span class="bu">apply</span>(<span class="bu">list</span>).to_dict()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_89896/1953959868.py:3: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
+  rn7_annot = pd.read_csv('/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt', sep ='\t')</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">## filter genes to chr1-20 and X and make chr all strings</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>gene_dict <span class="op">=</span> {<span class="bu">str</span>(key): value <span class="cf">for</span> key, value <span class="kw">in</span> gene_dict.items() <span class="cf">if</span> <span class="bu">str</span>(key) <span class="kw">in</span> chr_list}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>mean_tpm <span class="op">=</span> tpm.iloc[:,<span class="dv">3</span>:].mean(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>mean_tpm.name <span class="op">=</span> <span class="st">'observed'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_89896/417279503.py:1: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+  tpm = pd.read_csv("/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed", sep="\t", header=0, index_col='gene_id')</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="15">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Function to put CAGE predictions in list (in the same order as gene list by chromosome)</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="at">@python_app</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> query_genes(<span class="bu">chr</span>):</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    gene_list <span class="op">=</span> gene_dict[<span class="bu">chr</span>]</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>project_dir<span class="sc">}</span><span class="ss">/chr</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_predictions.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>            interval <span class="op">=</span> <span class="ss">f"chr</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>rn7_annot<span class="sc">.</span>loc[gene][<span class="st">'tss'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>rn7_annot<span class="sc">.</span>loc[gene][<span class="st">'tss'</span>]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>            bins <span class="op">=</span> <span class="bu">file</span>[interval][<span class="dv">446</span>:<span class="dv">450</span>, <span class="dv">4980</span>]</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>            CAGE_predictions[<span class="bu">chr</span>].append(np.average(bins))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>rn7_annot.set_index(<span class="st">"geneId"</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>CAGE_predictions <span class="op">=</span> {<span class="bu">chr</span>: [] <span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list}</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>app_futures <span class="op">=</span> []</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">## Collect CAGE predictions in parallel across genes</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    app_futures.append(query_genes(<span class="bu">chr</span>))</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co">## Wait for all chromosomes to finish</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>exec_futures <span class="op">=</span> [q.result() <span class="cf">for</span> q <span class="kw">in</span> app_futures]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>merged_dict <span class="op">=</span> {}</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>] <span class="op">=</span> pd.DataFrame(index<span class="op">=</span>gene_dict[<span class="bu">chr</span>])</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>][<span class="st">'predicted'</span>] <span class="op">=</span> CAGE_predictions[<span class="bu">chr</span>]</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>][<span class="st">'observed'</span>] <span class="op">=</span> mean_tpm.loc[gene_dict[<span class="bu">chr</span>]]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> pd.concat(merged_dict.values())</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>all_genes.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/rn7_reference_predicted_vs_observed_expression.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="33">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> all_genes.corr().iloc[<span class="dv">0</span>,<span class="dv">1</span>]</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Correlation across all rn7 genes:"</span>, corr)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(all_genes[<span class="st">'observed'</span>], all_genes[<span class="st">'predicted'</span>], label<span class="op">=</span><span class="ss">f'Correlation: </span><span class="sc">{</span>corr<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'observed'</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'predicted'</span>)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"rn7 prediction across genes"</span>)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>)</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Correlation across all rn7 genes: 0.45259620551544333</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-15-output-2.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="32">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="bu">len</span>(gene_dict[<span class="bu">chr</span>]), <span class="st">"genes on chromosome"</span>, <span class="bu">chr</span>, <span class="st">"</span><span class="ch">\t</span><span class="st">correlation ="</span>, merged_dict[<span class="bu">chr</span>].corr().iloc[<span class="dv">0</span>,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>3953 genes on chromosome 1  correlation = 0.476354606549354
+2003 genes on chromosome 2  correlation = 0.5218130288311454
+2030 genes on chromosome 3  correlation = 0.4610018149991454
+1959 genes on chromosome 4  correlation = 0.5244393504977057
+1780 genes on chromosome 5  correlation = 0.22610655969051743
+1390 genes on chromosome 6  correlation = 0.5712413035540091
+1648 genes on chromosome 7  correlation = 0.6087498490236489
+1612 genes on chromosome 8  correlation = 0.4427092910204691
+1146 genes on chromosome 9  correlation = 0.5372756452275427
+2127 genes on chromosome 10     correlation = 0.5956000550961525
+832 genes on chromosome 11  correlation = 0.4791331079400649
+909 genes on chromosome 12  correlation = 0.585056162086108
+881 genes on chromosome 13  correlation = 0.47875298103605635
+989 genes on chromosome 14  correlation = 0.44209977697290426
+1000 genes on chromosome 15     correlation = 0.48793264345973547
+843 genes on chromosome 16  correlation = 0.5956281375952103
+620 genes on chromosome 17  correlation = 0.45611724657883396
+722 genes on chromosome 18  correlation = 0.1949450345152701
+750 genes on chromosome 19  correlation = 0.5805874016394145
+806 genes on chromosome 20  correlation = 0.43625318887442455
+1344 genes on chromosome X  correlation = 0.32646076975552135</code></pre>
 </div>
 </div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

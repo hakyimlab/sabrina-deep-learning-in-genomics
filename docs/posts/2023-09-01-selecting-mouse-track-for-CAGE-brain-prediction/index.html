@@ -7,9 +7,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-08-12">
+<meta name="dcterms.date" content="2023-09-01">
+<meta name="description" content="I decided on using the CAGE:hippocampus mouse hippocampus track as a representative of brain tissue, as there is no equivalent CAGE:Brain track in mouse targets.">
 
-<title>deep-learning-in-genomics - Testing the Enformer pipeline with added parameters for personalized prediction on rats</title>
+<title>deep-learning-in-genomics - Investigating the various CAGE brain tissue mouse tracks</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -95,6 +96,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 <link rel="stylesheet" href="../../styles.css">
@@ -142,8 +146,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Testing the Enformer pipeline with added parameters for personalized prediction on rats</h1>
-                      </div>
+      <h1 class="title">Investigating the various CAGE brain tissue mouse tracks</h1>
+                  <div>
+        <div class="description">
+          I decided on using the CAGE:hippocampus mouse hippocampus track as a representative of brain tissue, as there is no equivalent CAGE:Brain track in mouse targets.
+        </div>
+      </div>
+                </div>
   </div>
     
   
@@ -159,7 +168,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">August 12, 2023</p>
+        <p class="date">September 1, 2023</p>
       </div>
     </div>
     
@@ -177,120 +186,151 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="test-for-a-single-individual-and-gene" class="level2">
-<h2 class="anchored" data-anchor-id="test-for-a-single-individual-and-gene">Test for a single individual and gene</h2>
-<p>We chose <code>ENSRNOG00000054549</code>, centered at the TSS chr20:12118762.</p>
-<pre><code>conda activate enformer-predict-tools
+<div class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">## subset to all brain-specific CAGE targets</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>targets <span class="op">=</span> pd.read_csv(<span class="st">"https://raw.githubusercontent.com/calico/basenji/master/manuscripts/cross2020/targets_mouse.txt"</span>, sep <span class="op">=</span> <span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>CAGE_targets <span class="op">=</span> targets[targets[<span class="st">'index'</span>].isin([<span class="dv">6612</span>, <span class="dv">6613</span>, <span class="dv">6622</span>, <span class="dv">6627</span>])]</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>track_indices <span class="op">=</span> <span class="bu">list</span>(CAGE_targets.index)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>CAGE_targets.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="23">
+<div>
 
-cd /Users/sabrinami/Github/shared_pipelines/enformer_pipeline
 
-python scripts/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/local_test_personalized.json
-</code></pre>
-</section>
-<section id="compare-results-to-non-pipeline-method" class="level2">
-<h2 class="anchored" data-anchor-id="compare-results-to-non-pipeline-method">Compare results to non-pipeline method</h2>
-<section id="read-in-h5-prediction-files" class="level3">
-<h3 class="anchored" data-anchor-id="read-in-h5-prediction-files">Read in h5 prediction files</h3>
-<div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> EnformerVCF</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> kipoiseq</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">index</th>
+<th data-quarto-table-cell-role="th">genome</th>
+<th data-quarto-table-cell-role="th">identifier</th>
+<th data-quarto-table-cell-role="th">file</th>
+<th data-quarto-table-cell-role="th">clip</th>
+<th data-quarto-table-cell-role="th">scale</th>
+<th data-quarto-table-cell-role="th">sum_stat</th>
+<th data-quarto-table-cell-role="th">description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1299</td>
+<td>6612</td>
+<td>1</td>
+<td>CNhs10477</td>
+<td>/home/drk/tillage/datasets/mouse/cage/fantom/C...</td>
+<td>384</td>
+<td>1</td>
+<td>sum</td>
+<td>CAGE:medulla oblongata, adult</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1300</td>
+<td>6613</td>
+<td>1</td>
+<td>CNhs10478</td>
+<td>/home/drk/tillage/datasets/mouse/cage/fantom/C...</td>
+<td>384</td>
+<td>1</td>
+<td>sum</td>
+<td>CAGE:hippocampus, adult</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1309</td>
+<td>6622</td>
+<td>1</td>
+<td>CNhs10489</td>
+<td>/home/drk/tillage/datasets/mouse/cage/fantom/C...</td>
+<td>384</td>
+<td>1</td>
+<td>sum</td>
+<td>CAGE:olfactory brain, adult</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1314</td>
+<td>6627</td>
+<td>1</td>
+<td>CNhs10494</td>
+<td>/home/drk/tillage/datasets/mouse/cage/fantom/C...</td>
+<td>384</td>
+<td>1</td>
+<td>sum</td>
+<td>CAGE:cerebellum, adult</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_predictions/predictions_folder/personalized_Br_selected_genes/predictions_2023-09-01/enformer_predictions"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>gene_expr_bed <span class="op">=</span> <span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>obs_gene_expr <span class="op">=</span> pd.read_csv(gene_expr_bed, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>annot_df <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span> <span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'geneId'</span>)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> [<span class="st">"ENSRNOG00000060185"</span>, <span class="st">"ENSRNOG00000022448"</span>, <span class="st">"ENSRNOG00000006331"</span>, <span class="st">"ENSRNOG00000000435"</span>, <span class="st">"ENSRNOG00000001336"</span>, <span class="st">"ENSRNOG00000016623"</span>, <span class="st">"ENSRNOG00000025324"</span>, <span class="st">"ENSRNOG00000012087"</span>, <span class="st">"ENSRNOG00000021663"</span>, <span class="st">"ENSRNOG00000012333"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2023-08-26 14:55:53.212214: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
-To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.</code></pre>
+<pre><code>/tmp/ipykernel_120274/1359220184.py:3: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+  obs_gene_expr = pd.read_csv(gene_expr_bed, sep="\t", header=0, index_col='gene_id')
+/tmp/ipykernel_120274/1359220184.py:4: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
+  annot_df = pd.read_csv("/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt", sep="\t", header= 0, index_col='geneId')</code></pre>
 </div>
-</div>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> h5py.File(<span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-15/enformer_predictions/000789972A/haplotype1/chr20_12118762_12118762_predictions.h5'</span>, <span class="st">'r'</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>haplotype1 <span class="op">=</span> f[<span class="st">'chr20_12118762_12118762'</span>][()]</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> h5py.File(<span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/personalized_enformer_rat_single_gene/predictions_2023-08-15/enformer_predictions/000789972A/haplotype2/chr20_12118762_12118762_predictions.h5'</span>, <span class="st">'r'</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>haplotype2 <span class="op">=</span> f[<span class="st">'chr20_12118762_12118762'</span>][()]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"haplotype1:</span><span class="ch">\n</span><span class="st">"</span>, haplotype1)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"haplotype2:</span><span class="ch">\n</span><span class="st">"</span>, haplotype2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>haplotype1:
- [[0.24076067 0.30101207 0.5132549  ... 0.20521325 1.1217918  0.25558835]
- [0.15946281 0.20442429 0.37761706 ... 0.04465578 0.24607326 0.08344302]
- [0.15568599 0.21775411 0.4520394  ... 0.05306218 0.20978831 0.08246609]
- ...
- [0.17938398 0.22463004 0.29506153 ... 0.01107231 0.02651541 0.0338815 ]
- [0.16948122 0.2044945  0.2620006  ... 0.01690046 0.04069382 0.06031117]
- [0.15266503 0.201914   0.22262897 ... 0.02438843 0.03895664 0.05986918]]
-haplotype2:
- [[0.23317184 0.29741773 0.5182305  ... 0.20385785 1.1424272  0.26008573]
- [0.15613721 0.20323968 0.37887666 ... 0.04524086 0.257699   0.08468267]
- [0.15380262 0.21736239 0.45358157 ... 0.05439655 0.22475001 0.08432709]
- ...
- [0.17942066 0.2246648  0.29515463 ... 0.01105907 0.02650285 0.03387856]
- [0.16946748 0.20452495 0.2621123  ... 0.0168827  0.04067391 0.06034191]
- [0.15272975 0.20209791 0.22299151 ... 0.0243816  0.03896997 0.05996798]]</code></pre>
-</div>
-</div>
-</section>
-<section id="run-non-pipeline-enformer" class="level3">
-<h3 class="anchored" data-anchor-id="run-non-pipeline-enformer">Run non-pipeline Enformer</h3>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>fasta_file <span class="op">=</span> <span class="st">'/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/rn7_genome.fasta'</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>fasta_extractor <span class="op">=</span> EnformerVCF.FastaStringExtractor(fasta_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>expr_dict <span class="op">=</span> {}</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    obs <span class="op">=</span> obs_gene_expr.loc[gene][<span class="dv">3</span>:]</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    expr_dict[gene] <span class="op">=</span> pd.DataFrame({<span class="st">"observed"</span>: obs})</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>            </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">## read vcf and encode haplotypes</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>target_interval <span class="op">=</span> kipoiseq.Interval(<span class="st">"chr20"</span>, <span class="dv">12118762</span>, <span class="dv">12118762</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>chr20_vcf <span class="op">=</span> EnformerVCF.read_vcf(<span class="st">"/Users/sabrinami/enformer_pipeline_test/rn7_data/chr20.vcf.gz"</span>)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>haplo1, haplo2 <span class="op">=</span> EnformerVCF.vcf_to_seq(target_interval, <span class="st">'000789972A'</span>, chr20_vcf, fasta_extractor)</span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>haplo1_enc <span class="op">=</span> EnformerVCF.one_hot_encode(<span class="st">""</span>.join(haplo1))[np.newaxis]</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>haplo2_enc <span class="op">=</span> EnformerVCF.one_hot_encode(<span class="st">""</span>.join(haplo2))[np.newaxis]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    gene_annot <span class="op">=</span> annot_df.loc[gene]</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    interval <span class="op">=</span> <span class="ss">f"chr</span><span class="sc">{</span>gene_annot[<span class="st">'chromosome'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>gene_annot[<span class="st">'tss'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>gene_annot[<span class="st">'tss'</span>]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    medulla_oblongata <span class="op">=</span> []</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    hippocampus <span class="op">=</span> []</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    olfactory_brain <span class="op">=</span> []</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    cerebellum <span class="op">=</span> []</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> expr_dict[gene].index:</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        haplo0 <span class="op">=</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>predictions_dir<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>individual<span class="sc">}</span><span class="ss">/haplotype0/</span><span class="sc">{</span>interval<span class="sc">}</span><span class="ss">_predictions.h5"</span>, <span class="st">"r"</span>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        predictions <span class="op">=</span> haplo0[<span class="st">"mouse"</span>][<span class="dv">446</span>:<span class="dv">450</span>, track_indices]</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        medulla_oblongata.append(np.average(predictions[:,<span class="dv">0</span>]))</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        hippocampus.append(np.average(predictions[:,<span class="dv">1</span>]))</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        olfactory_brain.append(np.average(predictions[:,<span class="dv">2</span>]))</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        cerebellum.append(np.average(predictions[:,<span class="dv">3</span>]))</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    expr_dict[gene][<span class="st">"medulla oblongata"</span>] <span class="op">=</span> medulla_oblongata</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    expr_dict[gene][<span class="st">"hippocampus"</span>] <span class="op">=</span> hippocampus</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    expr_dict[gene][<span class="st">"olfactory brain"</span>] <span class="op">=</span> olfactory_brain</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    expr_dict[gene][<span class="st">"cerebellum"</span>] <span class="op">=</span> cerebellum</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">## run predictions</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>prediction1 <span class="op">=</span> EnformerVCF.model.predict_on_batch(haplo1_enc)[<span class="st">'human'</span>][<span class="dv">0</span>]</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>prediction2 <span class="op">=</span> EnformerVCF.model.predict_on_batch(haplo2_enc)[<span class="st">'human'</span>][<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"There are"</span>, <span class="bu">sum</span>(<span class="bu">sum</span>(haplotype1 <span class="op">!=</span> prediction1)), <span class="st">"differences between haplotype1 matrices and"</span>, <span class="bu">sum</span>(<span class="bu">sum</span>(haplotype2 <span class="op">!=</span> prediction2)), <span class="st">"differences between haplotype2 matrices."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="131">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>corr_by_gene_and_track <span class="op">=</span> pd.DataFrame(columns <span class="op">=</span> [<span class="st">"medulla oblongata"</span>, <span class="st">"hippocampus"</span>, <span class="st">"olfactory brain"</span>, <span class="st">"cerebellum"</span>], index <span class="op">=</span> gene_list)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    corr_df <span class="op">=</span> expr_dict[gene].corr()</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    corr_by_gene_and_track.loc[gene] <span class="op">=</span> pd.to_numeric(corr_df.iloc[<span class="dv">0</span>,<span class="dv">1</span>:])</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(corr_by_gene_and_track)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>There are 0 differences between haplotype1 matrices and 0 differences between haplotype2 matrices.</code></pre>
+<pre><code>                   medulla oblongata hippocampus olfactory brain cerebellum
+ENSRNOG00000060185          0.340841    0.339026        0.340439   0.338799
+ENSRNOG00000022448          0.176105    0.183011        0.179076   0.176374
+ENSRNOG00000006331          0.284351    0.326806        0.327064    0.32246
+ENSRNOG00000000435          0.212012    0.233529        0.171748   0.097784
+ENSRNOG00000001336          0.550703    0.540987         0.54114   0.551966
+ENSRNOG00000016623          0.060619    0.170785        0.153715  -0.109455
+ENSRNOG00000025324         -0.315003   -0.223645       -0.240727  -0.174633
+ENSRNOG00000012087          0.285358    0.309409        0.312098   0.312001
+ENSRNOG00000021663         -0.325343   -0.430207       -0.426303  -0.014811
+ENSRNOG00000012333         -0.081875    0.098419        0.077553   0.038098</code></pre>
 </div>
 </div>
-<p>The pipeline outputs are the same!</p>
-</section>
-</section>
-<section id="test-mouse-head-on-reference-genome" class="level2">
-<h2 class="anchored" data-anchor-id="test-mouse-head-on-reference-genome">Test mouse head on reference genome</h2>
-<pre><code>conda activate enformer-predict-tools
-
-cd /Users/sabrinami/Github/shared_pipelines/enformer_pipeline
-
-python scripts/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/local_test_reference.json
-</code></pre>
-</section>
-<section id="compare-results-to-non-pipeline-method-1" class="level2">
-<h2 class="anchored" data-anchor-id="compare-results-to-non-pipeline-method-1">Compare results to non-pipeline method</h2>
-<div class="cell" data-execution_count="14">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">## Read prediction file</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>f <span class="op">=</span> h5py.File(<span class="st">"/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/predictions_folder/reference_enformer_rat_single_gene/predictions_2023-08-26/enformer_predictions/reference_enformer_rat/haplotype0/chr20_12118762_12118762_predictions.h5"</span>, <span class="st">"r"</span>)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>haplotype0 <span class="op">=</span> f[<span class="st">"chr20_12118762_12118762"</span>][()]</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"shape:"</span>, haplotype0.shape)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>shape: (896, 1643)</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>SEQUENCE_LENGTH <span class="op">=</span> <span class="dv">393216</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>target_interval <span class="op">=</span> kipoiseq.Interval(<span class="st">"chr20"</span>, <span class="dv">12118762</span>, <span class="dv">12118762</span>)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>sequence_one_hot <span class="op">=</span> EnformerVCF.one_hot_encode(fasta_extractor.extract(target_interval.resize(SEQUENCE_LENGTH)))</span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>predictions <span class="op">=</span> EnformerVCF.model.predict_on_batch(sequence_one_hot[np.newaxis])[<span class="st">'mouse'</span>][<span class="dv">0</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"There are"</span>, <span class="bu">sum</span>(<span class="bu">sum</span>(haplotype0 <span class="op">!=</span> predictions)), <span class="st">"differences between pipeline and non-pipeline outputs."</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<p>Based off a row-wise look at the table, I’ve decided to use the CAGE:hippocampus mouse track as a representative of brain tissue.</p>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

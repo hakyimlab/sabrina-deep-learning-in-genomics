@@ -14,10 +14,6 @@ import seaborn as sns # for plotting
 import pickle # for saving large objects
 import os, sys # functions for interacting with the operating system
 
-import Bio
-from Bio.Seq import Seq
-def create_rev_complement(dna_string):
-    return(str(Seq(dna_string).reverse_complement()))
 
 import io
 import os
@@ -136,8 +132,6 @@ model = Enformer(model_path) # here we load the model architecture.
 
 def one_hot_encode(sequence):
   return kipoiseq.transforms.functional.one_hot_dna(sequence).astype(np.float32)
-
-
 
 # @title `plot_tracks`
 
