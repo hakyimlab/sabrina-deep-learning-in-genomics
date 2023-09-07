@@ -3,8 +3,9 @@
     "listing": "/index.html",
     "items": [
       "/posts/enformer-rat-human-analysis-overview/index.html",
-      "/posts/2023-08-25-debugging-enformer-pipeline-with-parsl/index.html",
+      "/posts/2023-09-06-validating-Huang-et-al/index.html",
       "/posts/2023-08-31-Br-personalized-prediction-on-more-genes/debugging.html",
+      "/posts/2023-09-01-comparing-human-vs-rat-mean-expression-across-genes/index.html",
       "/posts/2023-08-31-Br-personalized-prediction-on-more-genes/index.html",
       "/posts/2023-09-01-selecting-mouse-track-for-CAGE-brain-prediction/index.html",
       "/posts/2023-08-31-Br-personalized-prediction-on-more-genes/pipeline.html",

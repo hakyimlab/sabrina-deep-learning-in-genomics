@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.361">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sabrina Mi">
+<meta name="dcterms.date" content="2023-09-06">
+
+<title>deep-learning-in-genomics - Validating reference gene expression prediction</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">deep-learning-in-genomics</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html" rel="" target="">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/" rel="" target=""><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com" rel="" target=""><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+            <div class="quarto-navbar-tools">
+</div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Validating reference gene expression prediction</h1>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Sabrina Mi </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">September 6, 2023</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<p>We are trying to replicate the Enformer result’s in <a href="https://www.biorxiv.org/content/10.1101/2023.06.30.547100v1">Personal transcriptome variation is poorly explained by current genomic deep learning models, Huang et al</a>. They reported a 0.57 correlation in reference prediction across all genes. They used median GEUVADIS LCL gene expression data for their comparison and quantified predicted gene expression using the average of 10 bin window around each gene’s TSS on the CAGE:B lymphoblastoid cell line track. I performed a similar analysis of Enformer performance along the reference genome, but instead I used a 3 bin window around the TSS and the CAGE:Brain, adult track to compare to observed GTEx brain cortex gene expression. I found 0.54 between predicted and observed reference gene expression.</p>
+<section id="libraries-and-definitions" class="level3">
+<h3 class="anchored" data-anchor-id="libraries-and-definitions">Libraries and Definitions</h3>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>enfref_dir <span class="op">=</span> <span class="st">"/grand/TFXcan/imlab/users/lvairus/reftile_project/enformer-reference-epigenome"</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> query_epigenome(chr_num, center_bp, n_bins<span class="op">=</span><span class="dv">3</span>, tracks<span class="op">=-</span><span class="dv">1</span>):</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">        chr_num (int/string): chromosome number</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">        center_bp (int): center base pair position (1-indexed)</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">        n_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co">        epigen (np.array): enformer predictions centered at center_bp of shape (n_bins, len(tracks))</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    <span class="co"># from position choose center bin</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    center_bin <span class="op">=</span> center_bp <span class="op">//</span> <span class="dv">128</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    half_bins <span class="op">=</span> n_bins <span class="op">//</span> <span class="dv">2</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    start_bin <span class="op">=</span> center_bin <span class="op">-</span> half_bins</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    end_bin <span class="op">=</span> center_bin <span class="op">+</span> half_bins</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_bins <span class="op">%</span> <span class="dv">2</span> <span class="op">!=</span> <span class="dv">0</span>: <span class="co"># if n_bins is odd</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        end_bin <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>enfref_dir<span class="sc">}</span><span class="ss">/chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">_cat.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        <span class="co"># get tracks if list provided</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> tracks <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>:</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>            epigen <span class="op">=</span> f[<span class="ss">f'chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">'</span>][start_bin:end_bin, :] </span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>            epigen <span class="op">=</span> f[<span class="ss">f'chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">'</span>][start_bin:end_bin, tracks] </span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> epigen</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">## create lists of genes on each chromomsome</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>hg38_annot <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/annotation/hg38.protein_coding_TSS.txt"</span>, header<span class="op">=</span><span class="dv">0</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>gene_dict <span class="op">=</span> hg38_annot.groupby(<span class="st">'chromosome_name'</span>)[<span class="st">'ensembl_gene_id'</span>].<span class="bu">apply</span>(<span class="bu">list</span>).to_dict()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Initialize lists of CAGE predictions for each gene</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>hg38_annot.set_index(<span class="st">"ensembl_gene_id"</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>chr_list <span class="op">=</span> [<span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span>, <span class="st">"6"</span>, <span class="st">"7"</span>, <span class="st">"8"</span>, <span class="st">"9"</span>, <span class="st">"10"</span>, <span class="st">"11"</span>, <span class="st">"12"</span>, <span class="st">"13"</span>, <span class="st">"14"</span>, <span class="st">"15"</span>, <span class="st">"16"</span>, <span class="st">"17"</span>, <span class="st">"18"</span>, <span class="st">"19"</span>, <span class="st">"20"</span>, <span class="st">"21"</span>, <span class="st">"22"</span>, <span class="st">"X"</span>]</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>CAGE_predictions <span class="op">=</span> {key: [] <span class="cf">for</span> key <span class="kw">in</span> chr_list}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="query-enformer-predicted-gene-expression" class="level3">
+<h3 class="anchored" data-anchor-id="query-enformer-predicted-gene-expression">Query Enformer predicted gene expression</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Function to put CAGE predictions in list (in the same order as gene list by chromosome)</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    gene_list <span class="op">=</span> gene_dict[<span class="bu">chr</span>]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        bins <span class="op">=</span> query_epigenome(<span class="bu">chr</span>, hg38_annot.loc[gene][<span class="st">'transcription_start_site'</span>], num_bins<span class="op">=</span><span class="dv">10</span>, tracks<span class="op">=</span>[<span class="dv">5110</span>])</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        CAGE_predictions[<span class="bu">chr</span>].append(np.average(bins))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="calculate-geuvadis-reference-gene-expression" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-geuvadis-reference-gene-expression">Calculate GEUVADIS reference gene expression</h3>
+<div class="cell" data-execution_count="62">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>geuvadis_gex <span class="op">=</span> pd.read_csv(<span class="st">"/lus/grand/projects/TFXcan/imlab/data/1000G/expression/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt.gz"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>geuvadis_gex.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="62">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">TargetID</th>
+<th data-quarto-table-cell-role="th">Gene_Symbol</th>
+<th data-quarto-table-cell-role="th">Chr</th>
+<th data-quarto-table-cell-role="th">Coord</th>
+<th data-quarto-table-cell-role="th">HG00096</th>
+<th data-quarto-table-cell-role="th">HG00097</th>
+<th data-quarto-table-cell-role="th">HG00099</th>
+<th data-quarto-table-cell-role="th">HG00100</th>
+<th data-quarto-table-cell-role="th">HG00101</th>
+<th data-quarto-table-cell-role="th">HG00102</th>
+<th data-quarto-table-cell-role="th">...</th>
+<th data-quarto-table-cell-role="th">NA20810</th>
+<th data-quarto-table-cell-role="th">NA20811</th>
+<th data-quarto-table-cell-role="th">NA20812</th>
+<th data-quarto-table-cell-role="th">NA20813</th>
+<th data-quarto-table-cell-role="th">NA20814</th>
+<th data-quarto-table-cell-role="th">NA20815</th>
+<th data-quarto-table-cell-role="th">NA20816</th>
+<th data-quarto-table-cell-role="th">NA20819</th>
+<th data-quarto-table-cell-role="th">NA20826</th>
+<th data-quarto-table-cell-role="th">NA20828</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>ENSG00000152931.6</td>
+<td>ENSG00000152931.6</td>
+<td>5</td>
+<td>59783540</td>
+<td>0.101858</td>
+<td>0.078110</td>
+<td>0.048981</td>
+<td>0.118597</td>
+<td>0.004035</td>
+<td>0.010925</td>
+<td>...</td>
+<td>0.088601</td>
+<td>0.240010</td>
+<td>0.137175</td>
+<td>0.148494</td>
+<td>0.038643</td>
+<td>0.088509</td>
+<td>0.029204</td>
+<td>0.024423</td>
+<td>0.044816</td>
+<td>0.139186</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>ENSG00000183696.9</td>
+<td>ENSG00000183696.9</td>
+<td>7</td>
+<td>48128225</td>
+<td>8.183805</td>
+<td>5.686911</td>
+<td>2.434653</td>
+<td>3.830894</td>
+<td>6.612288</td>
+<td>4.709646</td>
+<td>...</td>
+<td>13.428205</td>
+<td>6.094500</td>
+<td>12.536000</td>
+<td>2.217262</td>
+<td>3.573394</td>
+<td>7.583364</td>
+<td>4.052882</td>
+<td>1.570378</td>
+<td>4.900372</td>
+<td>6.737308</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>ENSG00000139269.2</td>
+<td>ENSG00000139269.2</td>
+<td>12</td>
+<td>57846106</td>
+<td>1.199910</td>
+<td>1.573572</td>
+<td>0.521616</td>
+<td>1.447225</td>
+<td>3.565791</td>
+<td>1.982681</td>
+<td>...</td>
+<td>3.225880</td>
+<td>1.996067</td>
+<td>2.854923</td>
+<td>2.267343</td>
+<td>1.331201</td>
+<td>2.187895</td>
+<td>1.004250</td>
+<td>3.003316</td>
+<td>1.984362</td>
+<td>1.684954</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>ENSG00000169129.8</td>
+<td>ENSG00000169129.8</td>
+<td>10</td>
+<td>116164515</td>
+<td>0.831940</td>
+<td>0.069778</td>
+<td>0.931086</td>
+<td>0.620941</td>
+<td>1.660668</td>
+<td>0.570481</td>
+<td>...</td>
+<td>1.023381</td>
+<td>1.127852</td>
+<td>0.774409</td>
+<td>1.495854</td>
+<td>0.895342</td>
+<td>1.513521</td>
+<td>0.826377</td>
+<td>1.021201</td>
+<td>0.952502</td>
+<td>0.740565</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>ENSG00000134602.11</td>
+<td>ENSG00000134602.11</td>
+<td>X</td>
+<td>131157293</td>
+<td>27.646422</td>
+<td>24.395572</td>
+<td>16.445374</td>
+<td>24.806650</td>
+<td>25.113349</td>
+<td>19.233988</td>
+<td>...</td>
+<td>25.079490</td>
+<td>28.725528</td>
+<td>24.450520</td>
+<td>27.264069</td>
+<td>26.912814</td>
+<td>29.509210</td>
+<td>26.462331</td>
+<td>25.624009</td>
+<td>25.707741</td>
+<td>22.824957</td>
+</tr>
+</tbody>
+</table>
+
+<p>5 rows × 466 columns</p>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>geuvadis_gex[<span class="st">'TargetID'</span>] <span class="op">=</span> geuvadis_gex[<span class="st">'TargetID'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> gene: gene.split(<span class="st">'.'</span>)[<span class="dv">0</span>])</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>geuvadis_gex.set_index(<span class="st">'TargetID'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate average gene expression</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>geuvadis_mean_gex <span class="op">=</span> geuvadis_gex.drop(columns<span class="op">=</span>[<span class="st">'Gene_Symbol'</span>, <span class="st">'Chr'</span>, <span class="st">'Coord'</span>]).mean(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>geuvadis_mean_gex.name <span class="op">=</span> <span class="st">'geuvadis'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="plot-correlation-across-genes" class="level3">
+<h3 class="anchored" data-anchor-id="plot-correlation-across-genes">Plot correlation across genes</h3>
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>merged_dict <span class="op">=</span> {<span class="bu">chr</span>: pd.DataFrame(index<span class="op">=</span>gene_dict[<span class="bu">chr</span>]) <span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list}</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>][<span class="st">'enformer'</span>] <span class="op">=</span> CAGE_predictions[<span class="bu">chr</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="23">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    gene_list <span class="op">=</span> merged_dict[<span class="bu">chr</span>].index.intersection(geuvadis_gex.index)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>] <span class="op">=</span> merged_dict[<span class="bu">chr</span>].merge(geuvadis_mean_gex, left_index<span class="op">=</span><span class="va">True</span>, right_index<span class="op">=</span><span class="va">True</span>, how<span class="op">=</span><span class="st">'inner'</span>).dropna()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> pd.concat(merged_dict.values())</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>all_genes.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_GEUVADIS.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="26">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(all_genes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                  enformer   geuvadis
+ENSG00000157911  26.583872   7.754189
+ENSG00000142655  45.931610  11.007757
+ENSG00000149527   0.106181   0.541469
+ENSG00000171621   8.679342   1.851198
+ENSG00000142583  44.758301  15.652001
+...                    ...        ...
+ENSG00000169239  16.344961   2.933672
+ENSG00000102181  24.281412  11.087266
+ENSG00000169083   0.381008   0.021671
+ENSG00000147050  58.424080  10.937074
+ENSG00000101972  36.190773  29.675127
+
+[14585 rows x 2 columns]</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="28">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> all_genes.corr().iloc[<span class="dv">0</span>,<span class="dv">1</span>]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Correlation across all hg38 genes:"</span>, corr)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(all_genes[<span class="st">'enformer'</span>], all_genes[<span class="st">'geuvadis'</span>], label<span class="op">=</span><span class="ss">f'Correlation: </span><span class="sc">{</span>corr<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'observed'</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'predicted'</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"hg38 prediction across genes"</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Correlation across all hg38 genes: 0.19324818461902257</code></pre>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-12-output-2.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="compare-to-3-bin-window-predictions" class="level3">
+<h3 class="anchored" data-anchor-id="compare-to-3-bin-window-predictions">Compare to 3 bin window predictions</h3>
+<div class="cell" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    tic <span class="op">=</span> time.perf_counter()</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    gene_list <span class="op">=</span> merged_dict[<span class="bu">chr</span>].index</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> []</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        bins <span class="op">=</span> query_epigenome(<span class="bu">chr</span>, hg38_annot.loc[gene][<span class="st">'transcription_start_site'</span>], num_bins<span class="op">=</span><span class="dv">3</span>, tracks<span class="op">=</span>[<span class="dv">5110</span>])</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        predictions.append(np.average(bins))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>][<span class="st">"enformer, 3 bin"</span>] <span class="op">=</span> predictions</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    toc <span class="op">=</span> time.perf_counter()</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Querying chromosome"</span>, <span class="bu">chr</span>, <span class="st">"genes...,"</span>, toc <span class="op">-</span> tic, <span class="st">"seconds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Querying chromosome 1 genes..., 44.38094838405959 seconds
+Querying chromosome 2 genes..., 35.90561124891974 seconds
+Querying chromosome 3 genes..., 31.244477248983458 seconds
+Querying chromosome 4 genes..., 24.72689785005059 seconds
+Querying chromosome 5 genes..., 25.695796379004605 seconds
+Querying chromosome 6 genes..., 27.095260299975052 seconds
+Querying chromosome 7 genes..., 29.503782182000577 seconds
+Querying chromosome 8 genes..., 16.569634438026696 seconds
+Querying chromosome 9 genes..., 17.30759223003406 seconds
+Querying chromosome 10 genes..., 21.247902504052036 seconds
+Querying chromosome 11 genes..., 31.04979562200606 seconds
+Querying chromosome 12 genes..., 23.60031519201584 seconds
+Querying chromosome 13 genes..., 10.305076834047213 seconds
+Querying chromosome 14 genes..., 15.184288493008353 seconds
+Querying chromosome 15 genes..., 16.564520464045927 seconds
+Querying chromosome 16 genes..., 16.226559089962393 seconds
+Querying chromosome 17 genes..., 20.44110699906014 seconds
+Querying chromosome 18 genes..., 8.865124020026997 seconds
+Querying chromosome 19 genes..., 20.500569563009776 seconds
+Querying chromosome 20 genes..., 11.948940997943282 seconds
+Querying chromosome 21 genes..., 5.145313170971349 seconds
+Querying chromosome 22 genes..., 8.008219097973779 seconds
+Querying chromosome X genes..., 17.180793673032895 seconds</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="41">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> pd.concat(merged_dict.values())</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> all_genes[[<span class="st">"geuvadis"</span>, <span class="st">"enformer"</span>, <span class="st">"enformer, 3 bin"</span>]]</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>all_genes.rename(columns<span class="op">=</span>{<span class="st">'enformer'</span>: <span class="st">'enformer, 10 bin'</span>}, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>all_genes.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_GEUVADIS.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>I’m really not sure why I can’t get near the 0.57 expected correlation, so I will run the original code used by Huang et al.</p>
+</section>
+<section id="original-code" class="level3">
+<h3 class="anchored" data-anchor-id="original-code">Original Code</h3>
+<p>I cloned <a href="https://github.com/ni-lab/personalized-expression-benchmark.git">personalized-expression-benchmark</a>.</p>
+<p>The first difference I noticed in their analysis is that they subset to 3259 genes in the GEUVADIS EUR dataset found to have at least one significant cis-eQTL.</p>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_GEUVADIS.csv"</span>, index_col <span class="op">=</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>eqtl_genes <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/Github/personalized-expression-benchmark/data/gene_list.csv"</span>, usecols<span class="op">=</span>[<span class="dv">0</span>], header<span class="op">=</span><span class="va">None</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(eqtl_genes[<span class="dv">0</span>].to_list())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>['ENSG00000000457', 'ENSG00000001630', 'ENSG00000002549', 'ENSG00000002745', 'ENSG00000003056', 'ENSG00000003249', 'ENSG00000003402', 'ENSG00000004660', 'ENSG00000005075', 'ENSG00000005156', 'ENSG00000005700', 'ENSG00000005882', 'ENSG00000006075', 'ENSG00000006114', 'ENSG00000006194', 'ENSG00000006282', 'ENSG00000006607', 'ENSG00000006695', 'ENSG00000007255', 'ENSG00000007341', 'ENSG00000008382', 'ENSG00000008517', 'ENSG00000008988', 'ENSG00000010270', 'ENSG00000010278', 'ENSG00000010310', 'ENSG00000010361', 'ENSG00000010626', 'ENSG00000011052', 'ENSG00000011105', 'ENSG00000011295', 'ENSG00000011376', 'ENSG00000011422', 'ENSG00000011478', 'ENSG00000011566', 'ENSG00000011638', 'ENSG00000012124', 'ENSG00000012779', 'ENSG00000013016', 'ENSG00000013288', 'ENSG00000013374', 'ENSG00000013503', 'ENSG00000013561', 'ENSG00000013583', 'ENSG00000014138', 'ENSG00000014164', 'ENSG00000014257', 'ENSG00000015479', 'ENSG00000018699', 'ENSG00000018869', 'ENSG00000020922', 'ENSG00000021300', 'ENSG00000021355', 'ENSG00000022556', 'ENSG00000023892', 'ENSG00000025156', 'ENSG00000025434', 'ENSG00000025708', 'ENSG00000025772', 'ENSG00000026297', 'ENSG00000026751', 'ENSG00000026950', 'ENSG00000027001', 'ENSG00000027847', 'ENSG00000028528', 'ENSG00000029534', 'ENSG00000029639', 'ENSG00000030110', 'ENSG00000031691', 'ENSG00000031698', 'ENSG00000032219', 'ENSG00000032742', 'ENSG00000034677', 'ENSG00000035141', 'ENSG00000035687', 'ENSG00000035862', 'ENSG00000036448', 'ENSG00000037757', 'ENSG00000038002', 'ENSG00000039319', 'ENSG00000039650', 'ENSG00000040199', 'ENSG00000041802', 'ENSG00000041982', 'ENSG00000042445', 'ENSG00000042493', 'ENSG00000043143', 'ENSG00000043514', 'ENSG00000043591', 'ENSG00000044090', 'ENSG00000046604', 'ENSG00000047579', 'ENSG00000048544', 'ENSG00000049167', 'ENSG00000049192', 'ENSG00000049239', 'ENSG00000049246', 'ENSG00000049247', 'ENSG00000049449', 'ENSG00000050393', 'ENSG00000051108', 'ENSG00000051596', 'ENSG00000051620', 'ENSG00000052126', 'ENSG00000053371', 'ENSG00000053501', 'ENSG00000053918', 'ENSG00000054179', 'ENSG00000054277', 'ENSG00000054282', 'ENSG00000054523', 'ENSG00000054983', 'ENSG00000055163', 'ENSG00000055211', 'ENSG00000055483', 'ENSG00000055732', 'ENSG00000055950', 'ENSG00000056050', 'ENSG00000056661', 'ENSG00000057935', 'ENSG00000058085', 'ENSG00000059122', 'ENSG00000059588', 'ENSG00000059691', 'ENSG00000060709', 'ENSG00000062194', 'ENSG00000063046', 'ENSG00000063761', 'ENSG00000063854', 'ENSG00000064199', 'ENSG00000064270', 'ENSG00000064300', 'ENSG00000064652', 'ENSG00000064666', 'ENSG00000064787', 'ENSG00000064886', 'ENSG00000065000', 'ENSG00000065060', 'ENSG00000065135', 'ENSG00000065154', 'ENSG00000065268', 'ENSG00000065308', 'ENSG00000065413', 'ENSG00000065559', 'ENSG00000065600', 'ENSG00000065613', 'ENSG00000065621', 'ENSG00000065665', 'ENSG00000065809', 'ENSG00000065989', 'ENSG00000066027', 'ENSG00000066084', 'ENSG00000066185', 'ENSG00000066230', 'ENSG00000066654', 'ENSG00000066855', 'ENSG00000066926', 'ENSG00000067057', 'ENSG00000067113', 'ENSG00000067141', 'ENSG00000067533', 'ENSG00000067606', 'ENSG00000068097', 'ENSG00000068137', 'ENSG00000068305', 'ENSG00000068724', 'ENSG00000068784', 'ENSG00000069998', 'ENSG00000070061', 'ENSG00000070371', 'ENSG00000070444', 'ENSG00000070476', 'ENSG00000070540', 'ENSG00000070718', 'ENSG00000070731', 'ENSG00000070759', 'ENSG00000070770', 'ENSG00000070831', 'ENSG00000070915', 'ENSG00000071894', 'ENSG00000071909', 'ENSG00000071967', 'ENSG00000072042', 'ENSG00000072071', 'ENSG00000072110', 'ENSG00000072682', 'ENSG00000072756', 'ENSG00000072778', 'ENSG00000072818', 'ENSG00000072954', 'ENSG00000073150', 'ENSG00000073169', 'ENSG00000073350', 'ENSG00000073578', 'ENSG00000073584', 'ENSG00000073605', 'ENSG00000073670', 'ENSG00000073712', 'ENSG00000073803', 'ENSG00000073849', 'ENSG00000073969', 'ENSG00000074054', 'ENSG00000074071', 'ENSG00000074219', 'ENSG00000074266', 'ENSG00000074319', 'ENSG00000074416', 'ENSG00000074696', 'ENSG00000074966', 'ENSG00000075043', 'ENSG00000075234', 'ENSG00000075239', 'ENSG00000075413', 'ENSG00000075643', 'ENSG00000075975', 'ENSG00000076067', 'ENSG00000076248', 'ENSG00000076356', 'ENSG00000076555', 'ENSG00000076650', 'ENSG00000076826', 'ENSG00000076924', 'ENSG00000076944', 'ENSG00000077044', 'ENSG00000077097', 'ENSG00000077238', 'ENSG00000077348', 'ENSG00000077420', 'ENSG00000077935', 'ENSG00000078142', 'ENSG00000078177', 'ENSG00000078246', 'ENSG00000078795', 'ENSG00000078804', 'ENSG00000079134', 'ENSG00000079215', 'ENSG00000079257', 'ENSG00000079263', 'ENSG00000079335', 'ENSG00000079337', 'ENSG00000079459', 'ENSG00000079691', 'ENSG00000079739', 'ENSG00000079785', 'ENSG00000079819', 'ENSG00000079931', 'ENSG00000079999', 'ENSG00000080200', 'ENSG00000081052', 'ENSG00000081059', 'ENSG00000081377', 'ENSG00000081665', 'ENSG00000081721', 'ENSG00000081791', 'ENSG00000082014', 'ENSG00000082074', 'ENSG00000082212', 'ENSG00000082781', 'ENSG00000083454', 'ENSG00000083457', 'ENSG00000083807', 'ENSG00000083828', 'ENSG00000083842', 'ENSG00000083845', 'ENSG00000084070', 'ENSG00000084112', 'ENSG00000084444', 'ENSG00000084623', 'ENSG00000084636', 'ENSG00000084754', 'ENSG00000085382', 'ENSG00000085415', 'ENSG00000085465', 'ENSG00000085491', 'ENSG00000085644', 'ENSG00000085721', 'ENSG00000085871', 'ENSG00000085982', 'ENSG00000086062', 'ENSG00000086232', 'ENSG00000086289', 'ENSG00000086300', 'ENSG00000086504', 'ENSG00000086544', 'ENSG00000086619', 'ENSG00000086967', 'ENSG00000087008', 'ENSG00000087076', 'ENSG00000087157', 'ENSG00000087191', 'ENSG00000087237', 'ENSG00000087299', 'ENSG00000088205', 'ENSG00000088808', 'ENSG00000088826', 'ENSG00000088832', 'ENSG00000088854', 'ENSG00000088882', 'ENSG00000088992', 'ENSG00000089057', 'ENSG00000089063', 'ENSG00000089127', 'ENSG00000089163', 'ENSG00000089177', 'ENSG00000089250', 'ENSG00000089327', 'ENSG00000089335', 'ENSG00000089486', 'ENSG00000089639', 'ENSG00000089685', 'ENSG00000089693', 'ENSG00000089737', 'ENSG00000089876', 'ENSG00000089916', 'ENSG00000090054', 'ENSG00000090266', 'ENSG00000090372', 'ENSG00000090376', 'ENSG00000090432', 'ENSG00000090621', 'ENSG00000090686', 'ENSG00000090857', 'ENSG00000090920', 'ENSG00000090971', 'ENSG00000091106', 'ENSG00000091127', 'ENSG00000091436', 'ENSG00000091490', 'ENSG00000091527', 'ENSG00000091542', 'ENSG00000091622', 'ENSG00000091640', 'ENSG00000091844', 'ENSG00000091947', 'ENSG00000092009', 'ENSG00000092010', 'ENSG00000092036', 'ENSG00000092094', 'ENSG00000092295', 'ENSG00000092607', 'ENSG00000092758', 'ENSG00000093010', 'ENSG00000093100', 'ENSG00000093134', 'ENSG00000095209', 'ENSG00000095321', 'ENSG00000095739', 'ENSG00000095794', 'ENSG00000095932', 'ENSG00000096060', 'ENSG00000096092', 'ENSG00000096264', 'ENSG00000096717', 'ENSG00000096872', 'ENSG00000096996', 'ENSG00000099203', 'ENSG00000099282', 'ENSG00000099326', 'ENSG00000099330', 'ENSG00000099365', 'ENSG00000099785', 'ENSG00000099804', 'ENSG00000099817', 'ENSG00000099821', 'ENSG00000099940', 'ENSG00000099956', 'ENSG00000099974', 'ENSG00000100031', 'ENSG00000100075', 'ENSG00000100099', 'ENSG00000100116', 'ENSG00000100124', 'ENSG00000100147', 'ENSG00000100154', 'ENSG00000100162', 'ENSG00000100197', 'ENSG00000100243', 'ENSG00000100266', 'ENSG00000100290', 'ENSG00000100297', 'ENSG00000100299', 'ENSG00000100300', 'ENSG00000100304', 'ENSG00000100311', 'ENSG00000100321', 'ENSG00000100336', 'ENSG00000100360', 'ENSG00000100364', 'ENSG00000100365', 'ENSG00000100368', 'ENSG00000100376', 'ENSG00000100385', 'ENSG00000100413', 'ENSG00000100417', 'ENSG00000100422', 'ENSG00000100427', 'ENSG00000100473', 'ENSG00000100504', 'ENSG00000100505', 'ENSG00000100564', 'ENSG00000100577', 'ENSG00000100580', 'ENSG00000100592', 'ENSG00000100596', 'ENSG00000100625', 'ENSG00000100721', 'ENSG00000100722', 'ENSG00000100744', 'ENSG00000100908', 'ENSG00000100968', 'ENSG00000100979', 'ENSG00000100983', 'ENSG00000100994', 'ENSG00000100997', 'ENSG00000101000', 'ENSG00000101052', 'ENSG00000101057', 'ENSG00000101104', 'ENSG00000101158', 'ENSG00000101161', 'ENSG00000101162', 'ENSG00000101181', 'ENSG00000101190', 'ENSG00000101191', 'ENSG00000101197', 'ENSG00000101216', 'ENSG00000101220', 'ENSG00000101353', 'ENSG00000101361', 'ENSG00000101363', 'ENSG00000101439', 'ENSG00000101442', 'ENSG00000101443', 'ENSG00000101444', 'ENSG00000101473', 'ENSG00000101546', 'ENSG00000101574', 'ENSG00000101577', 'ENSG00000101596', 'ENSG00000101605', 'ENSG00000101624', 'ENSG00000101638', 'ENSG00000101751', 'ENSG00000101752', 'ENSG00000102445', 'ENSG00000102554', 'ENSG00000102595', 'ENSG00000102606', 'ENSG00000102699', 'ENSG00000102743', 'ENSG00000102755', 'ENSG00000102781', 'ENSG00000102886', 'ENSG00000103021', 'ENSG00000103034', 'ENSG00000103056', 'ENSG00000103121', 'ENSG00000103148', 'ENSG00000103174', 'ENSG00000103187', 'ENSG00000103199', 'ENSG00000103202', 'ENSG00000103227', 'ENSG00000103245', 'ENSG00000103479', 'ENSG00000103510', 'ENSG00000103540', 'ENSG00000103550', 'ENSG00000103569', 'ENSG00000103657', 'ENSG00000103811', 'ENSG00000104043', 'ENSG00000104055', 'ENSG00000104059', 'ENSG00000104093', 'ENSG00000104213', 'ENSG00000104219', 'ENSG00000104321', 'ENSG00000104341', 'ENSG00000104361', 'ENSG00000104419', 'ENSG00000104427', 'ENSG00000104442', 'ENSG00000104472', 'ENSG00000104490', 'ENSG00000104497', 'ENSG00000104518', 'ENSG00000104611', 'ENSG00000104689', 'ENSG00000104738', 'ENSG00000104804', 'ENSG00000104805', 'ENSG00000104823', 'ENSG00000104835', 'ENSG00000104863', 'ENSG00000104870', 'ENSG00000104872', 'ENSG00000104883', 'ENSG00000104894', 'ENSG00000104951', 'ENSG00000104953', 'ENSG00000104964', 'ENSG00000104972', 'ENSG00000104979', 'ENSG00000105011', 'ENSG00000105063', 'ENSG00000105136', 'ENSG00000105146', 'ENSG00000105186', 'ENSG00000105245', 'ENSG00000105248', 'ENSG00000105258', 'ENSG00000105287', 'ENSG00000105290', 'ENSG00000105298', 'ENSG00000105321', 'ENSG00000105339', 'ENSG00000105341', 'ENSG00000105371', 'ENSG00000105401', 'ENSG00000105404', 'ENSG00000105426', 'ENSG00000105464', 'ENSG00000105497', 'ENSG00000105499', 'ENSG00000105501', 'ENSG00000105519', 'ENSG00000105520', 'ENSG00000105568', 'ENSG00000105607', 'ENSG00000105609', 'ENSG00000105618', 'ENSG00000105650', 'ENSG00000105656', 'ENSG00000105672', 'ENSG00000105695', 'ENSG00000105699', 'ENSG00000105750', 'ENSG00000105755', 'ENSG00000105771', 'ENSG00000105808', 'ENSG00000105829', 'ENSG00000105855', 'ENSG00000105875', 'ENSG00000105877', 'ENSG00000105887', 'ENSG00000105928', 'ENSG00000105963', 'ENSG00000105971', 'ENSG00000105974', 'ENSG00000106049', 'ENSG00000106100', 'ENSG00000106123', 'ENSG00000106125', 'ENSG00000106153', 'ENSG00000106302', 'ENSG00000106366', 'ENSG00000106392', 'ENSG00000106404', 'ENSG00000106460', 'ENSG00000106477', 'ENSG00000106484', 'ENSG00000106538', 'ENSG00000106591', 'ENSG00000106603', 'ENSG00000106617', 'ENSG00000106624', 'ENSG00000106733', 'ENSG00000106771', 'ENSG00000106772', 'ENSG00000106780', 'ENSG00000106789', 'ENSG00000106976', 'ENSG00000107020', 'ENSG00000107104', 'ENSG00000107281', 'ENSG00000107521', 'ENSG00000107537', 'ENSG00000107551', 'ENSG00000107554', 'ENSG00000107679', 'ENSG00000107719', 'ENSG00000107738', 'ENSG00000107745', 'ENSG00000107771', 'ENSG00000107796', 'ENSG00000107854', 'ENSG00000107882', 'ENSG00000107902', 'ENSG00000107951', 'ENSG00000107959', 'ENSG00000107960', 'ENSG00000108010', 'ENSG00000108039', 'ENSG00000108107', 'ENSG00000108262', 'ENSG00000108264', 'ENSG00000108272', 'ENSG00000108278', 'ENSG00000108294', 'ENSG00000108349', 'ENSG00000108352', 'ENSG00000108375', 'ENSG00000108379', 'ENSG00000108384', 'ENSG00000108389', 'ENSG00000108395', 'ENSG00000108405', 'ENSG00000108406', 'ENSG00000108433', 'ENSG00000108439', 'ENSG00000108448', 'ENSG00000108556', 'ENSG00000108559', 'ENSG00000108587', 'ENSG00000108592', 'ENSG00000108666', 'ENSG00000108771', 'ENSG00000108797', 'ENSG00000108813', 'ENSG00000108823', 'ENSG00000108883', 'ENSG00000108960', 'ENSG00000109063', 'ENSG00000109084', 'ENSG00000109163', 'ENSG00000109265', 'ENSG00000109390', 'ENSG00000109519', 'ENSG00000109667', 'ENSG00000109674', 'ENSG00000109684', 'ENSG00000109689', 'ENSG00000109794', 'ENSG00000109814', 'ENSG00000109854', 'ENSG00000109919', 'ENSG00000109927', 'ENSG00000109944', 'ENSG00000110031', 'ENSG00000110042', 'ENSG00000110074', 'ENSG00000110080', 'ENSG00000110092', 'ENSG00000110108', 'ENSG00000110171', 'ENSG00000110218', 'ENSG00000110315', 'ENSG00000110328', 'ENSG00000110344', 'ENSG00000110375', 'ENSG00000110427', 'ENSG00000110435', 'ENSG00000110455', 'ENSG00000110628', 'ENSG00000110851', 'ENSG00000110880', 'ENSG00000111196', 'ENSG00000111215', 'ENSG00000111245', 'ENSG00000111254', 'ENSG00000111321', 'ENSG00000111328', 'ENSG00000111331', 'ENSG00000111452', 'ENSG00000111602', 'ENSG00000111666', 'ENSG00000111671', 'ENSG00000111696', 'ENSG00000111725', 'ENSG00000111801', 'ENSG00000111816', 'ENSG00000111843', 'ENSG00000111846', 'ENSG00000111850', 'ENSG00000111863', 'ENSG00000111875', 'ENSG00000111880', 'ENSG00000111886', 'ENSG00000111906', 'ENSG00000111962', 'ENSG00000112039', 'ENSG00000112081', 'ENSG00000112096', 'ENSG00000112139', 'ENSG00000112195', 'ENSG00000112210', 'ENSG00000112218', 'ENSG00000112290', 'ENSG00000112294', 'ENSG00000112297', 'ENSG00000112306', 'ENSG00000112308', 'ENSG00000112343', 'ENSG00000112584', 'ENSG00000112599', 'ENSG00000112664', 'ENSG00000112667', 'ENSG00000112679', 'ENSG00000112697', 'ENSG00000112763', 'ENSG00000112787', 'ENSG00000112799', 'ENSG00000112874', 'ENSG00000112977', 'ENSG00000112992', 'ENSG00000113231', 'ENSG00000113273', 'ENSG00000113296', 'ENSG00000113318', 'ENSG00000113319', 'ENSG00000113441', 'ENSG00000113494', 'ENSG00000113504', 'ENSG00000113638', 'ENSG00000113645', 'ENSG00000113721', 'ENSG00000113734', 'ENSG00000113758', 'ENSG00000113812', 'ENSG00000113946', 'ENSG00000113971', 'ENSG00000114021', 'ENSG00000114054', 'ENSG00000114107', 'ENSG00000114166', 'ENSG00000114446', 'ENSG00000114455', 'ENSG00000114529', 'ENSG00000114757', 'ENSG00000114805', 'ENSG00000115107', 'ENSG00000115109', 'ENSG00000115129', 'ENSG00000115138', 'ENSG00000115216', 'ENSG00000115257', 'ENSG00000115268', 'ENSG00000115282', 'ENSG00000115306', 'ENSG00000115310', 'ENSG00000115350', 'ENSG00000115364', 'ENSG00000115368', 'ENSG00000115423', 'ENSG00000115486', 'ENSG00000115525', 'ENSG00000115590', 'ENSG00000115594', 'ENSG00000115649', 'ENSG00000115657', 'ENSG00000115677', 'ENSG00000115687', 'ENSG00000115750', 'ENSG00000115825', 'ENSG00000115828', 'ENSG00000115850', 'ENSG00000115884', 'ENSG00000115902', 'ENSG00000115919', 'ENSG00000115944', 'ENSG00000115946', 'ENSG00000115947', 'ENSG00000116120', 'ENSG00000116127', 'ENSG00000116133', 'ENSG00000116157', 'ENSG00000116198', 'ENSG00000116213', 'ENSG00000116237', 'ENSG00000116260', 'ENSG00000116406', 'ENSG00000116473', 'ENSG00000116489', 'ENSG00000116514', 'ENSG00000116663', 'ENSG00000116679', 'ENSG00000116704', 'ENSG00000116711', 'ENSG00000116741', 'ENSG00000116761', 'ENSG00000116771', 'ENSG00000116791', 'ENSG00000116815', 'ENSG00000116857', 'ENSG00000116883', 'ENSG00000116954', 'ENSG00000116957', 'ENSG00000116977', 'ENSG00000116981', 'ENSG00000116983', 'ENSG00000116985', 'ENSG00000117013', 'ENSG00000117091', 'ENSG00000117115', 'ENSG00000117133', 'ENSG00000117153', 'ENSG00000117174', 'ENSG00000117226', 'ENSG00000117228', 'ENSG00000117280', 'ENSG00000117335', 'ENSG00000117362', 'ENSG00000117394', 'ENSG00000117480', 'ENSG00000117481', 'ENSG00000117500', 'ENSG00000117505', 'ENSG00000117569', 'ENSG00000117595', 'ENSG00000117748', 'ENSG00000117791', 'ENSG00000117868', 'ENSG00000118096', 'ENSG00000118162', 'ENSG00000118197', 'ENSG00000118217', 'ENSG00000118418', 'ENSG00000118432', 'ENSG00000118507', 'ENSG00000118514', 'ENSG00000118564', 'ENSG00000118579', 'ENSG00000118640', 'ENSG00000118680', 'ENSG00000118894', 'ENSG00000118961', 'ENSG00000119125', 'ENSG00000119139', 'ENSG00000119185', 'ENSG00000119227', 'ENSG00000119242', 'ENSG00000119280', 'ENSG00000119314', 'ENSG00000119326', 'ENSG00000119411', 'ENSG00000119431', 'ENSG00000119471', 'ENSG00000119514', 'ENSG00000119541', 'ENSG00000119599', 'ENSG00000119608', 'ENSG00000119632', 'ENSG00000119640', 'ENSG00000119669', 'ENSG00000119673', 'ENSG00000119718', 'ENSG00000119723', 'ENSG00000119771', 'ENSG00000119787', 'ENSG00000119844', 'ENSG00000119878', 'ENSG00000119900', 'ENSG00000119906', 'ENSG00000119950', 'ENSG00000119965', 'ENSG00000119977', 'ENSG00000120029', 'ENSG00000120051', 'ENSG00000120071', 'ENSG00000120087', 'ENSG00000120088', 'ENSG00000120162', 'ENSG00000120437', 'ENSG00000120549', 'ENSG00000120594', 'ENSG00000120658', 'ENSG00000120659', 'ENSG00000120675', 'ENSG00000120784', 'ENSG00000120860', 'ENSG00000120915', 'ENSG00000121083', 'ENSG00000121104', 'ENSG00000121289', 'ENSG00000121310', 'ENSG00000121410', 'ENSG00000121454', 'ENSG00000121552', 'ENSG00000121691', 'ENSG00000121716', 'ENSG00000121895', 'ENSG00000121897', 'ENSG00000121989', 'ENSG00000122034', 'ENSG00000122223', 'ENSG00000122224', 'ENSG00000122335', 'ENSG00000122359', 'ENSG00000122386', 'ENSG00000122481', 'ENSG00000122497', 'ENSG00000122641', 'ENSG00000122674', 'ENSG00000122741', 'ENSG00000122783', 'ENSG00000122863', 'ENSG00000122912', 'ENSG00000122965', 'ENSG00000123179', 'ENSG00000123191', 'ENSG00000123219', 'ENSG00000123297', 'ENSG00000123360', 'ENSG00000123415', 'ENSG00000123453', 'ENSG00000123685', 'ENSG00000123810', 'ENSG00000123815', 'ENSG00000123843', 'ENSG00000124145', 'ENSG00000124164', 'ENSG00000124171', 'ENSG00000124225', 'ENSG00000124275', 'ENSG00000124299', 'ENSG00000124357', 'ENSG00000124491', 'ENSG00000124496', 'ENSG00000124508', 'ENSG00000124532', 'ENSG00000124535', 'ENSG00000124562', 'ENSG00000124570', 'ENSG00000124587', 'ENSG00000124588', 'ENSG00000124593', 'ENSG00000124613', 'ENSG00000124615', 'ENSG00000124713', 'ENSG00000124721', 'ENSG00000124733', 'ENSG00000124784', 'ENSG00000124787', 'ENSG00000125124', 'ENSG00000125166', 'ENSG00000125170', 'ENSG00000125247', 'ENSG00000125319', 'ENSG00000125388', 'ENSG00000125430', 'ENSG00000125445', 'ENSG00000125450', 'ENSG00000125485', 'ENSG00000125503', 'ENSG00000125510', 'ENSG00000125534', 'ENSG00000125538', 'ENSG00000125551', 'ENSG00000125618', 'ENSG00000125629', 'ENSG00000125637', 'ENSG00000125648', 'ENSG00000125703', 'ENSG00000125734', 'ENSG00000125735', 'ENSG00000125743', 'ENSG00000125744', 'ENSG00000125753', 'ENSG00000125755', 'ENSG00000125775', 'ENSG00000125818', 'ENSG00000125821', 'ENSG00000125843', 'ENSG00000125868', 'ENSG00000125871', 'ENSG00000125877', 'ENSG00000125885', 'ENSG00000125901', 'ENSG00000125910', 'ENSG00000125912', 'ENSG00000125966', 'ENSG00000126070', 'ENSG00000126091', 'ENSG00000126106', 'ENSG00000126216', 'ENSG00000126217', 'ENSG00000126246', 'ENSG00000126266', 'ENSG00000126432', 'ENSG00000126709', 'ENSG00000126790', 'ENSG00000126858', 'ENSG00000126860', 'ENSG00000126870', 'ENSG00000127220', 'ENSG00000127249', 'ENSG00000127337', 'ENSG00000127366', 'ENSG00000127399', 'ENSG00000127415', 'ENSG00000127418', 'ENSG00000127445', 'ENSG00000127507', 'ENSG00000127561', 'ENSG00000127616', 'ENSG00000127666', 'ENSG00000127884', 'ENSG00000127946', 'ENSG00000127948', 'ENSG00000127951', 'ENSG00000127952', 'ENSG00000128039', 'ENSG00000128185', 'ENSG00000128218', 'ENSG00000128245', 'ENSG00000128253', 'ENSG00000128266', 'ENSG00000128274', 'ENSG00000128276', 'ENSG00000128284', 'ENSG00000128383', 'ENSG00000128408', 'ENSG00000128487', 'ENSG00000128510', 'ENSG00000128578', 'ENSG00000128604', 'ENSG00000128641', 'ENSG00000128683', 'ENSG00000128708', 'ENSG00000128789', 'ENSG00000128805', 'ENSG00000128833', 'ENSG00000128886', 'ENSG00000128891', 'ENSG00000129003', 'ENSG00000129048', 'ENSG00000129055', 'ENSG00000129103', 'ENSG00000129195', 'ENSG00000129204', 'ENSG00000129282', 'ENSG00000129317', 'ENSG00000129422', 'ENSG00000129562', 'ENSG00000129566', 'ENSG00000129625', 'ENSG00000129657', 'ENSG00000129667', 'ENSG00000129673', 'ENSG00000129925', 'ENSG00000129993', 'ENSG00000130175', 'ENSG00000130177', 'ENSG00000130299', 'ENSG00000130300', 'ENSG00000130309', 'ENSG00000130312', 'ENSG00000130338', 'ENSG00000130348', 'ENSG00000130363', 'ENSG00000130377', 'ENSG00000130413', 'ENSG00000130414', 'ENSG00000130477', 'ENSG00000130487', 'ENSG00000130513', 'ENSG00000130544', 'ENSG00000130584', 'ENSG00000130590', 'ENSG00000130635', 'ENSG00000130640', 'ENSG00000130653', 'ENSG00000130669', 'ENSG00000130695', 'ENSG00000130725', 'ENSG00000130731', 'ENSG00000130758', 'ENSG00000130768', 'ENSG00000130810', 'ENSG00000130812', 'ENSG00000130943', 'ENSG00000130950', 'ENSG00000130956', 'ENSG00000131013', 'ENSG00000131042', 'ENSG00000131044', 'ENSG00000131100', 'ENSG00000131148', 'ENSG00000131153', 'ENSG00000131188', 'ENSG00000131238', 'ENSG00000131323', 'ENSG00000131351', 'ENSG00000131370', 'ENSG00000131373', 'ENSG00000131378', 'ENSG00000131379', 'ENSG00000131398', 'ENSG00000131435', 'ENSG00000131459', 'ENSG00000131484', 'ENSG00000131507', 'ENSG00000131669', 'ENSG00000131697', 'ENSG00000131711', 'ENSG00000131845', 'ENSG00000131849', 'ENSG00000131899', 'ENSG00000131944', 'ENSG00000132003', 'ENSG00000132141', 'ENSG00000132170', 'ENSG00000132185', 'ENSG00000132196', 'ENSG00000132199', 'ENSG00000132205', 'ENSG00000132256', 'ENSG00000132274', 'ENSG00000132305', 'ENSG00000132313', 'ENSG00000132334', 'ENSG00000132357', 'ENSG00000132359', 'ENSG00000132388', 'ENSG00000132406', 'ENSG00000132423', 'ENSG00000132436', 'ENSG00000132481', 'ENSG00000132507', 'ENSG00000132541', 'ENSG00000132600', 'ENSG00000132623', 'ENSG00000132664', 'ENSG00000132740', 'ENSG00000132781', 'ENSG00000132819', 'ENSG00000132823', 'ENSG00000132837', 'ENSG00000132842', 'ENSG00000132958', 'ENSG00000133048', 'ENSG00000133059', 'ENSG00000133065', 'ENSG00000133101', 'ENSG00000133104', 'ENSG00000133106', 'ENSG00000133116', 'ENSG00000133121', 'ENSG00000133195', 'ENSG00000133313', 'ENSG00000133392', 'ENSG00000133466', 'ENSG00000133574', 'ENSG00000133687', 'ENSG00000133704', 'ENSG00000133739', 'ENSG00000133789', 'ENSG00000133816', 'ENSG00000133835', 'ENSG00000133863', 'ENSG00000133985', 'ENSG00000134046', 'ENSG00000134056', 'ENSG00000134058', 'ENSG00000134070', 'ENSG00000134077', 'ENSG00000134184', 'ENSG00000134201', 'ENSG00000134202', 'ENSG00000134243', 'ENSG00000134255', 'ENSG00000134262', 'ENSG00000134265', 'ENSG00000134278', 'ENSG00000134317', 'ENSG00000134369', 'ENSG00000134463', 'ENSG00000134548', 'ENSG00000134551', 'ENSG00000134574', 'ENSG00000134575', 'ENSG00000134627', 'ENSG00000134709', 'ENSG00000134755', 'ENSG00000134759', 'ENSG00000134779', 'ENSG00000134809', 'ENSG00000134824', 'ENSG00000134851', 'ENSG00000134905', 'ENSG00000134955', 'ENSG00000135002', 'ENSG00000135052', 'ENSG00000135074', 'ENSG00000135077', 'ENSG00000135124', 'ENSG00000135211', 'ENSG00000135299', 'ENSG00000135318', 'ENSG00000135334', 'ENSG00000135336', 'ENSG00000135362', 'ENSG00000135390', 'ENSG00000135404', 'ENSG00000135424', 'ENSG00000135441', 'ENSG00000135506', 'ENSG00000135525', 'ENSG00000135541', 'ENSG00000135587', 'ENSG00000135643', 'ENSG00000135698', 'ENSG00000135778', 'ENSG00000135821', 'ENSG00000135828', 'ENSG00000135842', 'ENSG00000135898', 'ENSG00000135905', 'ENSG00000135926', 'ENSG00000135932', 'ENSG00000135951', 'ENSG00000135972', 'ENSG00000136002', 'ENSG00000136010', 'ENSG00000136051', 'ENSG00000136052', 'ENSG00000136068', 'ENSG00000136098', 'ENSG00000136108', 'ENSG00000136111', 'ENSG00000136141', 'ENSG00000136144', 'ENSG00000136158', 'ENSG00000136159', 'ENSG00000136160', 'ENSG00000136167', 'ENSG00000136231', 'ENSG00000136235', 'ENSG00000136237', 'ENSG00000136238', 'ENSG00000136240', 'ENSG00000136247', 'ENSG00000136270', 'ENSG00000136280', 'ENSG00000136371', 'ENSG00000136378', 'ENSG00000136425', 'ENSG00000136436', 'ENSG00000136448', 'ENSG00000136449', 'ENSG00000136492', 'ENSG00000136573', 'ENSG00000136653', 'ENSG00000136689', 'ENSG00000136710', 'ENSG00000136717', 'ENSG00000136810', 'ENSG00000136842', 'ENSG00000136848', 'ENSG00000136856', 'ENSG00000136866', 'ENSG00000136868', 'ENSG00000136869', 'ENSG00000136875', 'ENSG00000136897', 'ENSG00000136925', 'ENSG00000136982', 'ENSG00000137054', 'ENSG00000137101', 'ENSG00000137106', 'ENSG00000137168', 'ENSG00000137193', 'ENSG00000137225', 'ENSG00000137251', 'ENSG00000137267', 'ENSG00000137274', 'ENSG00000137285', 'ENSG00000137288', 'ENSG00000137310', 'ENSG00000137331', 'ENSG00000137411', 'ENSG00000137413', 'ENSG00000137449', 'ENSG00000137462', 'ENSG00000137486', 'ENSG00000137501', 'ENSG00000137547', 'ENSG00000137714', 'ENSG00000137731', 'ENSG00000137767', 'ENSG00000137806', 'ENSG00000137841', 'ENSG00000137877', 'ENSG00000137880', 'ENSG00000138028', 'ENSG00000138029', 'ENSG00000138030', 'ENSG00000138031', 'ENSG00000138035', 'ENSG00000138036', 'ENSG00000138061', 'ENSG00000138083', 'ENSG00000138085', 'ENSG00000138095', 'ENSG00000138101', 'ENSG00000138107', 'ENSG00000138134', 'ENSG00000138175', 'ENSG00000138185', 'ENSG00000138297', 'ENSG00000138346', 'ENSG00000138375', 'ENSG00000138378', 'ENSG00000138399', 'ENSG00000138400', 'ENSG00000138439', 'ENSG00000138468', 'ENSG00000138495', 'ENSG00000138615', 'ENSG00000138617', 'ENSG00000138621', 'ENSG00000138639', 'ENSG00000138641', 'ENSG00000138678', 'ENSG00000138685', 'ENSG00000138686', 'ENSG00000138709', 'ENSG00000138722', 'ENSG00000138735', 'ENSG00000138744', 'ENSG00000138772', 'ENSG00000138780', 'ENSG00000138796', 'ENSG00000138801', 'ENSG00000138823', 'ENSG00000138964', 'ENSG00000139044', 'ENSG00000139182', 'ENSG00000139187', 'ENSG00000139190', 'ENSG00000139192', 'ENSG00000139197', 'ENSG00000139410', 'ENSG00000139428', 'ENSG00000139508', 'ENSG00000139514', 'ENSG00000139537', 'ENSG00000139620', 'ENSG00000139714', 'ENSG00000139832', 'ENSG00000139835', 'ENSG00000139899', 'ENSG00000139921', 'ENSG00000139998', 'ENSG00000140006', 'ENSG00000140009', 'ENSG00000140030', 'ENSG00000140092', 'ENSG00000140105', 'ENSG00000140262', 'ENSG00000140263', 'ENSG00000140264', 'ENSG00000140297', 'ENSG00000140368', 'ENSG00000140386', 'ENSG00000140391', 'ENSG00000140403', 'ENSG00000140474', 'ENSG00000140479', 'ENSG00000140525', 'ENSG00000140534', 'ENSG00000140545', 'ENSG00000140718', 'ENSG00000140832', 'ENSG00000140848', 'ENSG00000140876', 'ENSG00000140905', 'ENSG00000140988', 'ENSG00000141012', 'ENSG00000141028', 'ENSG00000141127', 'ENSG00000141141', 'ENSG00000141293', 'ENSG00000141294', 'ENSG00000141295', 'ENSG00000141314', 'ENSG00000141380', 'ENSG00000141384', 'ENSG00000141391', 'ENSG00000141428', 'ENSG00000141452', 'ENSG00000141458', 'ENSG00000141469', 'ENSG00000141504', 'ENSG00000141540', 'ENSG00000141542', 'ENSG00000141556', 'ENSG00000141560', 'ENSG00000141562', 'ENSG00000141569', 'ENSG00000141570', 'ENSG00000141576', 'ENSG00000141580', 'ENSG00000141696', 'ENSG00000141698', 'ENSG00000141756', 'ENSG00000141759', 'ENSG00000141956', 'ENSG00000141965', 'ENSG00000141994', 'ENSG00000142046', 'ENSG00000142065', 'ENSG00000142089', 'ENSG00000142102', 'ENSG00000142149', 'ENSG00000142207', 'ENSG00000142224', 'ENSG00000142252', 'ENSG00000142453', 'ENSG00000142534', 'ENSG00000142583', 'ENSG00000142621', 'ENSG00000142632', 'ENSG00000142675', 'ENSG00000142684', 'ENSG00000142686', 'ENSG00000142794', 'ENSG00000142856', 'ENSG00000142867', 'ENSG00000143079', 'ENSG00000143149', 'ENSG00000143153', 'ENSG00000143155', 'ENSG00000143157', 'ENSG00000143158', 'ENSG00000143178', 'ENSG00000143195', 'ENSG00000143198', 'ENSG00000143226', 'ENSG00000143228', 'ENSG00000143248', 'ENSG00000143353', 'ENSG00000143387', 'ENSG00000143498', 'ENSG00000143537', 'ENSG00000143554', 'ENSG00000143570', 'ENSG00000143643', 'ENSG00000143653', 'ENSG00000143727', 'ENSG00000143776', 'ENSG00000143797', 'ENSG00000144021', 'ENSG00000144026', 'ENSG00000144034', 'ENSG00000144118', 'ENSG00000144120', 'ENSG00000144199', 'ENSG00000144231', 'ENSG00000144455', 'ENSG00000144485', 'ENSG00000144488', 'ENSG00000144559', 'ENSG00000144597', 'ENSG00000144642', 'ENSG00000144645', 'ENSG00000144647', 'ENSG00000144655', 'ENSG00000144677', 'ENSG00000144712', 'ENSG00000144741', 'ENSG00000144746', 'ENSG00000144821', 'ENSG00000144824', 'ENSG00000144827', 'ENSG00000144843', 'ENSG00000144868', 'ENSG00000145002', 'ENSG00000145020', 'ENSG00000145088', 'ENSG00000145214', 'ENSG00000145246', 'ENSG00000145284', 'ENSG00000145287', 'ENSG00000145348', 'ENSG00000145354', 'ENSG00000145358', 'ENSG00000145365', 'ENSG00000145386', 'ENSG00000145416', 'ENSG00000145476', 'ENSG00000145725', 'ENSG00000145736', 'ENSG00000145777', 'ENSG00000145781', 'ENSG00000145817', 'ENSG00000145882', 'ENSG00000145934', 'ENSG00000145949', 'ENSG00000145965', 'ENSG00000145979', 'ENSG00000145982', 'ENSG00000145996', 'ENSG00000146066', 'ENSG00000146085', 'ENSG00000146094', 'ENSG00000146109', 'ENSG00000146192', 'ENSG00000146205', 'ENSG00000146242', 'ENSG00000146243', 'ENSG00000146281', 'ENSG00000146376', 'ENSG00000146386', 'ENSG00000146409', 'ENSG00000146535', 'ENSG00000146574', 'ENSG00000146707', 'ENSG00000146733', 'ENSG00000146833', 'ENSG00000146856', 'ENSG00000146859', 'ENSG00000147316', 'ENSG00000147324', 'ENSG00000147408', 'ENSG00000147592', 'ENSG00000147684', 'ENSG00000147804', 'ENSG00000147813', 'ENSG00000147852', 'ENSG00000147853', 'ENSG00000147894', 'ENSG00000148019', 'ENSG00000148110', 'ENSG00000148120', 'ENSG00000148187', 'ENSG00000148218', 'ENSG00000148225', 'ENSG00000148229', 'ENSG00000148290', 'ENSG00000148296', 'ENSG00000148331', 'ENSG00000148335', 'ENSG00000148341', 'ENSG00000148377', 'ENSG00000148384', 'ENSG00000148411', 'ENSG00000148426', 'ENSG00000148450', 'ENSG00000148468', 'ENSG00000148484', 'ENSG00000148498', 'ENSG00000148634', 'ENSG00000148730', 'ENSG00000148814', 'ENSG00000148824', 'ENSG00000148841', 'ENSG00000148943', 'ENSG00000149050', 'ENSG00000149054', 'ENSG00000149084', 'ENSG00000149089', 'ENSG00000149115', 'ENSG00000149196', 'ENSG00000149201', 'ENSG00000149218', 'ENSG00000149231', 'ENSG00000149262', 'ENSG00000149292', 'ENSG00000149418', 'ENSG00000149489', 'ENSG00000149548', 'ENSG00000149591', 'ENSG00000149596', 'ENSG00000149599', 'ENSG00000149679', 'ENSG00000149922', 'ENSG00000150093', 'ENSG00000150403', 'ENSG00000150456', 'ENSG00000150527', 'ENSG00000150593', 'ENSG00000150625', 'ENSG00000150627', 'ENSG00000150667', 'ENSG00000150764', 'ENSG00000150768', 'ENSG00000150977', 'ENSG00000151012', 'ENSG00000151079', 'ENSG00000151135', 'ENSG00000151150', 'ENSG00000151229', 'ENSG00000151287', 'ENSG00000151353', 'ENSG00000151364', 'ENSG00000151470', 'ENSG00000151498', 'ENSG00000151500', 'ENSG00000151552', 'ENSG00000151640', 'ENSG00000151689', 'ENSG00000151690', 'ENSG00000151718', 'ENSG00000151725', 'ENSG00000151729', 'ENSG00000151773', 'ENSG00000151806', 'ENSG00000151917', 'ENSG00000151948', 'ENSG00000152128', 'ENSG00000152133', 'ENSG00000152207', 'ENSG00000152213', 'ENSG00000152219', 'ENSG00000152223', 'ENSG00000152291', 'ENSG00000152348', 'ENSG00000152359', 'ENSG00000152404', 'ENSG00000152492', 'ENSG00000152495', 'ENSG00000152558', 'ENSG00000152580', 'ENSG00000152601', 'ENSG00000152778', 'ENSG00000152904', 'ENSG00000152944', 'ENSG00000153060', 'ENSG00000153113', 'ENSG00000153130', 'ENSG00000153157', 'ENSG00000153201', 'ENSG00000153363', 'ENSG00000153391', 'ENSG00000153395', 'ENSG00000153406', 'ENSG00000153495', 'ENSG00000153531', 'ENSG00000153558', 'ENSG00000153574', 'ENSG00000153832', 'ENSG00000153898', 'ENSG00000153933', 'ENSG00000153989', 'ENSG00000154035', 'ENSG00000154040', 'ENSG00000154079', 'ENSG00000154099', 'ENSG00000154122', 'ENSG00000154134', 'ENSG00000154165', 'ENSG00000154310', 'ENSG00000154319', 'ENSG00000154359', 'ENSG00000154511', 'ENSG00000154537', 'ENSG00000154548', 'ENSG00000154645', 'ENSG00000154719', 'ENSG00000154743', 'ENSG00000154767', 'ENSG00000154803', 'ENSG00000154845', 'ENSG00000154864', 'ENSG00000154889', 'ENSG00000154930', 'ENSG00000155016', 'ENSG00000155085', 'ENSG00000155090', 'ENSG00000155093', 'ENSG00000155130', 'ENSG00000155158', 'ENSG00000155275', 'ENSG00000155307', 'ENSG00000155463', 'ENSG00000155465', 'ENSG00000155542', 'ENSG00000155719', 'ENSG00000155850', 'ENSG00000155858', 'ENSG00000156110', 'ENSG00000156171', 'ENSG00000156172', 'ENSG00000156239', 'ENSG00000156253', 'ENSG00000156261', 'ENSG00000156398', 'ENSG00000156482', 'ENSG00000156535', 'ENSG00000156599', 'ENSG00000156603', 'ENSG00000156711', 'ENSG00000156795', 'ENSG00000156869', 'ENSG00000156958', 'ENSG00000156966', 'ENSG00000156973', 'ENSG00000157017', 'ENSG00000157214', 'ENSG00000157227', 'ENSG00000157240', 'ENSG00000157322', 'ENSG00000157326', 'ENSG00000157335', 'ENSG00000157379', 'ENSG00000157426', 'ENSG00000157557', 'ENSG00000157601', 'ENSG00000157653', 'ENSG00000157680', 'ENSG00000157693', 'ENSG00000157764', 'ENSG00000157823', 'ENSG00000157873', 'ENSG00000158023', 'ENSG00000158106', 'ENSG00000158109', 'ENSG00000158122', 'ENSG00000158234', 'ENSG00000158270', 'ENSG00000158470', 'ENSG00000158483', 'ENSG00000158497', 'ENSG00000158555', 'ENSG00000158604', 'ENSG00000158623', 'ENSG00000158669', 'ENSG00000158711', 'ENSG00000158715', 'ENSG00000158717', 'ENSG00000158747', 'ENSG00000159055', 'ENSG00000159063', 'ENSG00000159110', 'ENSG00000159166', 'ENSG00000159202', 'ENSG00000159212', 'ENSG00000159228', 'ENSG00000159267', 'ENSG00000159314', 'ENSG00000159352', 'ENSG00000159479', 'ENSG00000159556', 'ENSG00000159588', 'ENSG00000159593', 'ENSG00000159733', 'ENSG00000159788', 'ENSG00000159884', 'ENSG00000159915', 'ENSG00000159958', 'ENSG00000160007', 'ENSG00000160013', 'ENSG00000160014', 'ENSG00000160111', 'ENSG00000160113', 'ENSG00000160117', 'ENSG00000160145', 'ENSG00000160185', 'ENSG00000160188', 'ENSG00000160193', 'ENSG00000160207', 'ENSG00000160209', 'ENSG00000160213', 'ENSG00000160233', 'ENSG00000160284', 'ENSG00000160285', 'ENSG00000160293', 'ENSG00000160310', 'ENSG00000160352', 'ENSG00000160392', 'ENSG00000160401', 'ENSG00000160439', 'ENSG00000160447', 'ENSG00000160588', 'ENSG00000160593', 'ENSG00000160712', 'ENSG00000160781', 'ENSG00000160856', 'ENSG00000160948', 'ENSG00000160949', 'ENSG00000160953', 'ENSG00000161016', 'ENSG00000161036', 'ENSG00000161091', 'ENSG00000161217', 'ENSG00000161265', 'ENSG00000161326', 'ENSG00000161513', 'ENSG00000161551', 'ENSG00000161570', 'ENSG00000161618', 'ENSG00000161640', 'ENSG00000161664', 'ENSG00000161888', 'ENSG00000161929', 'ENSG00000161958', 'ENSG00000161980', 'ENSG00000161981', 'ENSG00000162062', 'ENSG00000162076', 'ENSG00000162105', 'ENSG00000162174', 'ENSG00000162222', 'ENSG00000162384', 'ENSG00000162396', 'ENSG00000162441', 'ENSG00000162461', 'ENSG00000162482', 'ENSG00000162614', 'ENSG00000162616', 'ENSG00000162620', 'ENSG00000162631', 'ENSG00000162643', 'ENSG00000162654', 'ENSG00000162688', 'ENSG00000162733', 'ENSG00000162734', 'ENSG00000162769', 'ENSG00000162777', 'ENSG00000162817', 'ENSG00000162825', 'ENSG00000162836', 'ENSG00000162885', 'ENSG00000162927', 'ENSG00000162929', 'ENSG00000162946', 'ENSG00000162976', 'ENSG00000162994', 'ENSG00000163001', 'ENSG00000163002', 'ENSG00000163040', 'ENSG00000163041', 'ENSG00000163072', 'ENSG00000163131', 'ENSG00000163138', 'ENSG00000163191', 'ENSG00000163219', 'ENSG00000163249', 'ENSG00000163251', 'ENSG00000163281', 'ENSG00000163320', 'ENSG00000163322', 'ENSG00000163389', 'ENSG00000163393', 'ENSG00000163428', 'ENSG00000163430', 'ENSG00000163486', 'ENSG00000163528', 'ENSG00000163535', 'ENSG00000163564', 'ENSG00000163568', 'ENSG00000163584', 'ENSG00000163607', 'ENSG00000163644', 'ENSG00000163686', 'ENSG00000163687', 'ENSG00000163806', 'ENSG00000163807', 'ENSG00000163811', 'ENSG00000163814', 'ENSG00000163864', 'ENSG00000163875', 'ENSG00000163898', 'ENSG00000163931', 'ENSG00000163945', 'ENSG00000163959', 'ENSG00000163961', 'ENSG00000164002', 'ENSG00000164010', 'ENSG00000164022', 'ENSG00000164037', 'ENSG00000164048', 'ENSG00000164099', 'ENSG00000164111', 'ENSG00000164136', 'ENSG00000164144', 'ENSG00000164181', 'ENSG00000164190', 'ENSG00000164237', 'ENSG00000164253', 'ENSG00000164284', 'ENSG00000164307', 'ENSG00000164308', 'ENSG00000164338', 'ENSG00000164346', 'ENSG00000164347', 'ENSG00000164414', 'ENSG00000164440', 'ENSG00000164484', 'ENSG00000164494', 'ENSG00000164574', 'ENSG00000164587', 'ENSG00000164615', 'ENSG00000164627', 'ENSG00000164647', 'ENSG00000164695', 'ENSG00000164707', 'ENSG00000164708', 'ENSG00000164715', 'ENSG00000164733', 'ENSG00000164749', 'ENSG00000164761', 'ENSG00000164823', 'ENSG00000164896', 'ENSG00000164904', 'ENSG00000164924', 'ENSG00000164930', 'ENSG00000164933', 'ENSG00000164934', 'ENSG00000164941', 'ENSG00000164978', 'ENSG00000164985', 'ENSG00000164989', 'ENSG00000165025', 'ENSG00000165028', 'ENSG00000165118', 'ENSG00000165138', 'ENSG00000165171', 'ENSG00000165271', 'ENSG00000165275', 'ENSG00000165282', 'ENSG00000165390', 'ENSG00000165392', 'ENSG00000165410', 'ENSG00000165434', 'ENSG00000165449', 'ENSG00000165474', 'ENSG00000165476', 'ENSG00000165487', 'ENSG00000165502', 'ENSG00000165511', 'ENSG00000165555', 'ENSG00000165630', 'ENSG00000165633', 'ENSG00000165646', 'ENSG00000165661', 'ENSG00000165672', 'ENSG00000165714', 'ENSG00000165730', 'ENSG00000165752', 'ENSG00000165782', 'ENSG00000165801', 'ENSG00000165802', 'ENSG00000165810', 'ENSG00000165832', 'ENSG00000165879', 'ENSG00000165929', 'ENSG00000165935', 'ENSG00000165948', 'ENSG00000165983', 'ENSG00000165985', 'ENSG00000165996', 'ENSG00000165997', 'ENSG00000166002', 'ENSG00000166073', 'ENSG00000166130', 'ENSG00000166140', 'ENSG00000166260', 'ENSG00000166275', 'ENSG00000166278', 'ENSG00000166295', 'ENSG00000166321', 'ENSG00000166401', 'ENSG00000166435', 'ENSG00000166436', 'ENSG00000166439', 'ENSG00000166444', 'ENSG00000166452', 'ENSG00000166471', 'ENSG00000166478', 'ENSG00000166503', 'ENSG00000166529', 'ENSG00000166548', 'ENSG00000166582', 'ENSG00000166685', 'ENSG00000166704', 'ENSG00000166750', 'ENSG00000166762', 'ENSG00000166788', 'ENSG00000166793', 'ENSG00000166821', 'ENSG00000166839', 'ENSG00000166845', 'ENSG00000166847', 'ENSG00000166888', 'ENSG00000166896', 'ENSG00000166927', 'ENSG00000166938', 'ENSG00000166974', 'ENSG00000166997', 'ENSG00000167065', 'ENSG00000167074', 'ENSG00000167077', 'ENSG00000167081', 'ENSG00000167112', 'ENSG00000167131', 'ENSG00000167136', 'ENSG00000167159', 'ENSG00000167173', 'ENSG00000167182', 'ENSG00000167191', 'ENSG00000167202', 'ENSG00000167216', 'ENSG00000167220', 'ENSG00000167272', 'ENSG00000167280', 'ENSG00000167306', 'ENSG00000167363', 'ENSG00000167383', 'ENSG00000167384', 'ENSG00000167434', 'ENSG00000167460', 'ENSG00000167468', 'ENSG00000167535', 'ENSG00000167578', 'ENSG00000167608', 'ENSG00000167617', 'ENSG00000167634', 'ENSG00000167637', 'ENSG00000167642', 'ENSG00000167658', 'ENSG00000167670', 'ENSG00000167671', 'ENSG00000167705', 'ENSG00000167711', 'ENSG00000167720', 'ENSG00000167723', 'ENSG00000167740', 'ENSG00000167747', 'ENSG00000167748', 'ENSG00000167751', 'ENSG00000167766', 'ENSG00000167778', 'ENSG00000167780', 'ENSG00000167815', 'ENSG00000167840', 'ENSG00000167842', 'ENSG00000167850', 'ENSG00000167920', 'ENSG00000167965', 'ENSG00000167969', 'ENSG00000167981', 'ENSG00000168005', 'ENSG00000168028', 'ENSG00000168038', 'ENSG00000168078', 'ENSG00000168116', 'ENSG00000168209', 'ENSG00000168228', 'ENSG00000168255', 'ENSG00000168268', 'ENSG00000168274', 'ENSG00000168275', 'ENSG00000168297', 'ENSG00000168329', 'ENSG00000168356', 'ENSG00000168405', 'ENSG00000168411', 'ENSG00000168461', 'ENSG00000168487', 'ENSG00000168597', 'ENSG00000168614', 'ENSG00000168631', 'ENSG00000168646', 'ENSG00000168653', 'ENSG00000168675', 'ENSG00000168724', 'ENSG00000168765', 'ENSG00000168778', 'ENSG00000168792', 'ENSG00000168803', 'ENSG00000168806', 'ENSG00000168811', 'ENSG00000168894', 'ENSG00000168899', 'ENSG00000168916', 'ENSG00000168936', 'ENSG00000168944', 'ENSG00000169026', 'ENSG00000169047', 'ENSG00000169062', 'ENSG00000169087', 'ENSG00000169131', 'ENSG00000169136', 'ENSG00000169193', 'ENSG00000169217', 'ENSG00000169230', 'ENSG00000169231', 'ENSG00000169241', 'ENSG00000169245', 'ENSG00000169246', 'ENSG00000169252', 'ENSG00000169255', 'ENSG00000169282', 'ENSG00000169567', 'ENSG00000169570', 'ENSG00000169629', 'ENSG00000169660', 'ENSG00000169682', 'ENSG00000169715', 'ENSG00000169718', 'ENSG00000169738', 'ENSG00000169826', 'ENSG00000169857', 'ENSG00000169860', 'ENSG00000169902', 'ENSG00000169914', 'ENSG00000169991', 'ENSG00000170027', 'ENSG00000170074', 'ENSG00000170160', 'ENSG00000170161', 'ENSG00000170264', 'ENSG00000170291', 'ENSG00000170322', 'ENSG00000170382', 'ENSG00000170425', 'ENSG00000170430', 'ENSG00000170469', 'ENSG00000170542', 'ENSG00000170571', 'ENSG00000170638', 'ENSG00000170667', 'ENSG00000170689', 'ENSG00000170819', 'ENSG00000170846', 'ENSG00000170889', 'ENSG00000170915', 'ENSG00000170954', 'ENSG00000171033', 'ENSG00000171045', 'ENSG00000171067', 'ENSG00000171103', 'ENSG00000171115', 'ENSG00000171130', 'ENSG00000171135', 'ENSG00000171160', 'ENSG00000171161', 'ENSG00000171217', 'ENSG00000171246', 'ENSG00000171282', 'ENSG00000171298', 'ENSG00000171320', 'ENSG00000171368', 'ENSG00000171421', 'ENSG00000171469', 'ENSG00000171475', 'ENSG00000171476', 'ENSG00000171488', 'ENSG00000171502', 'ENSG00000171522', 'ENSG00000171574', 'ENSG00000171603', 'ENSG00000171617', 'ENSG00000171634', 'ENSG00000171680', 'ENSG00000171759', 'ENSG00000171763', 'ENSG00000171790', 'ENSG00000171792', 'ENSG00000171793', 'ENSG00000171806', 'ENSG00000171811', 'ENSG00000171848', 'ENSG00000171867', 'ENSG00000171916', 'ENSG00000171928', 'ENSG00000171940', 'ENSG00000171953', 'ENSG00000171962', 'ENSG00000171984', 'ENSG00000172006', 'ENSG00000172007', 'ENSG00000172014', 'ENSG00000172057', 'ENSG00000172058', 'ENSG00000172059', 'ENSG00000172062', 'ENSG00000172070', 'ENSG00000172113', 'ENSG00000172123', 'ENSG00000172197', 'ENSG00000172215', 'ENSG00000172239', 'ENSG00000172270', 'ENSG00000172292', 'ENSG00000172301', 'ENSG00000172331', 'ENSG00000172340', 'ENSG00000172345', 'ENSG00000172349', 'ENSG00000172403', 'ENSG00000172404', 'ENSG00000172500', 'ENSG00000172543', 'ENSG00000172548', 'ENSG00000172575', 'ENSG00000172590', 'ENSG00000172661', 'ENSG00000172671', 'ENSG00000172673', 'ENSG00000172687', 'ENSG00000172716', 'ENSG00000172728', 'ENSG00000172803', 'ENSG00000172818', 'ENSG00000172893', 'ENSG00000172927', 'ENSG00000172954', 'ENSG00000172985', 'ENSG00000173041', 'ENSG00000173085', 'ENSG00000173110', 'ENSG00000173113', 'ENSG00000173193', 'ENSG00000173200', 'ENSG00000173208', 'ENSG00000173209', 'ENSG00000173214', 'ENSG00000173221', 'ENSG00000173226', 'ENSG00000173272', 'ENSG00000173409', 'ENSG00000173457', 'ENSG00000173486', 'ENSG00000173535', 'ENSG00000173566', 'ENSG00000173621', 'ENSG00000173727', 'ENSG00000173809', 'ENSG00000173848', 'ENSG00000173894', 'ENSG00000173930', 'ENSG00000173991', 'ENSG00000173992', 'ENSG00000174007', 'ENSG00000174100', 'ENSG00000174123', 'ENSG00000174125', 'ENSG00000174130', 'ENSG00000174136', 'ENSG00000174137', 'ENSG00000174165', 'ENSG00000174177', 'ENSG00000174236', 'ENSG00000174327', 'ENSG00000174353', 'ENSG00000174374', 'ENSG00000174405', 'ENSG00000174529', 'ENSG00000174574', 'ENSG00000174586', 'ENSG00000174600', 'ENSG00000174628', 'ENSG00000174652', 'ENSG00000174721', 'ENSG00000174837', 'ENSG00000174851', 'ENSG00000174928', 'ENSG00000174989', 'ENSG00000175110', 'ENSG00000175193', 'ENSG00000175221', 'ENSG00000175265', 'ENSG00000175354', 'ENSG00000175489', 'ENSG00000175518', 'ENSG00000175567', 'ENSG00000175575', 'ENSG00000175581', 'ENSG00000175611', 'ENSG00000175643', 'ENSG00000175691', 'ENSG00000175711', 'ENSG00000175779', 'ENSG00000175866', 'ENSG00000175873', 'ENSG00000175895', 'ENSG00000176014', 'ENSG00000176022', 'ENSG00000176124', 'ENSG00000176125', 'ENSG00000176148', 'ENSG00000176209', 'ENSG00000176222', 'ENSG00000176381', 'ENSG00000176390', 'ENSG00000176393', 'ENSG00000176406', 'ENSG00000176422', 'ENSG00000176472', 'ENSG00000176485', 'ENSG00000176490', 'ENSG00000176531', 'ENSG00000176593', 'ENSG00000176624', 'ENSG00000176658', 'ENSG00000176681', 'ENSG00000176732', 'ENSG00000176749', 'ENSG00000176809', 'ENSG00000176894', 'ENSG00000176903', 'ENSG00000176909', 'ENSG00000176912', 'ENSG00000176945', 'ENSG00000176974', 'ENSG00000176978', 'ENSG00000176986', 'ENSG00000177000', 'ENSG00000177030', 'ENSG00000177076', 'ENSG00000177096', 'ENSG00000177103', 'ENSG00000177181', 'ENSG00000177182', 'ENSG00000177225', 'ENSG00000177272', 'ENSG00000177283', 'ENSG00000177303', 'ENSG00000177380', 'ENSG00000177465', 'ENSG00000177570', 'ENSG00000177576', 'ENSG00000177595', 'ENSG00000177602', 'ENSG00000177613', 'ENSG00000177628', 'ENSG00000177646', 'ENSG00000177674', 'ENSG00000177685', 'ENSG00000177697', 'ENSG00000177721', 'ENSG00000177757', 'ENSG00000177868', 'ENSG00000177875', 'ENSG00000177946', 'ENSG00000178015', 'ENSG00000178028', 'ENSG00000178053', 'ENSG00000178150', 'ENSG00000178184', 'ENSG00000178199', 'ENSG00000178201', 'ENSG00000178202', 'ENSG00000178209', 'ENSG00000178338', 'ENSG00000178343', 'ENSG00000178381', 'ENSG00000178409', 'ENSG00000178425', 'ENSG00000178445', 'ENSG00000178562', 'ENSG00000178567', 'ENSG00000178585', 'ENSG00000178623', 'ENSG00000178718', 'ENSG00000178773', 'ENSG00000178802', 'ENSG00000178878', 'ENSG00000178921', 'ENSG00000178966', 'ENSG00000178971', 'ENSG00000178996', 'ENSG00000179057', 'ENSG00000179115', 'ENSG00000179119', 'ENSG00000179163', 'ENSG00000179294', 'ENSG00000179344', 'ENSG00000179593', 'ENSG00000179598', 'ENSG00000179603', 'ENSG00000179630', 'ENSG00000179698', 'ENSG00000179750', 'ENSG00000179841', 'ENSG00000179855', 'ENSG00000179889', 'ENSG00000179918', 'ENSG00000179922', 'ENSG00000179933', 'ENSG00000179934', 'ENSG00000179950', 'ENSG00000179954', 'ENSG00000179979', 'ENSG00000179981', 'ENSG00000180011', 'ENSG00000180185', 'ENSG00000180340', 'ENSG00000180481', 'ENSG00000180539', 'ENSG00000180549', 'ENSG00000180611', 'ENSG00000180616', 'ENSG00000180628', 'ENSG00000180817', 'ENSG00000180822', 'ENSG00000180855', 'ENSG00000180884', 'ENSG00000180901', 'ENSG00000180902', 'ENSG00000180914', 'ENSG00000180953', 'ENSG00000180979', 'ENSG00000180992', 'ENSG00000181004', 'ENSG00000181007', 'ENSG00000181026', 'ENSG00000181027', 'ENSG00000181029', 'ENSG00000181031', 'ENSG00000181035', 'ENSG00000181074', 'ENSG00000181192', 'ENSG00000181240', 'ENSG00000181350', 'ENSG00000181396', 'ENSG00000181458', 'ENSG00000181649', 'ENSG00000181754', 'ENSG00000181798', 'ENSG00000181826', 'ENSG00000181856', 'ENSG00000181894', 'ENSG00000181915', 'ENSG00000182022', 'ENSG00000182093', 'ENSG00000182108', 'ENSG00000182141', 'ENSG00000182150', 'ENSG00000182173', 'ENSG00000182230', 'ENSG00000182253', 'ENSG00000182362', 'ENSG00000182368', 'ENSG00000182446', 'ENSG00000182472', 'ENSG00000182500', 'ENSG00000182511', 'ENSG00000182512', 'ENSG00000182534', 'ENSG00000182551', 'ENSG00000182578', 'ENSG00000182628', 'ENSG00000182648', 'ENSG00000182670', 'ENSG00000182749', 'ENSG00000182782', 'ENSG00000182919', 'ENSG00000182952', 'ENSG00000182963', 'ENSG00000182986', 'ENSG00000182993', 'ENSG00000183018', 'ENSG00000183066', 'ENSG00000183087', 'ENSG00000183092', 'ENSG00000183161', 'ENSG00000183172', 'ENSG00000183196', 'ENSG00000183208', 'ENSG00000183250', 'ENSG00000183260', 'ENSG00000183281', 'ENSG00000183291', 'ENSG00000183307', 'ENSG00000183310', 'ENSG00000183323', 'ENSG00000183386', 'ENSG00000183474', 'ENSG00000183476', 'ENSG00000183562', 'ENSG00000183569', 'ENSG00000183570', 'ENSG00000183617', 'ENSG00000183621', 'ENSG00000183648', 'ENSG00000183655', 'ENSG00000183665', 'ENSG00000183682', 'ENSG00000183688', 'ENSG00000183722', 'ENSG00000183784', 'ENSG00000183828', 'ENSG00000183833', 'ENSG00000183891', 'ENSG00000184060', 'ENSG00000184068', 'ENSG00000184110', 'ENSG00000184117', 'ENSG00000184164', 'ENSG00000184178', 'ENSG00000184220', 'ENSG00000184227', 'ENSG00000184232', 'ENSG00000184293', 'ENSG00000184349', 'ENSG00000184361', 'ENSG00000184451', 'ENSG00000184465', 'ENSG00000184517', 'ENSG00000184524', 'ENSG00000184716', 'ENSG00000184730', 'ENSG00000184752', 'ENSG00000184779', 'ENSG00000184840', 'ENSG00000184860', 'ENSG00000184898', 'ENSG00000184903', 'ENSG00000184983', 'ENSG00000184988', 'ENSG00000185000', 'ENSG00000185022', 'ENSG00000185033', 'ENSG00000185055', 'ENSG00000185065', 'ENSG00000185068', 'ENSG00000185101', 'ENSG00000185112', 'ENSG00000185127', 'ENSG00000185128', 'ENSG00000185155', 'ENSG00000185156', 'ENSG00000185163', 'ENSG00000185164', 'ENSG00000185187', 'ENSG00000185201', 'ENSG00000185236', 'ENSG00000185272', 'ENSG00000185298', 'ENSG00000185324', 'ENSG00000185420', 'ENSG00000185436', 'ENSG00000185442', 'ENSG00000185483', 'ENSG00000185730', 'ENSG00000185829', 'ENSG00000185875', 'ENSG00000185909', 'ENSG00000185920', 'ENSG00000185963', 'ENSG00000186020', 'ENSG00000186026', 'ENSG00000186075', 'ENSG00000186088', 'ENSG00000186111', 'ENSG00000186184', 'ENSG00000186197', 'ENSG00000186226', 'ENSG00000186230', 'ENSG00000186280', 'ENSG00000186314', 'ENSG00000186446', 'ENSG00000186468', 'ENSG00000186469', 'ENSG00000186470', 'ENSG00000186480', 'ENSG00000186496', 'ENSG00000186510', 'ENSG00000186523', 'ENSG00000186583', 'ENSG00000186660', 'ENSG00000186716', 'ENSG00000186807', 'ENSG00000186825', 'ENSG00000186952', 'ENSG00000187010', 'ENSG00000187134', 'ENSG00000187145', 'ENSG00000187231', 'ENSG00000187260', 'ENSG00000187446', 'ENSG00000187456', 'ENSG00000187607', 'ENSG00000187624', 'ENSG00000187630', 'ENSG00000187650', 'ENSG00000187676', 'ENSG00000187726', 'ENSG00000187741', 'ENSG00000187775', 'ENSG00000187796', 'ENSG00000187862', 'ENSG00000187987', 'ENSG00000187997', 'ENSG00000188042', 'ENSG00000188089', 'ENSG00000188126', 'ENSG00000188152', 'ENSG00000188186', 'ENSG00000188191', 'ENSG00000188211', 'ENSG00000188223', 'ENSG00000188227', 'ENSG00000188321', 'ENSG00000188372', 'ENSG00000188404', 'ENSG00000188483', 'ENSG00000188493', 'ENSG00000188511', 'ENSG00000188596', 'ENSG00000188611', 'ENSG00000188659', 'ENSG00000188672', 'ENSG00000188677', 'ENSG00000188690', 'ENSG00000188707', 'ENSG00000188732', 'ENSG00000188785', 'ENSG00000188820', 'ENSG00000188846', 'ENSG00000188906', 'ENSG00000188921', 'ENSG00000188986', 'ENSG00000189042', 'ENSG00000189050', 'ENSG00000189067', 'ENSG00000189152', 'ENSG00000189157', 'ENSG00000189171', 'ENSG00000189190', 'ENSG00000189223', 'ENSG00000189306', 'ENSG00000189339', 'ENSG00000189366', 'ENSG00000189409', 'ENSG00000196072', 'ENSG00000196110', 'ENSG00000196126', 'ENSG00000196141', 'ENSG00000196151', 'ENSG00000196152', 'ENSG00000196154', 'ENSG00000196167', 'ENSG00000196172', 'ENSG00000196189', 'ENSG00000196218', 'ENSG00000196220', 'ENSG00000196262', 'ENSG00000196267', 'ENSG00000196268', 'ENSG00000196284', 'ENSG00000196295', 'ENSG00000196329', 'ENSG00000196357', 'ENSG00000196358', 'ENSG00000196365', 'ENSG00000196367', 'ENSG00000196371', 'ENSG00000196372', 'ENSG00000196381', 'ENSG00000196405', 'ENSG00000196408', 'ENSG00000196421', 'ENSG00000196436', 'ENSG00000196449', 'ENSG00000196470', 'ENSG00000196476', 'ENSG00000196511', 'ENSG00000196539', 'ENSG00000196576', 'ENSG00000196605', 'ENSG00000196620', 'ENSG00000196636', 'ENSG00000196648', 'ENSG00000196653', 'ENSG00000196655', 'ENSG00000196683', 'ENSG00000196700', 'ENSG00000196704', 'ENSG00000196705', 'ENSG00000196715', 'ENSG00000196730', 'ENSG00000196735', 'ENSG00000196739', 'ENSG00000196743', 'ENSG00000196756', 'ENSG00000196774', 'ENSG00000196776', 'ENSG00000196793', 'ENSG00000196810', 'ENSG00000196821', 'ENSG00000196862', 'ENSG00000196867', 'ENSG00000196878', 'ENSG00000196937', 'ENSG00000196966', 'ENSG00000196967', 'ENSG00000196981', 'ENSG00000197013', 'ENSG00000197016', 'ENSG00000197043', 'ENSG00000197084', 'ENSG00000197119', 'ENSG00000197124', 'ENSG00000197128', 'ENSG00000197134', 'ENSG00000197182', 'ENSG00000197249', 'ENSG00000197279', 'ENSG00000197345', 'ENSG00000197362', 'ENSG00000197375', 'ENSG00000197405', 'ENSG00000197417', 'ENSG00000197444', 'ENSG00000197457', 'ENSG00000197461', 'ENSG00000197465', 'ENSG00000197472', 'ENSG00000197497', 'ENSG00000197498', 'ENSG00000197535', 'ENSG00000197557', 'ENSG00000197563', 'ENSG00000197568', 'ENSG00000197586', 'ENSG00000197619', 'ENSG00000197629', 'ENSG00000197635', 'ENSG00000197665', 'ENSG00000197670', 'ENSG00000197701', 'ENSG00000197712', 'ENSG00000197728', 'ENSG00000197747', 'ENSG00000197766', 'ENSG00000197771', 'ENSG00000197775', 'ENSG00000197780', 'ENSG00000197813', 'ENSG00000197863', 'ENSG00000197885', 'ENSG00000197888', 'ENSG00000197927', 'ENSG00000197937', 'ENSG00000197943', 'ENSG00000197951', 'ENSG00000197956', 'ENSG00000197958', 'ENSG00000197965', 'ENSG00000197978', 'ENSG00000197980', 'ENSG00000198035', 'ENSG00000198113', 'ENSG00000198130', 'ENSG00000198142', 'ENSG00000198171', 'ENSG00000198182', 'ENSG00000198185', 'ENSG00000198189', 'ENSG00000198208', 'ENSG00000198216', 'ENSG00000198231', 'ENSG00000198246', 'ENSG00000198252', 'ENSG00000198270', 'ENSG00000198380', 'ENSG00000198420', 'ENSG00000198453', 'ENSG00000198464', 'ENSG00000198468', 'ENSG00000198477', 'ENSG00000198496', 'ENSG00000198498', 'ENSG00000198502', 'ENSG00000198521', 'ENSG00000198624', 'ENSG00000198668', 'ENSG00000198722', 'ENSG00000198742', 'ENSG00000198754', 'ENSG00000198794', 'ENSG00000198805', 'ENSG00000198832', 'ENSG00000198833', 'ENSG00000198837', 'ENSG00000198860', 'ENSG00000198879', 'ENSG00000198885', 'ENSG00000198892', 'ENSG00000198894', 'ENSG00000198912', 'ENSG00000198933', 'ENSG00000198951', 'ENSG00000198954', 'ENSG00000203666', 'ENSG00000203734', 'ENSG00000203797', 'ENSG00000203827', 'ENSG00000203865', 'ENSG00000203871', 'ENSG00000203872', 'ENSG00000203875', 'ENSG00000203880', 'ENSG00000203993', 'ENSG00000203995', 'ENSG00000204084', 'ENSG00000204110', 'ENSG00000204128', 'ENSG00000204147', 'ENSG00000204149', 'ENSG00000204161', 'ENSG00000204169', 'ENSG00000204172', 'ENSG00000204186', 'ENSG00000204219', 'ENSG00000204227', 'ENSG00000204228', 'ENSG00000204252', 'ENSG00000204264', 'ENSG00000204267', 'ENSG00000204301', 'ENSG00000204308', 'ENSG00000204348', 'ENSG00000204390', 'ENSG00000204392', 'ENSG00000204428', 'ENSG00000204438', 'ENSG00000204472', 'ENSG00000204482', 'ENSG00000204514', 'ENSG00000204516', 'ENSG00000204520', 'ENSG00000204525', 'ENSG00000204531', 'ENSG00000204536', 'ENSG00000204580', 'ENSG00000204604', 'ENSG00000204632', 'ENSG00000204642', 'ENSG00000204673', 'ENSG00000204677', 'ENSG00000204807', 'ENSG00000204837', 'ENSG00000204839', 'ENSG00000204920', 'ENSG00000204934', 'ENSG00000204947', 'ENSG00000204954', 'ENSG00000204991', 'ENSG00000205018', 'ENSG00000205036', 'ENSG00000205038', 'ENSG00000205045', 'ENSG00000205056', 'ENSG00000205057', 'ENSG00000205060', 'ENSG00000205086', 'ENSG00000205181', 'ENSG00000205189', 'ENSG00000205233', 'ENSG00000205236', 'ENSG00000205277', 'ENSG00000205302', 'ENSG00000205309', 'ENSG00000205464', 'ENSG00000205571', 'ENSG00000205593', 'ENSG00000205609', 'ENSG00000205710', 'ENSG00000205786', 'ENSG00000205795', 'ENSG00000205808', 'ENSG00000205853', 'ENSG00000205863', 'ENSG00000206052', 'ENSG00000206176', 'ENSG00000206344', 'ENSG00000206418', 'ENSG00000206503', 'ENSG00000206527', 'ENSG00000206530', 'ENSG00000206535', 'ENSG00000206561', 'ENSG00000212743', 'ENSG00000212807', 'ENSG00000212916', 'ENSG00000212978', 'ENSG00000213015', 'ENSG00000213066', 'ENSG00000213077', 'ENSG00000213160', 'ENSG00000213214', 'ENSG00000213221', 'ENSG00000213246', 'ENSG00000213366', 'ENSG00000213445', 'ENSG00000213462', 'ENSG00000213672', 'ENSG00000213676', 'ENSG00000213689', 'ENSG00000213853', 'ENSG00000213889', 'ENSG00000213930', 'ENSG00000213971', 'ENSG00000214063', 'ENSG00000214078', 'ENSG00000214087', 'ENSG00000214106', 'ENSG00000214113', 'ENSG00000214176', 'ENSG00000214253', 'ENSG00000214290', 'ENSG00000214293', 'ENSG00000214309', 'ENSG00000214338', 'ENSG00000214425', 'ENSG00000214435', 'ENSG00000214447', 'ENSG00000214711', 'ENSG00000214872', 'ENSG00000214960', 'ENSG00000215190', 'ENSG00000215252', 'ENSG00000215424', 'ENSG00000215570', 'ENSG00000215790', 'ENSG00000215845', 'ENSG00000215908', 'ENSG00000215910', 'ENSG00000216937', 'ENSG00000217555', 'ENSG00000218510', 'ENSG00000218739', 'ENSG00000219607', 'ENSG00000219626', 'ENSG00000219665', 'ENSG00000220008', 'ENSG00000221823', 'ENSG00000221838', 'ENSG00000221887', 'ENSG00000221923', 'ENSG00000221944', 'ENSG00000221947', 'ENSG00000221970', 'ENSG00000221983', 'ENSG00000221990', 'ENSG00000222041', 'ENSG00000222042', 'ENSG00000223385', 'ENSG00000223474', 'ENSG00000223704', 'ENSG00000223797', 'ENSG00000223799', 'ENSG00000223891', 'ENSG00000224046', 'ENSG00000224137', 'ENSG00000224184', 'ENSG00000224376', 'ENSG00000224429', 'ENSG00000224565', 'ENSG00000224635', 'ENSG00000224660', 'ENSG00000224712', 'ENSG00000224818', 'ENSG00000224870', 'ENSG00000224877', 'ENSG00000224997', 'ENSG00000225039', 'ENSG00000225241', 'ENSG00000225339', 'ENSG00000225353', 'ENSG00000225484', 'ENSG00000225880', 'ENSG00000225889', 'ENSG00000225978', 'ENSG00000226007', 'ENSG00000226025', 'ENSG00000226029', 'ENSG00000226124', 'ENSG00000226167', 'ENSG00000226180', 'ENSG00000226287', 'ENSG00000226328', 'ENSG00000226381', 'ENSG00000226479', 'ENSG00000226742', 'ENSG00000226752', 'ENSG00000226950', 'ENSG00000227017', 'ENSG00000227039', 'ENSG00000227124', 'ENSG00000227345', 'ENSG00000227354', 'ENSG00000227403', 'ENSG00000227450', 'ENSG00000227502', 'ENSG00000227533', 'ENSG00000227775', 'ENSG00000228049', 'ENSG00000228157', 'ENSG00000228246', 'ENSG00000228300', 'ENSG00000228327', 'ENSG00000228590', 'ENSG00000228649', 'ENSG00000228672', 'ENSG00000228696', 'ENSG00000228716', 'ENSG00000228775', 'ENSG00000228789', 'ENSG00000228857', 'ENSG00000228998', 'ENSG00000229140', 'ENSG00000229153', 'ENSG00000229178', 'ENSG00000229180', 'ENSG00000229450', 'ENSG00000229676', 'ENSG00000230055', 'ENSG00000230091', 'ENSG00000230107', 'ENSG00000230138', 'ENSG00000230438', 'ENSG00000230487', 'ENSG00000230493', 'ENSG00000230510', 'ENSG00000230628', 'ENSG00000230658', 'ENSG00000230943', 'ENSG00000231074', 'ENSG00000231242', 'ENSG00000231360', 'ENSG00000231389', 'ENSG00000231486', 'ENSG00000231507', 'ENSG00000231671', 'ENSG00000231889', 'ENSG00000231997', 'ENSG00000232063', 'ENSG00000232104', 'ENSG00000232112', 'ENSG00000232116', 'ENSG00000232224', 'ENSG00000232629', 'ENSG00000232703', 'ENSG00000232941', 'ENSG00000233280', 'ENSG00000233290', 'ENSG00000233488', 'ENSG00000233527', 'ENSG00000233610', 'ENSG00000233791', 'ENSG00000233806', 'ENSG00000233834', 'ENSG00000234028', 'ENSG00000234171', 'ENSG00000234284', 'ENSG00000234572', 'ENSG00000234665', 'ENSG00000234684', 'ENSG00000234745', 'ENSG00000235098', 'ENSG00000235398', 'ENSG00000236129', 'ENSG00000236338', 'ENSG00000236404', 'ENSG00000236624', 'ENSG00000236756', 'ENSG00000237190', 'ENSG00000237198', 'ENSG00000237292', 'ENSG00000237301', 'ENSG00000237310', 'ENSG00000237357', 'ENSG00000237372', 'ENSG00000237438', 'ENSG00000237440', 'ENSG00000237489', 'ENSG00000237520', 'ENSG00000237541', 'ENSG00000237595', 'ENSG00000237638', 'ENSG00000237651', 'ENSG00000237753', 'ENSG00000237940', 'ENSG00000238083', 'ENSG00000238121', 'ENSG00000238197', 'ENSG00000238198', 'ENSG00000238227', 'ENSG00000240065', 'ENSG00000240303', 'ENSG00000240344', 'ENSG00000240583', 'ENSG00000240654', 'ENSG00000240875', 'ENSG00000241058', 'ENSG00000241135', 'ENSG00000241258', 'ENSG00000241472', 'ENSG00000241732', 'ENSG00000241768', 'ENSG00000242110', 'ENSG00000242485', 'ENSG00000242550', 'ENSG00000242574', 'ENSG00000243150', 'ENSG00000243156', 'ENSG00000243224', 'ENSG00000243317', 'ENSG00000243646', 'ENSG00000243701', 'ENSG00000243795', 'ENSG00000243811', 'ENSG00000244165', 'ENSG00000244291', 'ENSG00000244607', 'ENSG00000244733', 'ENSG00000244752', 'ENSG00000244879', 'ENSG00000245060', 'ENSG00000245080', 'ENSG00000245317', 'ENSG00000245498', 'ENSG00000245532', 'ENSG00000245614', 'ENSG00000245648', 'ENSG00000245685', 'ENSG00000245937', 'ENSG00000245954', 'ENSG00000246067', 'ENSG00000246089', 'ENSG00000246090', 'ENSG00000246174', 'ENSG00000246273', 'ENSG00000246308', 'ENSG00000246528', 'ENSG00000246560', 'ENSG00000246731', 'ENSG00000246982', 'ENSG00000247157', 'ENSG00000247271', 'ENSG00000247317', 'ENSG00000247363', 'ENSG00000247400', 'ENSG00000247796', 'ENSG00000247828', 'ENSG00000247950', 'ENSG00000247982', 'ENSG00000248044', 'ENSG00000248049', 'ENSG00000248098', 'ENSG00000248099', 'ENSG00000248243', 'ENSG00000248265', 'ENSG00000248508', 'ENSG00000249096', 'ENSG00000249334', 'ENSG00000249471', 'ENSG00000249476', 'ENSG00000249624', 'ENSG00000249685', 'ENSG00000250081', 'ENSG00000250264', 'ENSG00000250312', 'ENSG00000250317', 'ENSG00000250565', 'ENSG00000251136', 'ENSG00000251230', 'ENSG00000251323', 'ENSG00000251615', 'ENSG00000251661', 'ENSG00000253140', 'ENSG00000253598', 'ENSG00000253633', 'ENSG00000254006', 'ENSG00000254206', 'ENSG00000254319', 'ENSG00000254353', 'ENSG00000254470', 'ENSG00000254531', 'ENSG00000254614', 'ENSG00000254873', 'ENSG00000254997', 'ENSG00000254999', 'ENSG00000255046', 'ENSG00000255121', 'ENSG00000255284', 'ENSG00000255310', 'ENSG00000255328', 'ENSG00000255354', 'ENSG00000255398', 'ENSG00000255423', 'ENSG00000255455', 'ENSG00000255733', 'ENSG00000255837', 'ENSG00000256043', 'ENSG00000256092', 'ENSG00000256249', 'ENSG00000256436', 'ENSG00000256568', 'ENSG00000256574', 'ENSG00000256576', 'ENSG00000256771', 'ENSG00000257093', 'ENSG00000257218', 'ENSG00000257365', 'ENSG00000257704', 'ENSG00000257949', 'ENSG00000258289', 'ENSG00000258301', 'ENSG00000258311', 'ENSG00000258365', 'ENSG00000258504', 'ENSG00000258512', 'ENSG00000258572', 'ENSG00000258701', 'ENSG00000258733', 'ENSG00000258908', 'ENSG00000258920', 'ENSG00000259243', 'ENSG00000259327', 'ENSG00000259332', 'ENSG00000259363', 'ENSG00000259577', 'ENSG00000259658', 'ENSG00000259705', 'ENSG00000259850', 'ENSG00000259863', 'ENSG00000259865', 'ENSG00000259915', 'ENSG00000259959', 'ENSG00000260006', 'ENSG00000260065', 'ENSG00000260077', 'ENSG00000260101', 'ENSG00000260176', 'ENSG00000260193', 'ENSG00000260257', 'ENSG00000260261', 'ENSG00000260303', 'ENSG00000260423', 'ENSG00000260456', 'ENSG00000260482', 'ENSG00000260539', 'ENSG00000260655', 'ENSG00000260755', 'ENSG00000260804', 'ENSG00000260805', 'ENSG00000261098', 'ENSG00000261159', 'ENSG00000261211', 'ENSG00000261311', 'ENSG00000261455', 'ENSG00000261584', 'ENSG00000261618', 'ENSG00000261652', 'ENSG00000261740', 'ENSG00000261770', 'ENSG00000261790', 'ENSG00000261824', 'ENSG00000262155', 'ENSG00000262292', 'ENSG00000262304', 'ENSG00000262356', 'ENSG00000262370', 'ENSG00000262412', 'ENSG00000262874', 'ENSG00000262879', 'ENSG00000262951', 'ENSG00000262992', 'ENSG00000263004', 'ENSG00000263280']</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="45">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>eqtl_predictions <span class="op">=</span> all_genes[all_genes.index.isin(eqtl_genes[<span class="dv">0</span>])]</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(eqtl_predictions.shape[<span class="dv">0</span>], <span class="st">"genes in correlation test"</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>eqtl_predictions.corr()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2853 genes in correlation test</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="45">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">geuvadis</th>
+<th data-quarto-table-cell-role="th">enformer, 10 bin</th>
+<th data-quarto-table-cell-role="th">enformer, 3 bin</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">geuvadis</td>
+<td>1.000000</td>
+<td>0.304581</td>
+<td>0.321576</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">enformer, 10 bin</td>
+<td>0.304581</td>
+<td>1.000000</td>
+<td>0.919356</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">enformer, 3 bin</td>
+<td>0.321576</td>
+<td>0.919356</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>This is slightly better, but a couple hundred genes got dropped somewhere along the way?</p>
+</section>
+<section id="original-code-1" class="level3">
+<h3 class="anchored" data-anchor-id="original-code-1">Original Code</h3>
+<p>My only modification was hard-coding paths and removing the fasta folder argument in <a href="https://github.com/ni-lab/personalized-expression-benchmark/blob/main/enformer/run_enformer_reference.py"><code>personalized-expression-benchmark/enformer/run_enformer_reference.py</code></a></p>
+<pre><code>module load conda
+conda activate ml-python
+cd /home/s1mi/Github/personalized-expression-benchmark
+
+python3 enformer/run_enformer_reference.py . data/gene_list.csv
+</code></pre>
+<div class="cell" data-execution_count="81">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/Github/personalized-expression-benchmark/output/reference_predictions.csv"</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>corr_df <span class="op">=</span> output[[<span class="st">"mean"</span>, <span class="st">"tss3"</span>, <span class="st">"tss10"</span>]].corr()</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>corr_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="81">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">mean</th>
+<th data-quarto-table-cell-role="th">tss3</th>
+<th data-quarto-table-cell-role="th">tss10</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">mean</td>
+<td>1.000000</td>
+<td>0.309661</td>
+<td>0.399530</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">tss3</td>
+<td>0.309661</td>
+<td>1.000000</td>
+<td>0.835206</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">tss10</td>
+<td>0.399530</td>
+<td>0.835206</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

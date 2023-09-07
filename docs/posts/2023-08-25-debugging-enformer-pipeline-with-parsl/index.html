@@ -6,10 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-09-01">
 
-<title>deep-learning-in-genomics - Personalized Prediction Correlations for 868 rn7 genes</title>
+<title>deep-learning-in-genomics – index</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -139,35 +137,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </nav>
 </header>
 <!-- content -->
-<header id="title-block-header" class="quarto-title-block default page-columns page-full">
-  <div class="quarto-title-banner page-columns page-full">
-    <div class="quarto-title column-body">
-      <h1 class="title">Personalized Prediction Correlations for 868 rn7 genes</h1>
-                      </div>
-  </div>
-    
-  
-  <div class="quarto-title-meta">
-
-      <div>
-      <div class="quarto-title-meta-heading">Author</div>
-      <div class="quarto-title-meta-contents">
-               <p>Sabrina Mi </p>
-            </div>
-    </div>
-      
-      <div>
-      <div class="quarto-title-meta-heading">Published</div>
-      <div class="quarto-title-meta-contents">
-        <p class="date">September 1, 2023</p>
-      </div>
-    </div>
-    
-      
-    </div>
-    
-  
-  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     
@@ -176,40 +146,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-
-<p>We ran the personalized Enformer pipeline 868 genes for high variation in Br rats and number of eQTLs. There are too many predictions to concatenate iteratively, so I wrote <a href="collect_predictions.py">collect_predictions.py</a> to parallelize in a submitted job.</p>
-<p>Note: This script appends predictions to the h5 in parallel, I first initialized the h5 file with individuals list to be paired with all gene expression datasets.</p>
+<pre><code>module load conda
+conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
+cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-25-debugging-enformer-pipeline-with-parsl
+python /home/s1mi/Github/shared_pipelines/enformer_pipeline_reference/scripts/enformer_predict.py --parameters test_reference.json
+</code></pre>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>project_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_predictions/predictions_folder/personalized_Br_selected_genes"</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>obs_gene_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, nrows<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>project_dir<span class="sc">}</span><span class="ss">/selected_genes_mouse_and_human_predictions.h5"</span>, <span class="st">"w"</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">file</span>.attrs[<span class="st">"index"</span>] <span class="op">=</span> obs_gene_expr.columns.to_list()[<span class="dv">4</span>:]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<section id="read-processed-predictions" class="level2">
-<h2 class="anchored" data-anchor-id="read-processed-predictions">Read Processed Predictions</h2>
-<div class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>project_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_predictions/predictions_folder/personalized_Br_selected_genes"</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>expr_dict <span class="op">=</span> {}</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>project_dir<span class="sc">}</span><span class="ss">/selected_genes_mouse_and_human_predictions.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    index <span class="op">=</span> <span class="bu">file</span>.attrs[<span class="st">"index"</span>]</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> gene <span class="kw">in</span> <span class="bu">file</span>.keys():</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>        matrix <span class="op">=</span> <span class="bu">file</span>[gene][:]</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>        expr_dict[gene] <span class="op">=</span> pd.DataFrame(matrix, index <span class="op">=</span> index, columns <span class="op">=</span> [<span class="st">"observed"</span>, <span class="st">"human predicted"</span>, <span class="st">"mouse predicted"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>corr_by_gene_and_track <span class="op">=</span> pd.DataFrame(columns <span class="op">=</span> [<span class="st">"human"</span>, <span class="st">"mouse"</span>], index <span class="op">=</span> gene_list)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    corr_df <span class="op">=</span> expr_dict[gene].corr()</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    corr_by_gene_and_track.loc[gene] <span class="op">=</span> pd.to_numeric(corr_df.iloc[<span class="dv">0</span>,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(<span class="st">"/grand/TFXcan/imlab/users/sabrina/reftile_project/predictions_folder/chr5_reference_overlapping_regions/predictions_2023-08-25/enformer_predictions/chr5_reference/haplotype0/chr5_0_114688_predictions.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> f[<span class="st">'chr5_0_114688'</span>][()]</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(predictions)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
