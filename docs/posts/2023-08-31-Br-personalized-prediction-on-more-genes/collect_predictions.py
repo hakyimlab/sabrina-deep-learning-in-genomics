@@ -80,15 +80,6 @@ with open(f"{run_dir}/gene_list.txt", "r") as file:
 print(len(gene_list), "genes with enformer predictions")
 
 
-#### INITIALIZE H5 FILE WITH INDEX NAMES (INDIVIDUALS)
-import h5py
-import pandas as pd
-project_dir = "/home/s1mi/Br_predictions/predictions_folder/personalized_Br_selected_genes"
-
-obs_gene_expr = pd.read_csv("/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed", sep="\t", nrows=1)
-with h5py.File(f"{project_dir}/selected_genes_mouse_and_human_predictions.h5", "w") as file:
-    file.attrs["index"] = obs_gene_expr.columns.to_list()[4:]
-
 #### JOIN WITH ENFORMER PREDICTIONS FUNCTION
 @python_app
 def collect_predictions(gene):
