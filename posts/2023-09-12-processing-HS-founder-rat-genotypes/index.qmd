@@ -42,7 +42,42 @@ bcftools annotate \
 gunzip Palmer_HS_founders_mRatBN7_annot.vcf.gz
 sed 's/\.\/\./0\/0/g' Palmer_HS_founders_mRatBN7_annot.vcf > Palmer_HS_founders_mRatBN7_no_missing.vcf
 bgzip Palmer_HS_founders_mRatBN7_no_missing.vcf
-bcftools index -t Brain.rn7.no_missing.vcf.gz
+bcftools index -t Palmer_HS_founders_mRatBN7_no_missing.vcf.gz
 
 ```
 
+### Split VCFs
+
+First by chromosome number:
+
+```
+mkdir FounderVCFs
+# Split VCF by chromosome
+vcf_in=Palmer_HS_founders_mRatBN7_no_missing.vcf.gz
+
+vcf_out_prefix=FounderVCFs/chr
+
+for i in {1..20}
+do
+    echo "Working on chromosome ${i}..."
+    bcftools view ${vcf_in} --regions chr${i} -o ${vcf_out_prefix}${i}.vcf.gz -Oz
+done
+
+
+# Index VCFs
+for i in {1..20}
+do
+    echo "Indexing chromosome ${i}..."
+    bcftools index -t FounderVCFs/chr${i}.vcf.gz
+done
+```
+
+Then for sex chromosomes:
+
+```
+bcftools view ${vcf_in} --regions chrX -o ${vcf_out_prefix}X.vcf.gz -Oz
+bcftools view ${vcf_in} --regions chrY -o ${vcf_out_prefix}Y.vcf.gz -Oz
+
+bcftools index -t FounderVCFs/chrX.vcf.gz
+bcftools index -t FounderVCFs/chrY.vcf.gz
+```
