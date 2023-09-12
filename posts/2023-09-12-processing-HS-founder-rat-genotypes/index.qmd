@@ -1,0 +1,48 @@
+---
+title: Preparing HS founder rat genotypes for Enformer pipeline
+date: 9/12/2023
+author: Sabrina Mi
+---
+
+I downloaded the original VCF from TSCC to `/home/s1mi/enformer_rat_data/genotypes/Palmer_HS_founders_mRatBN7_2.vcf.gz`.
+
+
+### Convert NCBI RefSeq ID to chromosome numbers
+
+1. Download assembly report for NCBI names to chromosome mapping
+
+```
+wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/015/227/675/GCF_015227675.2_mRatBN7.2/GCF_015227675.2_mRatBN7.2_assembly_report.txt -O /Users/sabrinami/Downloads/mRatBN7.2_assembly_report.txt
+```
+
+2. Write chromosome annotation file for bcftools
+
+```
+grep -e '^[^#]' /Users/sabrinami/Downloads/mRatBN7.2_assembly_report.txt | awk '{ print $7, "chr" $1 }' > /Users/sabrinami/Downloads/mRatBN7.2_chromosome_names.txt
+
+```
+
+There are extra annotations than needed, later on we will filter to chromosomes 1 through 20 and X.
+
+3. Annotate VCF
+
+```
+cd /Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data
+bcftools annotate \
+  --rename-chrs /Users/sabrinami/Downloads/mRatBN7.2_chromosome_names.txt \
+  --threads 10 \
+  -o Palmer_HS_founders_mRatBN7_annot.vcf.gz \
+  -Oz Palmer_HS_founders_mRatBN7_2.vcf.gz
+
+```
+
+### Replace Missing Genotypes with Reference Alleles
+
+```
+gunzip Palmer_HS_founders_mRatBN7_annot.vcf.gz
+sed 's/\.\/\./0\/0/g' Palmer_HS_founders_mRatBN7_annot.vcf > Palmer_HS_founders_mRatBN7_no_missing.vcf
+bgzip Palmer_HS_founders_mRatBN7_no_missing.vcf
+bcftools index -t Brain.rn7.no_missing.vcf.gz
+
+```
+
