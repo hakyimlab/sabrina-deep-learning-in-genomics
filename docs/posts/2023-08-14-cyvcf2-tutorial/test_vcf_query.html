@@ -185,6 +185,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>vcf_hg38 <span class="op">=</span> cyvcf2.cyvcf2.VCF(<span class="st">"/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/hg38_data/ALL.chr22.shapeit2_integrated_SNPs_v2a_27022019.GRCh38.phased.vcf.gz"</span>)</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+<section id="query-snps-in-interval" class="level2">
+<h2 class="anchored" data-anchor-id="query-snps-in-interval">Query SNPs in Interval</h2>
 <p>We query the VCF for all snp positions and put it into a list.</p>
 <div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>snps <span class="op">=</span> []</span>
@@ -239,6 +242,31 @@ chr22   10522217    .   G   A   .   PASS    AC=89;AF=0.02;AFR_AF=0.07;AMR_AF=0;A
 
 </code></pre>
 <p>I will update the <a href="https://sabrina-dl.hakyimlab.org/posts/preparing-rat-vcfs-for-enformer/">Preparing Rat VCFs for Enformer</a> blog post.</p>
+<p>We will also compare to the founder rats VCF: <code>/home/s1mi/enformer_rat_data/genotypes/Palmer_HS_founders_mRatBN7_2.vcf.gz</code></p>
+<div class="cell" data-execution_count="14">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> cyvcf2</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>vcf_Br <span class="op">=</span> cyvcf2.cyvcf2.VCF(<span class="st">"/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/chr20.vcf.gz"</span>)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>vcf_founder <span class="op">=</span> cyvcf2.cyvcf2.VCF(<span class="st">"/Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/Palmer_HS_founders_mRatBN7_2.vcf.gz"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="19">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> variant <span class="kw">in</span> vcf_Br:</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(variant)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"first Br rat dosage:"</span>, variant.genotypes[<span class="dv">0</span>][<span class="dv">0</span>:<span class="dv">2</span>], variant.gt_bases[<span class="dv">0</span>].split(<span class="st">"/"</span>))</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">break</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> variant <span class="kw">in</span> vcf_founder:</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(variant)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"first founder rat dosage:"</span>, variant.genotypes[<span class="dv">0</span>][<span class="dv">0</span>:<span class="dv">2</span>], variant.gt_bases[<span class="dv">0</span>].split(<span class="st">"/"</span>))</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>chr20   12595810    chr20:12595810  T   C   .   PASS    AC=6551;AN=28956    GT  0/0 0/1 0/0 0/1 0/1 0/0 0/1 0/1 0/0 0/1 0/0 0/0 0/0 0/0 0/1 0/0 0/0 0/0 0/1 0/1 0/1 0/0 0/0 0/0 0/1 0/0 0/1 0/0 0/1 0/0 0/0 0/0 0/1 0/0 0/0 0/1 0/0 0/0 1/1 0/0 0/0 0/0 0/0 0/1 0/0 0/1 0/0 0/0 1/1 0/0 0/0 1/1 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/1 0/0 0/0 0/1 0/0 0/1 0/0 0/0 0/0 0/0 1/1 0/0 0/0 0/1 0/0 0/1 0/1 0/0 0/0 0/1 0/0 0/0 0/0 0/1 0/0 0/1 0/1 0/1 0/0 0/0 0/1 0/0 0/0 0/0 1/1 0/0 0/0 0/0 0/0 0/0 0/0 0/1 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/1 0/0 0/0 0/0 0/1 0/0 0/0 0/1 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/1 0/0 0/0 0/0 0/0 0/1 0/0 0/1 0/1 0/0 0/0 0/0 0/1 0/1 0/0 0/0 0/0 0/0 1/1 0/0 0/0 0/1 0/0 0/1 1/1 0/0 0/0 0/0 0/1 0/0 0/0 0/1 0/0 0/0 1/1 0/0 0/1 0/1 0/0 1/1 0/0 0/0 0/0 0/0 0/0 0/0 0/1 0/0 0/1 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 1/1 0/1 0/0 0/0 0/0 0/0 0/0 0/0 0/1 0/1 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/1 0/0 0/1 0/0 0/0 1/1 0/1 0/0 0/0 0/0 0/0 0/1 1/1 0/0 0/0 0/0 0/1 0/0 0/0 0/0 0/0 0/0 0/0 0/0 0/1 0/0 0/0 0/0 0/0 0/1 0/1 0/0 0/0 0/0 0/0 0/0 0/0 0/1 0/1 1/1 1/1 0/1 0/0 0/0 0/0 0/1 0/0 0/1 0/1 0/0 0/0 0/0 0/1 0/0 0/0 0/0 0/0 0/1 0/0 0/0 0/0 1/1 1/1 0/0 0/1 0/0 0/0 0/0 0/0 0/0 0/0 0/1 0/0 0/0 0/0 0/1 1/1 0/0 0/0 0/1 0/1 0/1 0/1 0/0 0/0 0/0 0/1 0/0 0/0 0/0 0/1 0/0 0/1 0/1 0/0 0/0 0/0 0/0 0/1 0/1 0/0 0/1 0/1 0/0 0/0 0/0 0/0 0/1 0/0 1/1 0/0 0/0 0/1 0/1 0/0 0/1 0/0 0/0 0/0 0/0 0/0 0/1 0/0 0/1 0/0 0/1 0/1 0/1 0/0
+
+first Br rat dosage: [0, 0] ['T', 'T']
+NC_051336.1 606 .   T   C   589.07  PASS    AC=1;AF=0.063;AN=16;BaseQRankSum=0.978;DP=385;ExcessHet=3.0103;FS=5.363;MLEAC=1;MLEAF=0.063;MQ=49.97;MQRankSum=-4.041;QD=12.02;ReadPosRankSum=-0.166;SOR=0.943  GT:AD:DP:GQ:PL  0/0:35,0:35:99:0,104,1062   0/0:91,0:91:99:0,268,2737   0/0:39,0:39:99:0,117,1293   0/0:52,0:52:99:0,155,1663   0/0:36,0:36:99:0,107,1103   0/0:39,0:39:99:0,117,1255   0/1:25,24:49:99:600,0,645   0/0:31,0:31:93:0,93,936
+
+first founder rat dosage: [0, 0] ['T', 'T']</code></pre>
+</div>
+</div>
+<p>Even though the founder VCF has additional information attached to GT, we still only query dosage informations with cyvcf2. This means we won’t have to modify our founder VCF any further than changing the CHROM column to chromosome numbers.</p>
 
 
 </section>

@@ -8,7 +8,7 @@
 
 <meta name="author" content="Sabrina Mi">
 <meta name="dcterms.date" content="2023-08-23">
-<meta name="description" content="Correlation of predicted reference gene expression and Br mean gene expression is 0.45, with the chromosome with lowest correlation being 0.19 on chromosome 18 and the highest being 0.61 on chromosome 7. While this is reasonable compared to 0.54 correlation between Enformer predictions and GTEx observed expression across human genes, I believe the correlation across rat genes would be even higher if we used Br population data for the reference genome, as the Br population noticeably diverges from reference rats (many alternative homozygotes).">
+<meta name="description" content="Pearson correlation for across genes is 0.45 and Spearman correlation is 0.76.">
 
 <title>deep-learning-in-genomics - Correlation of Enformer CAGE predictions on rn7 reference genome and measured gene expression in Br rats</title>
 <style>
@@ -96,6 +96,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 <link rel="stylesheet" href="../../styles.css">
@@ -146,7 +149,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <h1 class="title">Correlation of Enformer CAGE predictions on rn7 reference genome and measured gene expression in Br rats</h1>
                   <div>
         <div class="description">
-          Correlation of predicted reference gene expression and Br mean gene expression is 0.45, with the chromosome with lowest correlation being 0.19 on chromosome 18 and the highest being 0.61 on chromosome 7. While this is reasonable compared to 0.54 correlation between Enformer predictions and GTEx observed expression across human genes, I believe the correlation across rat genes would be even higher if we used Br population data for the reference genome, as the Br population noticeably diverges from reference rats (many alternative homozygotes).
+          Pearson correlation for across genes is 0.45 and Spearman correlation is 0.76.
         </div>
       </div>
                 </div>
@@ -183,6 +186,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
+<p>We ran Enformer across all rat genes and quantified expression in brain tissue. Our numbers, 0.45 pearson’s correlation and 0.76 spearman’s correlation, are very exciting. Although Enformer is optimized to predict gene expression in humans, we see a very strong performance in rats. In GTEx, Enformer predicts reference gene expression with 0.54 pearson’s correlation and 0.79 spearman’s correlation, while in GUEVADIS (LCL tissue), we see 0.20 pearson’s and 0.77 spearman’s.</p>
 <section id="concatenate-predictions" class="level2">
 <h2 class="anchored" data-anchor-id="concatenate-predictions">Concatenate Predictions</h2>
 <p>We start with concatenating our predictions into separate files by chromosome number, firstly because our predictions are currently split between two directories and secondly, by grouping intervals together by chromosome, we can parallelize computing gene expression.</p>
@@ -207,7 +211,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> concatenate_predictions_by_chromosome(predictions_dir, <span class="bu">chr</span>, output_dir):</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    output_path <span class="op">=</span> os.path.join(output_dir, <span class="ss">f"chr</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_predictions.h5"</span>)</span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(output_path, <span class="st">"a"</span>) <span class="im">as</span> output_file:</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        files <span class="op">=</span> glob.glob(<span class="ss">f"</span><span class="sc">{</span>predictions_dir<span class="sc">}</span><span class="ss">/chr</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">*_predictions.h5"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        files <span class="op">=</span> glob.glob(<span class="ss">f"</span><span class="sc">{</span>predictions_dir<span class="sc">}</span><span class="ss">/chr</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_*_predictions.h5"</span>)</span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> files:</span>
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>            interval <span class="op">=</span> os.path.basename(<span class="bu">file</span>).replace(<span class="st">"_predictions.h5"</span>, <span class="st">""</span>)</span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(<span class="bu">file</span>, <span class="st">"r"</span>) <span class="im">as</span> input_file:</span>
@@ -303,50 +307,96 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="cell" data-execution_count="23">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> pd.concat(merged_dict.values())</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>all_genes.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/rn7_reference_predicted_vs_observed_expression.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="co">#all_genes.to_csv("/home/s1mi/enformer_rat_data/output/rn7_reference_predicted_vs_observed_expression.csv")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="33">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> all_genes.corr().iloc[<span class="dv">0</span>,<span class="dv">1</span>]</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Correlation across all rn7 genes:"</span>, corr)</span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>plt.scatter(all_genes[<span class="st">'observed'</span>], all_genes[<span class="st">'predicted'</span>], label<span class="op">=</span><span class="ss">f'Correlation: </span><span class="sc">{</span>corr<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'observed'</span>)</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'predicted'</span>)</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"rn7 prediction across genes"</span>)</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>)</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/rn7_reference_predicted_vs_observed_expression.csv"</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Pearson Correlation:"</span>)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>all_genes.corr(method<span class="op">=</span><span class="st">"pearson"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Correlation across all rn7 genes: 0.45259620551544333</code></pre>
+<pre><code>Pearson Correlation:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="2">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">predicted</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">predicted</td>
+<td>1.000000</td>
+<td>0.452596</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">observed</td>
+<td>0.452596</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Spearman Correlation:"</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>all_genes.corr(method<span class="op">=</span><span class="st">"spearman"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Spearman Correlation:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">predicted</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">predicted</td>
+<td>1.000000</td>
+<td>0.759705</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">observed</td>
+<td>0.759705</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> all_genes.corr(method<span class="op">=</span><span class="st">"spearman"</span>).iloc[<span class="dv">0</span>,<span class="dv">1</span>]</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Correlation across all rn7 genes:"</span>, corr)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>plt.scatter(all_genes[<span class="st">'observed'</span>], all_genes[<span class="st">'predicted'</span>], label<span class="op">=</span><span class="ss">f'Correlation: </span><span class="sc">{</span>corr<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'observed'</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'predicted'</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Enformer prediction across rat genes"</span>)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>)</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Correlation across all rn7 genes: 0.7597054021798328</code></pre>
 </div>
 <div class="cell-output cell-output-display">
-<p><img src="index_files/figure-html/cell-15-output-2.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-execution_count="32">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="bu">len</span>(gene_dict[<span class="bu">chr</span>]), <span class="st">"genes on chromosome"</span>, <span class="bu">chr</span>, <span class="st">"</span><span class="ch">\t</span><span class="st">correlation ="</span>, merged_dict[<span class="bu">chr</span>].corr().iloc[<span class="dv">0</span>,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>3953 genes on chromosome 1  correlation = 0.476354606549354
-2003 genes on chromosome 2  correlation = 0.5218130288311454
-2030 genes on chromosome 3  correlation = 0.4610018149991454
-1959 genes on chromosome 4  correlation = 0.5244393504977057
-1780 genes on chromosome 5  correlation = 0.22610655969051743
-1390 genes on chromosome 6  correlation = 0.5712413035540091
-1648 genes on chromosome 7  correlation = 0.6087498490236489
-1612 genes on chromosome 8  correlation = 0.4427092910204691
-1146 genes on chromosome 9  correlation = 0.5372756452275427
-2127 genes on chromosome 10     correlation = 0.5956000550961525
-832 genes on chromosome 11  correlation = 0.4791331079400649
-909 genes on chromosome 12  correlation = 0.585056162086108
-881 genes on chromosome 13  correlation = 0.47875298103605635
-989 genes on chromosome 14  correlation = 0.44209977697290426
-1000 genes on chromosome 15     correlation = 0.48793264345973547
-843 genes on chromosome 16  correlation = 0.5956281375952103
-620 genes on chromosome 17  correlation = 0.45611724657883396
-722 genes on chromosome 18  correlation = 0.1949450345152701
-750 genes on chromosome 19  correlation = 0.5805874016394145
-806 genes on chromosome 20  correlation = 0.43625318887442455
-1344 genes on chromosome X  correlation = 0.32646076975552135</code></pre>
+<p><img src="index_files/figure-html/cell-17-output-2.png" class="img-fluid"></p>
 </div>
 </div>
 

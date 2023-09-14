@@ -3,6 +3,9 @@
     "listing": "/index.html",
     "items": [
       "/posts/enformer-rat-human-analysis-overview/index.html",
+      "/posts/2023-09-13-all-correlation-across-genes-plots/index.html",
+      "/posts/2023-09-12-processing-HS-founder-rat-genotypes/index.html",
+      "/posts/2023-09-12-test-run-on-HS-founders/index.html",
       "/posts/2023-09-06-validating-Huang-et-al/index.html",
       "/posts/2023-08-31-Br-personalized-prediction-on-more-genes/debugging.html",
       "/posts/2023-09-01-comparing-human-vs-rat-mean-expression-across-genes/index.html",
@@ -21,6 +24,7 @@
       "/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/average_haplotype_test.html",
       "/posts/2023-08-10-correlation-across-genes/index.html",
       "/posts/2023-08-14-updated-preparing-rat-vcf-inputs-for-enformer-pipeline/index.html",
+      "/posts/2023-08-14-install-bcftools/index.html",
       "/posts/2023-08-14-cyvcf2-tutorial/test_vcf_query.html",
       "/posts/2023-08-15-test-run-of-personalized-enformer-pipeline-for-rats/index.html",
       "/posts/2023-08-11-comparing-enformer-CAGE-predictions-for-high-var-genes/debugging.html",

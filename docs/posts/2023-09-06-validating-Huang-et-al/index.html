@@ -180,7 +180,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<p>We are trying to replicate the Enformer result’s in <a href="https://www.biorxiv.org/content/10.1101/2023.06.30.547100v1">Personal transcriptome variation is poorly explained by current genomic deep learning models, Huang et al</a>. They reported a 0.57 correlation in reference prediction across all genes. They used median GEUVADIS LCL gene expression data for their comparison and quantified predicted gene expression using the average of 10 bin window around each gene’s TSS on the CAGE:B lymphoblastoid cell line track. I performed a similar analysis of Enformer performance along the reference genome, but instead I used a 3 bin window around the TSS and the CAGE:Brain, adult track to compare to observed GTEx brain cortex gene expression. I found 0.54 between predicted and observed reference gene expression.</p>
+<p>I replicated the Enformer result’s in <a href="https://www.biorxiv.org/content/10.1101/2023.06.30.547100v1">Personal transcriptome variation is poorly explained by current genomic deep learning models, Huang et al</a>. They reported a 0.57 correlation in reference prediction across all genes. They used median GEUVADIS LCL gene expression data for their comparison and quantified predicted gene expression using the average of 10 bin window around each gene’s TSS on the CAGE:B lymphoblastoid cell line track.</p>
+<p>They subsetted to 3,295 genes with a significant cis-QTL, however, when I expanded the analysis to all GEUVADIS genes, I found an even higher correlation of 0.77.</p>
 <section id="libraries-and-definitions" class="level3">
 <h3 class="anchored" data-anchor-id="libraries-and-definitions">Libraries and Definitions</h3>
 <div class="cell" data-execution_count="26">
@@ -475,7 +476,7 @@ Spearman Correlation across all GEUVADIS genes, 3 bin: 0.7688261493752583</code>
 </section>
 <section id="compare-to-10-bin-window-predictions" class="level3">
 <h3 class="anchored" data-anchor-id="compare-to-10-bin-window-predictions">Compare to 10 bin window predictions</h3>
-<div class="cell" data-execution_count="75">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    tic <span class="op">=</span> time.perf_counter()</span>
@@ -487,40 +488,15 @@ Spearman Correlation across all GEUVADIS genes, 3 bin: 0.7688261493752583</code>
 <span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>][<span class="st">"enformer, 10 bin"</span>] <span class="op">=</span> predictions</span>
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    toc <span class="op">=</span> time.perf_counter()</span>
 <span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Querying chromosome"</span>, <span class="bu">chr</span>, <span class="st">"genes...,"</span>, toc <span class="op">-</span> tic, <span class="st">"seconds"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Querying chromosome 1 genes..., 69.03840435994789 seconds
-Querying chromosome 2 genes..., 54.10317796189338 seconds
-Querying chromosome 3 genes..., 37.46441020199563 seconds
-Querying chromosome 4 genes..., 36.941509263939224 seconds
-Querying chromosome 5 genes..., 31.623387236963026 seconds
-Querying chromosome 6 genes..., 35.4050335889915 seconds
-Querying chromosome 7 genes..., 32.40155419590883 seconds
-Querying chromosome 8 genes..., 28.47602708893828 seconds
-Querying chromosome 9 genes..., 23.366629968048073 seconds
-Querying chromosome 10 genes..., 26.692642249981873 seconds
-Querying chromosome 11 genes..., 36.21240806707647 seconds
-Querying chromosome 12 genes..., 30.501199858961627 seconds
-Querying chromosome 13 genes..., 13.312637477065437 seconds
-Querying chromosome 14 genes..., 20.186696789925918 seconds
-Querying chromosome 15 genes..., 20.195753266918473 seconds
-Querying chromosome 16 genes..., 18.143485559965484 seconds
-Querying chromosome 17 genes..., 31.225896001094952 seconds
-Querying chromosome 18 genes..., 11.720560514018871 seconds
-Querying chromosome 19 genes..., 30.53011621395126 seconds
-Querying chromosome 20 genes..., 13.639970090938732 seconds
-Querying chromosome 21 genes..., 6.042895314982161 seconds
-Querying chromosome 22 genes..., 10.64532469806727 seconds
-Querying chromosome X genes..., 16.53738427697681 seconds</code></pre>
-</div>
 </div>
 <div class="cell" data-execution_count="94">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> pd.concat(merged_dict.values())</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> all_genes[[<span class="st">"geuvadis, mean"</span>, <span class="st">"geuvadis, median"</span>, <span class="st">"enformer, 3 bin"</span>, <span class="st">"enformer, 10 bin"</span>]]</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>all_genes.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_GEUVADIS.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> pd.concat(merged_dict.values())</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> all_genes[[<span class="st">"geuvadis, mean"</span>, <span class="st">"geuvadis, median"</span>, <span class="st">"enformer, 3 bin"</span>, <span class="st">"enformer, 10 bin"</span>]]</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>all_genes.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_GEUVADIS.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="90">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Pearson Correlation"</span>)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>all_genes.corr(method <span class="op">=</span> <span class="st">"pearson"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Pearson Correlation"</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>all_genes.corr(method <span class="op">=</span> <span class="st">"pearson"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Pearson Correlation</code></pre>
 </div>
@@ -574,8 +550,8 @@ Querying chromosome X genes..., 16.53738427697681 seconds</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="89">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Spearman Correlation:"</span>)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>all_genes.corr(method <span class="op">=</span> <span class="st">"spearman"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Spearman Correlation:"</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>all_genes.corr(method <span class="op">=</span> <span class="st">"spearman"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Spearman Correlation:</code></pre>
 </div>
@@ -645,12 +621,12 @@ cd /home/s1mi/Github/personalized-expression-benchmark
 python3 enformer/run_enformer_reference.py . data/gene_list.csv
 </code></pre>
 <div class="cell" data-execution_count="99">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/Github/personalized-expression-benchmark/output/reference_predictions.csv"</span>)</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>merged_output <span class="op">=</span> output.merge(geuvadis_median_gex, left_on<span class="op">=</span><span class="st">"geneId"</span>, right_index<span class="op">=</span><span class="va">True</span>).drop(columns<span class="op">=</span>[<span class="st">"mean"</span>, <span class="st">"max"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/Github/personalized-expression-benchmark/output/reference_predictions.csv"</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>merged_output <span class="op">=</span> output.merge(geuvadis_median_gex, left_on<span class="op">=</span><span class="st">"geneId"</span>, right_index<span class="op">=</span><span class="va">True</span>).drop(columns<span class="op">=</span>[<span class="st">"mean"</span>, <span class="st">"max"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="102">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Pearson Correlation:"</span>)</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>merged_output.corr(method<span class="op">=</span><span class="st">"pearson"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Pearson Correlation:"</span>)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>merged_output.corr(method<span class="op">=</span><span class="st">"pearson"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Pearson Correlation:</code></pre>
 </div>
@@ -693,8 +669,8 @@ python3 enformer/run_enformer_reference.py . data/gene_list.csv
 </div>
 </div>
 <div class="cell" data-execution_count="103">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Spearman Correlation:"</span>)</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>merged_output.corr(method<span class="op">=</span><span class="st">"spearman"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Spearman Correlation:"</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>merged_output.corr(method<span class="op">=</span><span class="st">"spearman"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Spearman Correlation:</code></pre>
 </div>
@@ -737,14 +713,14 @@ python3 enformer/run_enformer_reference.py . data/gene_list.csv
 </div>
 </div>
 <div class="cell" data-execution_count="106">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> merged_output.corr(method<span class="op">=</span><span class="st">"spearman"</span>).iloc[<span class="dv">1</span>,<span class="dv">2</span>]</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(all_genes[<span class="st">'enformer, 10 bin'</span>], all_genes[<span class="st">'geuvadis, median'</span>], label<span class="op">=</span><span class="ss">f'Correlation: </span><span class="sc">{</span>corr<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'observed'</span>)</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'predicted'</span>)</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"hg38 prediction across genes"</span>)</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>)</span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> merged_output.corr(method<span class="op">=</span><span class="st">"spearman"</span>).iloc[<span class="dv">1</span>,<span class="dv">2</span>]</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(all_genes[<span class="st">'enformer, 10 bin'</span>], all_genes[<span class="st">'geuvadis, median'</span>], label<span class="op">=</span><span class="ss">f'Correlation: </span><span class="sc">{</span>corr<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'observed'</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'predicted'</span>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"hg38 prediction across genes"</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-20-output-1.png" class="img-fluid"></p>
 </div>
