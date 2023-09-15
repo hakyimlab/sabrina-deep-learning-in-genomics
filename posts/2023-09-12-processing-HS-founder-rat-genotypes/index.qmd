@@ -46,6 +46,13 @@ bcftools index -t Palmer_HS_founders_mRatBN7_no_missing.vcf.gz
 
 ```
 
+### Filter out Indels
+
+```
+bcftools view --types snps Palmer_HS_founders_mRatBN7_no_missing.vcf.gz -o Palmer_HS_founders_mRatBN7_snps_only.vcf.gz -Oz
+bcftools index -t Palmer_HS_founders_mRatBN7_snps_only.vcf.gz
+```
+
 ### Split VCFs
 
 First by chromosome number:
@@ -53,14 +60,14 @@ First by chromosome number:
 ```
 mkdir FounderVCFs
 # Split VCF by chromosome
-vcf_in=Palmer_HS_founders_mRatBN7_no_missing.vcf.gz
+vcf_in=Palmer_HS_founders_mRatBN7_snps_only.vcf.gz
 
 vcf_out_prefix=FounderVCFs/chr
 
 for i in {1..20}
 do
     echo "Working on chromosome ${i}..."
-    bcftools view ${vcf_in} --regions chr${i} -o ${vcf_out_prefix}${i}.vcf.gz -Oz
+    bcftools view --regions chr${i} ${vcf_in} -o ${vcf_out_prefix}${i}.vcf.gz -Oz
 done
 
 
@@ -72,12 +79,9 @@ do
 done
 ```
 
-Then for sex chromosomes:
+Then separately for X chromosome:
 
 ```
 bcftools view ${vcf_in} --regions chrX -o ${vcf_out_prefix}X.vcf.gz -Oz
-bcftools view ${vcf_in} --regions chrY -o ${vcf_out_prefix}Y.vcf.gz -Oz
-
 bcftools index -t FounderVCFs/chrX.vcf.gz
-bcftools index -t FounderVCFs/chrY.vcf.gz
 ```

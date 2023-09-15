@@ -186,45 +186,41 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> parsl</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> parsl <span class="im">import</span> python_app</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> parsl.configs.local_threads <span class="im">import</span> config</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>parsl.load(config)</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>enfref_dir <span class="op">=</span> <span class="st">"/grand/TFXcan/imlab/users/lvairus/reftile_project/enformer-reference-epigenome"</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> query_epigenome(chr_num, center_bp, num_bins<span class="op">=</span><span class="dv">3</span>, tracks<span class="op">=-</span><span class="dv">1</span>):</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">        chr_num (int/string): chromosome number</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co">        center_bp (int): center base pair position (1-indexed)</span></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">        num_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>enfref_dir <span class="op">=</span> <span class="st">"/grand/TFXcan/imlab/users/lvairus/reftile_project/enformer-reference-epigenome"</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> query_epigenome(chr_num, center_bp, num_bins<span class="op">=</span><span class="dv">3</span>, tracks<span class="op">=-</span><span class="dv">1</span>):</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Parameters:</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">        chr_num (int/string): chromosome number</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">        center_bp (int): center base pair position (1-indexed)</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">        num_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="co">        epigen (np.array): enformer predictions centered at center_bp of shape (num_bins, len(tracks))</span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
-<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="co">        epigen (np.array): enformer predictions centered at center_bp of shape (num_bins, len(tracks))</span></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
-<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># from position choose center bin</span></span>
-<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    center_ind <span class="op">=</span> center_bp <span class="op">-</span> <span class="dv">1</span></span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    center_bin <span class="op">=</span> center_ind <span class="op">//</span> <span class="dv">128</span></span>
-<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    half_bins <span class="op">=</span> num_bins <span class="op">//</span> <span class="dv">2</span></span>
-<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    start_bin <span class="op">=</span> center_bin <span class="op">-</span> half_bins</span>
-<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    end_bin <span class="op">=</span> center_bin <span class="op">+</span> half_bins</span>
-<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> num_bins <span class="op">%</span> <span class="dv">2</span> <span class="op">!=</span> <span class="dv">0</span>: <span class="co"># if num_bins is odd</span></span>
-<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        end_bin <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>enfref_dir<span class="sc">}</span><span class="ss">/chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">_cat.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
-<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>        <span class="co"># get tracks if list provided</span></span>
-<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> tracks <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>:</span>
-<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>            epigen <span class="op">=</span> f[<span class="ss">f'chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">'</span>][start_bin:end_bin, :] </span>
-<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>            epigen <span class="op">=</span> f[<span class="ss">f'chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">'</span>][start_bin:end_bin, tracks] </span>
-<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> epigen</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># from position choose center bin</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>    center_ind <span class="op">=</span> center_bp <span class="op">-</span> <span class="dv">1</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>    center_bin <span class="op">=</span> center_ind <span class="op">//</span> <span class="dv">128</span></span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    half_bins <span class="op">=</span> num_bins <span class="op">//</span> <span class="dv">2</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>    start_bin <span class="op">=</span> center_bin <span class="op">-</span> half_bins</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>    end_bin <span class="op">=</span> center_bin <span class="op">+</span> half_bins</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> num_bins <span class="op">%</span> <span class="dv">2</span> <span class="op">!=</span> <span class="dv">0</span>: <span class="co"># if num_bins is odd</span></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>        end_bin <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>enfref_dir<span class="sc">}</span><span class="ss">/chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">_cat.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a>        <span class="co"># get tracks if list provided</span></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> tracks <span class="op">==</span> <span class="op">-</span><span class="dv">1</span>:</span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>            epigen <span class="op">=</span> f[<span class="ss">f'chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">'</span>][start_bin:end_bin, :] </span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>            epigen <span class="op">=</span> f[<span class="ss">f'chr</span><span class="sc">{</span>chr_num<span class="sc">}</span><span class="ss">'</span>][start_bin:end_bin, tracks] </span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> epigen</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">## create lists of genes on each chromomsome</span></span>
@@ -239,120 +235,92 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <div class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">## Function to put CAGE predictions in list (in the same order as gene list by chromosome)</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="at">@python_app</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> query_genes(<span class="bu">chr</span>):</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    gene_list <span class="op">=</span> gene_dict[<span class="bu">chr</span>]</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        bins <span class="op">=</span> query_epigenome(<span class="bu">chr</span>, hg38_annot.loc[gene][<span class="st">'transcription_start_site'</span>], tracks<span class="op">=</span>[<span class="dv">4980</span>])</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        CAGE_predictions[<span class="bu">chr</span>].append(np.average(bins))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> query_genes(<span class="bu">chr</span>):</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    gene_list <span class="op">=</span> gene_dict[<span class="bu">chr</span>]</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>        bins <span class="op">=</span> query_epigenome(<span class="bu">chr</span>, hg38_annot.loc[gene][<span class="st">'transcription_start_site'</span>], tracks<span class="op">=</span>[<span class="dv">4980</span>])</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        CAGE_predictions[<span class="bu">chr</span>].append(np.average(bins))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>app_futures <span class="op">=</span> []</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">## Collect CAGE predictions in parallel across genes</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    app_futures.append(query_genes(<span class="bu">chr</span>))</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">## Wait for all chromosomes to finish</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>exec_futures <span class="op">=</span> [q.result() <span class="cf">for</span> q <span class="kw">in</span> app_futures]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    query_genes(<span class="bu">chr</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Queried chromosome"</span>, <span class="bu">chr</span>, <span class="st">"...,"</span>, <span class="bu">len</span>(CAGE_predictions[<span class="bu">chr</span>]), <span class="st">"genes"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Queried chromosome 1 ..., 2030 genes
+Queried chromosome 2 ..., 1227 genes
+Queried chromosome 3 ..., 1063 genes
+Queried chromosome 4 ..., 752 genes
+Queried chromosome 5 ..., 872 genes
+Queried chromosome 6 ..., 1031 genes
+Queried chromosome 7 ..., 919 genes
+Queried chromosome 8 ..., 693 genes
+Queried chromosome 9 ..., 766 genes
+Queried chromosome 10 ..., 715 genes
+Queried chromosome 11 ..., 1291 genes
+Queried chromosome 12 ..., 1018 genes
+Queried chromosome 13 ..., 320 genes
+Queried chromosome 14 ..., 602 genes
+Queried chromosome 15 ..., 589 genes
+Queried chromosome 16 ..., 842 genes
+Queried chromosome 17 ..., 1158 genes
+Queried chromosome 18 ..., 262 genes
+Queried chromosome 19 ..., 1432 genes
+Queried chromosome 20 ..., 537 genes
+Queried chromosome 21 ..., 219 genes
+Queried chromosome 22 ..., 434 genes
+Queried chromosome X ..., 853 genes</code></pre>
+</div>
 </div>
 </section>
 <section id="count-missing-genes-in-reference-enformer" class="level2">
 <h2 class="anchored" data-anchor-id="count-missing-genes-in-reference-enformer">Count missing genes in reference Enformer</h2>
 <p>We are only missing TSS CAGE values for 12 genes, all on chromosome 12.</p>
 <div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    n_missing <span class="op">=</span> np.<span class="bu">sum</span>(np.isnan(np.array(CAGE_predictions[<span class="bu">chr</span>])))</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_missing <span class="op">&gt;</span> <span class="dv">0</span>:</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Chromosome"</span>, <span class="bu">chr</span>, <span class="st">"missing"</span>, n_missing, <span class="st">"genes in the predicted human reference epigenome"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    n_missing <span class="op">=</span> np.<span class="bu">sum</span>(np.isnan(np.array(CAGE_predictions[<span class="bu">chr</span>])))</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_missing <span class="op">&gt;</span> <span class="dv">0</span>:</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Chromosome"</span>, <span class="bu">chr</span>, <span class="st">"missing"</span>, n_missing, <span class="st">"genes in the predicted human reference epigenome"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Chromosome 12 missing 27 genes in the predicted human reference epigenome</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>merged_dict <span class="op">=</span> {<span class="bu">chr</span>: pd.DataFrame(index<span class="op">=</span>gene_dict[<span class="bu">chr</span>]) <span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list}</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>][<span class="st">'enformer'</span>] <span class="op">=</span> CAGE_predictions[<span class="bu">chr</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>merged_dict <span class="op">=</span> {<span class="bu">chr</span>: pd.DataFrame(index<span class="op">=</span>gene_dict[<span class="bu">chr</span>]) <span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list}</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>][<span class="st">'enformer'</span>] <span class="op">=</span> CAGE_predictions[<span class="bu">chr</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>all_predicted <span class="op">=</span> pd.concat(merged_dict.values())</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>all_predicted.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_predicted_expression.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>all_predicted <span class="op">=</span> pd.concat(merged_dict.values())</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>all_predicted.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_predicted_expression.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>gtex_tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/gene_tpm_2017-06-05_v8_brain_cortex.gct.gz"</span>, header<span class="op">=</span><span class="dv">2</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>gtex_tpm[<span class="st">'Name'</span>] <span class="op">=</span> gtex_tpm[<span class="st">'Name'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> gene: gene.split(<span class="st">'.'</span>)[<span class="dv">0</span>])</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>gtex_tpm.set_index(<span class="st">'Name'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate average gene expression</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>gtex_mean_tpm <span class="op">=</span> gtex_tpm.drop(columns<span class="op">=</span>[<span class="st">'id'</span>, <span class="st">'Description'</span>]).mean(axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>gtex_mean_tpm.name <span class="op">=</span> <span class="st">'gtex'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>gtex_tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/gene_tpm_2017-06-05_v8_brain_cortex.gct.gz"</span>, header<span class="op">=</span><span class="dv">2</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>gtex_tpm[<span class="st">'Name'</span>] <span class="op">=</span> gtex_tpm[<span class="st">'Name'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> gene: gene.split(<span class="st">'.'</span>)[<span class="dv">0</span>])</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>gtex_tpm.set_index(<span class="st">'Name'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate average gene expression</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>gtex_mean_tpm <span class="op">=</span> gtex_tpm.drop(columns<span class="op">=</span>[<span class="st">'id'</span>, <span class="st">'Description'</span>]).mean(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>gtex_mean_tpm.name <span class="op">=</span> <span class="st">'gtex'</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    gene_list <span class="op">=</span> merged_dict[<span class="bu">chr</span>].index.intersection(gtex_tpm.index)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>] <span class="op">=</span> merged_dict[<span class="bu">chr</span>].loc[gene_list]</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>] <span class="op">=</span> merged_dict[<span class="bu">chr</span>].merge(gtex_mean_tpm, left_index<span class="op">=</span><span class="va">True</span>, right_index<span class="op">=</span><span class="va">True</span>, how<span class="op">=</span><span class="st">'inner'</span>).dropna()</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(merged_dict[<span class="bu">chr</span>].shape[<span class="dv">0</span>], <span class="st">"genes on chromosome"</span>, <span class="bu">chr</span>, <span class="st">"to be used in correlation test"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    gene_list <span class="op">=</span> merged_dict[<span class="bu">chr</span>].index.intersection(gtex_tpm.index)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>] <span class="op">=</span> merged_dict[<span class="bu">chr</span>].loc[gene_list]</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    merged_dict[<span class="bu">chr</span>] <span class="op">=</span> merged_dict[<span class="bu">chr</span>].merge(gtex_mean_tpm, left_index<span class="op">=</span><span class="va">True</span>, right_index<span class="op">=</span><span class="va">True</span>, how<span class="op">=</span><span class="st">'inner'</span>).dropna()</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(merged_dict[<span class="bu">chr</span>].shape[<span class="dv">0</span>], <span class="st">"genes on chromosome"</span>, <span class="bu">chr</span>, <span class="st">"</span><span class="ch">\t</span><span class="st">Correlation:"</span>, merged_dict[<span class="bu">chr</span>].corr().iloc[<span class="dv">0</span>,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="18">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>all_predicted <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_predicted_expression.csv"</span>, index_col <span class="op">=</span> <span class="dv">0</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> all_predicted.merge(gtex_mean_tpm, left_index<span class="op">=</span><span class="va">True</span>, right_index<span class="op">=</span><span class="va">True</span>, how<span class="op">=</span><span class="st">"inner"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="20">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Pearson Correlation:"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>all_genes.corr(method<span class="op">=</span><span class="st">"pearson"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>1977 genes on chromosome 1 to be used in correlation test
-1201 genes on chromosome 2 to be used in correlation test
-1031 genes on chromosome 3 to be used in correlation test
-738 genes on chromosome 4 to be used in correlation test
-858 genes on chromosome 5 to be used in correlation test
-996 genes on chromosome 6 to be used in correlation test
-878 genes on chromosome 7 to be used in correlation test
-662 genes on chromosome 8 to be used in correlation test
-748 genes on chromosome 9 to be used in correlation test
-707 genes on chromosome 10 to be used in correlation test
-1259 genes on chromosome 11 to be used in correlation test
-965 genes on chromosome 12 to be used in correlation test
-314 genes on chromosome 13 to be used in correlation test
-587 genes on chromosome 14 to be used in correlation test
-566 genes on chromosome 15 to be used in correlation test
-815 genes on chromosome 16 to be used in correlation test
-1133 genes on chromosome 17 to be used in correlation test
-259 genes on chromosome 18 to be used in correlation test
-1380 genes on chromosome 19 to be used in correlation test
-520 genes on chromosome 20 to be used in correlation test
-213 genes on chromosome 21 to be used in correlation test
-416 genes on chromosome 22 to be used in correlation test
-857 genes on chromosome X to be used in correlation test</code></pre>
+<pre><code>Pearson Correlation:</code></pre>
 </div>
-</div>
-<div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span> <span class="kw">in</span> chr_list:</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Chromosome"</span>, <span class="bu">chr</span>, <span class="st">"correlation:"</span>, merged_dict[<span class="bu">chr</span>].corr().iloc[<span class="dv">0</span>,<span class="dv">1</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Chromosome 1 correlation: 0.6279205208330061
-Chromosome 2 correlation: 0.4577084823841293
-Chromosome 3 correlation: 0.5590473627720567
-Chromosome 4 correlation: 0.6622514111261547
-Chromosome 5 correlation: 0.5659772926746754
-Chromosome 6 correlation: 0.5405769582022613
-Chromosome 7 correlation: 0.4736588849210786
-Chromosome 8 correlation: 0.6197347486783672
-Chromosome 9 correlation: 0.6160610260212112
-Chromosome 10 correlation: 0.7113057334708601
-Chromosome 11 correlation: 0.5348642297249536
-Chromosome 12 correlation: 0.6363452896594721
-Chromosome 13 correlation: 0.4445465856319643
-Chromosome 14 correlation: 0.35533005480427243
-Chromosome 15 correlation: 0.664532588686653
-Chromosome 16 correlation: 0.6644114213442329
-Chromosome 17 correlation: 0.597201417137115
-Chromosome 18 correlation: 0.24144231917848386
-Chromosome 19 correlation: 0.5346556958916295
-Chromosome 20 correlation: 0.6870184790969254
-Chromosome 21 correlation: 0.7286380655413807
-Chromosome 22 correlation: 0.5212558005156317
-Chromosome X correlation: 0.560185751334359</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>all_genes <span class="op">=</span> pd.concat(merged_dict.values())</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Correlation across all genes:"</span>)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>all_genes.corr()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Correlation across all genes:</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="22">
+<div class="cell-output cell-output-display" data-execution_count="20">
 <div>
 
 
@@ -379,6 +347,54 @@ Chromosome X correlation: 0.560185751334359</code></pre>
 </table>
 
 </div>
+</div>
+</div>
+<div class="cell" data-execution_count="21">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Spearman Correlation:"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>all_genes.corr(method<span class="op">=</span><span class="st">"spearman"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Spearman Correlation:</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">enformer</th>
+<th data-quarto-table-cell-role="th">gtex</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">enformer</td>
+<td>1.000000</td>
+<td>0.794341</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">gtex</td>
+<td>0.794341</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> all_genes.corr(method<span class="op">=</span><span class="st">"spearman"</span>).iloc[<span class="dv">0</span>,<span class="dv">1</span>]</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(all_genes[<span class="st">'enformer'</span>], all_genes[<span class="st">'gtex'</span>], label<span class="op">=</span><span class="ss">f'Correlation: </span><span class="sc">{</span>corr<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'observed'</span>)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'predicted'</span>)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Enformer predictions across human genes"</span>)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-15-output-1.png" class="img-fluid"></p>
 </div>
 </div>
 

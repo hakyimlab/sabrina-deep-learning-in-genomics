@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Sabrina Mi">
+<meta name="dcterms.date" content="2023-09-12">
 
-<title>deep-learning-in-genomics - Home Page for Enformer Human and Rat Cross-species Analysis</title>
+<title>deep-learning-in-genomics - Test run of personalized Enformer on HS rats</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -60,8 +62,6 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -108,14 +108,26 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Home Page for Enformer Human and Rat Cross-species Analysis</h1>
+      <h1 class="title">Test run of personalized Enformer on HS rats</h1>
                       </div>
   </div>
     
   
   <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Sabrina Mi </p>
+            </div>
+    </div>
       
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">September 12, 2023</p>
+      </div>
+    </div>
     
       
     </div>
@@ -131,59 +143,15 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="updates-this-week" class="level2">
-<h2 class="anchored" data-anchor-id="updates-this-week">Updates this Week</h2>
-<ul>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-31-Br-personalized-prediction-on-more-genes/">Plotted results for 868 genes selected for significant eQTLs and observed variation</a></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-09-12-processing-HS-founder-rat-genotypes/">Started preparing VCF of HS founders for Enformer runs across all genes</a></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-09-13-all-correlation-across-genes-plots/">Update correlation across genes plots</a></li>
-</ul>
+<section id="write-individuals-list" class="level3">
+<h3 class="anchored" data-anchor-id="write-individuals-list">Write Individuals List</h3>
+<pre><code>bcftools query -l /Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/Palmer_HS_founders_mRatBN7_2.vcf.gz &gt; metadata/individuals.txt
+</code></pre>
 </section>
-<section id="introduction" class="level2">
-<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<section id="data-inventory" class="level3">
-<h3 class="anchored" data-anchor-id="data-inventory">Data Inventory</h3>
-<ul>
-<li>Genotype and gene expression data for 340 rats in the Br study
-<ul>
-<li>Mean gene expression used as ground truth reference gene expression</li>
-</ul></li>
-<li>GTEx gene expression data used as ground truth reference gene expression</li>
-<li>Rat reference genome as input to Enformer to predict reference gene expression</li>
-<li>Human reference genome as input to Enformer to predict reference gene expression</li>
-</ul>
-</section>
-<section id="goals" class="level3">
-<h3 class="anchored" data-anchor-id="goals">Goals</h3>
-<ul>
-<li>Determine whether Enformer models (human and mouse) can predict expression across genes</li>
-<li>Use genotypes to predict gene expression in the Br rats with the Enformer models</li>
-</ul>
-</section>
-</section>
-<section id="correlation-across-genes" class="level2">
-<h2 class="anchored" data-anchor-id="correlation-across-genes">Correlation across genes</h2>
-<p>We are currently using the CAGE:Brain human track at a gene’s TSS to estimate gene expression in rats. For all GTEx gene expression comparisons, we used mean TPM in brain cortex tissue. We want to make 3 types of comparison:</p>
-<ol type="1">
-<li><span class="math inline">\(\rho^h_{Hh}\)</span>: Correlation between human reference gene expression predicted with Enformer human head and GTEx mean gene expression</li>
-<li><span class="math inline">\(\rho^h_{Rr}\)</span>: Correlation between rat reference gene expression predicted with Enformer human head and Br reference gene expression</li>
-<li><span class="math inline">\(\rho^h_{HR}\)</span>: Correlation between rat reference gene expression and human reference gene expression</li>
-</ol>
-<p>Enformer is optimized to predict variation across the genome, so we use <span class="math inline">\(\rho^h_{Hh}\)</span> as the baseline performance. Intuitively, we hope to see <span class="math inline">\(\rho^h_{Rr} = \rho^h_{HR} \rho^h_{Hh}\)</span>.</p>
-<p><a href="https://www.biorxiv.org/content/10.1101/2023.06.30.547100v1.full.pdf">Personal transcriptome variation is poorly explained by current genomic deep learning models, Huang et al</a> performed the same analysis on GEUVADIS LCL gene expression data and found a correlation of 0.57</p>
-<section id="analysis-summary" class="level3">
-<h3 class="anchored" data-anchor-id="analysis-summary">Analysis Summary</h3>
-<ol type="1">
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-between-enformer-and-gtex-expression-across-genes-by-chromosome/"><span class="math inline">\(\rho^h_{Hh} = 0.539\)</span></a></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-across-rn7-genes-by-chromosome/"><span class="math inline">\(\rho^h_{Rr} = 0.453\)</span></a></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-09-01-comparing-human-vs-rat-mean-expression-across-genes"><span class="math inline">\(\rho^h_{HR} = 0.886\)</span></a></li>
-</ol>
-<p>Other analysis includes: 1. Validating Huang et al.’s <a href="https://sabrina-dl.hakyimlab.org/posts/2023-09-06-validating-Huang-et-al">correlation of 0.57</a> in human LCL tissues, I even obtained a higher correlation of 0.77 when I included all GEUVADIS genes</p>
-</section>
-</section>
-<section id="correlation-across-individuals" class="level2">
-<h2 class="anchored" data-anchor-id="correlation-across-individuals">Correlation across individuals</h2>
-<p>Our progress so far is developing the pipeline. I added support for unphased VCFs, which cuts the number of Enformer runs in half by averaging the two haplotypes. I also added options to output mouse head predictions or both.</p>
+<section id="run-pipeline-locally" class="level3">
+<h3 class="anchored" data-anchor-id="run-pipeline-locally">Run Pipeline Locally</h3>
+<pre><code>conda activate enformer-predict-tools
+python /Users/sabrinami/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-09-12-test-run-on-HS-founders/local_test_personalized.json</code></pre>
 
 
 </section>
