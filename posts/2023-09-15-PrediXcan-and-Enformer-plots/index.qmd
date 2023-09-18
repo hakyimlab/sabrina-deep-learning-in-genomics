@@ -1,0 +1,69 @@
+---
+title: All R plots of PrediXcan and Enformer results
+author: Sabrina Mi
+date: 9/15/2023
+format:
+  html:
+    code-fold: true
+
+---
+
+## QQ Plots
+
+Import Haky's QQ plot gists and read Enformer personalized prediction summary results.
+```{r}
+#| output: false
+devtools::source_gist("a925fea01b365a8c605e")
+devtools::source_gist("38431b74c6c0bf90c12f")
+pearson_corr_human <- read.csv("/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/Within-Lab-Sharing/Sabrina-Data/rat_data/output/Br_personalized_pearson_corr_human.csv", row.names = 1)
+pearson_corr_mouse <- read.csv("/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/Within-Lab-Sharing/Sabrina-Data/rat_data/output/Br_personalized_pearson_corr_mouse.csv", row.names = 1)
+spearman_corr_human <- read.csv("/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/Within-Lab-Sharing/Sabrina-Data/rat_data/output/Br_personalized_spearman_corr_human.csv", row.names = 1)
+spearman_corr_mouse <- read.csv("/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/Within-Lab-Sharing/Sabrina-Data/rat_data/output/Br_personalized_spearman_corr_mouse.csv", row.names = 1)
+```
+
+We used Enformer human and mouse head outputs across 340 rats in Br study to predict individual-level gene expression. We recorded pearson and spearman correlations of predicted vs observed expression for each gene. In this post, we evaluate performance of both models against each other as well as PrediXcan. 
+
+### Enformer Human Head
+
+Plots generated from pearson correlations:
+```{r}
+qqR(pearson_corr_human$pearson.r, 340, main="Human Head Prediction for Br Rats: Pearson R2 vs Expected")
+qqR2(pearson_corr_human$pearson.r ** 2, 340, main="Human Head Prediction for Br Rats: Pearson R2 vs Expected")
+qqunif(pearson_corr_human$pvalue, main="Human Head Prediction for Br Rats: Pearson P-values")
+```
+
+Plots generated from spearman correlations:
+
+```{r}
+qqR(spearman_corr_human$spearman.r, 340, main="Human Head Prediction for Br Rats: Spearman R2 vs Expected")
+qqR2(spearman_corr_human$spearman.r ** 2, 340, main="Human Head Prediction for Br Rats: Spearman R2 vs Expected")
+qqunif(spearman_corr_human$pvalue, main="Human Head Prediction for Br Rats: Spearman P-values")
+```
+
+### Enformer Mouse Head
+
+```{r}
+qqR(pearson_corr_mouse$pearson.r, 340, main="Mouse Head Prediction for Br Rats: Pearson R2 vs Expected")
+qqR2(pearson_corr_mouse$pearson.r ** 2, 340, main="Mouse Head Prediction for Br Rats: Pearson R2 vs Expected")
+qqunif(pearson_corr_mouse$pvalue, main="Mouse Head Prediction for Br Rats: Pearson P-values")
+```
+
+```{r}
+qqR(spearman_corr_mouse$spearman.r, 340, main="Mouse Head Prediction for Br Rats: Spearman R2 vs Expected")
+qqR2(spearman_corr_mouse$spearman.r ** 2, 340, main="Mouse Head Prediction for Br Rats: Spearman R2 vs Expected")
+qqunif(spearman_corr_mouse$pvalue, main="Mouse Head Prediction for Br Rats: Spearman P-values")
+```
+
+## Scatter Plot with PrediXcan Elastic Net Performance
+
+399 genes out of the 867 genes used in the Enformer runs have prediction performance results in the Br elastic net PrediXcan model. The missing genes were likely filtered out during training because there were no snps found to have effect on their expression.
+```{r}
+enet_Br_perf <- read.csv("/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/Within-Lab-Sharing/Sabrina-Data/rat_data/misc/highestR2genes.csv")[,c(1,6)]
+enet_Br_merged <- merge(enet_Br_perf, spearman_corr_human, by.x ="gene", by.y = "row.names")
+plot(enet_Br_merged$cor, enet_Br_merged$spearman.r, main = "Cross-Individual Correlations from PrediXcan and Enformer's Human Head", type = "n", xlab = "PrediXcan", ylab = "Enformer")
+points(enet_Br_merged$cor, enet_Br_merged$spearman.r)
+abline(a=0,b=0)
+abline(v=0)
+
+
+```
