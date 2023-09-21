@@ -242,7 +242,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <section id="read-processed-predictions" class="level2">
 <h2 class="anchored" data-anchor-id="read-processed-predictions">Read Processed Predictions</h2>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="3">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
@@ -288,7 +288,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   warnings.warn(stats.ConstantInputWarning(warn_msg))</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="6">
+<div class="cell" data-execution_count="4">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>pearson_corr_human <span class="op">=</span> pd.DataFrame(columns <span class="op">=</span> [<span class="st">"pearson r"</span>, <span class="st">"pvalue"</span>], index <span class="op">=</span> gene_list)</span>
@@ -306,10 +306,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    mouse_corr, mouse_pval <span class="op">=</span> stats.spearmanr(expr_dict[gene][<span class="st">"observed"</span>], expr_dict[gene][<span class="st">"mouse predicted"</span>])</span>
 <span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    spearman_corr_human.loc[gene] <span class="op">=</span> [human_corr, human_pval]</span>
 <span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    spearman_corr_mouse.loc[gene] <span class="op">=</span> [mouse_corr, mouse_pval]</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>pearson_corr_human.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_pearson_corr_human.csv"</span>)</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>pearson_corr_mouse.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_pearson_corr_mouse.csv"</span>)</span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>spearman_corr_human.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_spearman_corr_human.csv"</span>)</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>spearman_corr_mouse.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_spearman_corr_mouse.csv"</span>)</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>pearson_corr_human.dropna().to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_pearson_corr_human.csv"</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>pearson_corr_mouse.dropna().to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_pearson_corr_mouse.csv"</span>)</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>spearman_corr_human.dropna().to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_spearman_corr_human.csv"</span>)</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>spearman_corr_mouse.dropna().to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_spearman_corr_mouse.csv"</span>)</span>
 <span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stderr">
