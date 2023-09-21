@@ -20,10 +20,19 @@
 
 
 
+<section id="sample-genes" class="level2">
+<h2 class="anchored" data-anchor-id="sample-genes">Sample Genes</h2>
+</section>
+<section id="run-borzoi" class="level2">
+<h2 class="anchored" data-anchor-id="run-borzoi">Run Borzoi</h2>
 <pre><code>module load conda
 conda activate borzoi
 cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test
 python borzoi_predict.py --gene_df gene_list.txt --tracks "17,18,19" </code></pre>
+</section>
+<section id="plot-comparisons-across-genes" class="level2">
+<h2 class="anchored" data-anchor-id="plot-comparisons-across-genes">Plot Comparisons Across Genes</h2>
+</section>
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">Summary</h2>
 
@@ -2312,24 +2321,20 @@ font-style: inherit;">0</span>], <span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span>)</span></code></pre></div>
 </div>
-<pre><code>module load conda
-conda activate borzoi
-cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test
-python borzoi_predict.py --gene_df gene_list.txt --tracks "17,18,19" </code></pre>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><span class="co" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Print index of GTEx blood and muscle tracks in targets file</span></span>
-<span id="cb12-2"></span>
-<span id="cb12-3">targets_df[<span class="st" style="color: #20794D;
+<span id="cb11-2"></span>
+<span id="cb11-3">targets_df[<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'local_index'</span>] <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> np.arange(<span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">len</span>(targets_df))</span>
-<span id="cb12-4"></span>
-<span id="cb12-5"><span class="bu" style="color: null;
+<span id="cb11-4"></span>
+<span id="cb11-5"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
@@ -2346,7 +2351,7 @@ background-color: null;
 font-style: inherit;">'RNA:blood'</span>][<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'local_index'</span>].tolist()))</span>
-<span id="cb12-6"><span class="bu" style="color: null;
+<span id="cb11-6"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
@@ -2369,96 +2374,96 @@ muscle tracks = [47, 48, 49]</code></pre>
 </div>
 </div>
 <div class="cell" data-scrolled="true" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><span class="co" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Predict for chr10_116952944_T_C</span></span>
-<span id="cb14-2"></span>
-<span id="cb14-3">save_figs <span class="op" style="color: #5E5E5E;
+<span id="cb13-2"></span>
+<span id="cb13-3">save_figs <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span></span>
-<span id="cb14-4">save_suffix <span class="op" style="color: #5E5E5E;
+<span id="cb13-4">save_suffix <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'_chr10_116952944_T_C'</span></span>
-<span id="cb14-5"></span>
-<span id="cb14-6">sequence_one_hot_wt <span class="op" style="color: #5E5E5E;
+<span id="cb13-5"></span>
+<span id="cb13-6">sequence_one_hot_wt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> process_sequence(fasta_open, chrom, start, end)</span>
-<span id="cb14-7"></span>
-<span id="cb14-8"><span class="co" style="color: #5E5E5E;
+<span id="cb13-7"></span>
+<span id="cb13-8"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Induce mutation(s)</span></span>
-<span id="cb14-9">sequence_one_hot_mut <span class="op" style="color: #5E5E5E;
+<span id="cb13-9">sequence_one_hot_mut <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> np.copy(sequence_one_hot_wt)</span>
-<span id="cb14-10"></span>
-<span id="cb14-11"><span class="cf" style="color: #003B4F;
+<span id="cb13-10"></span>
+<span id="cb13-11"><span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">for</span> pos, alt <span class="kw" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">in</span> <span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">zip</span>(poses, alts) :</span>
-<span id="cb14-12">    alt_ix <span class="op" style="color: #5E5E5E;
+<span id="cb13-12">    alt_ix <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span></span>
-<span id="cb14-13">    <span class="cf" style="color: #003B4F;
+<span id="cb13-13">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">if</span> alt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">==</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'A'</span> :</span>
-<span id="cb14-14">        alt_ix <span class="op" style="color: #5E5E5E;
+<span id="cb13-14">        alt_ix <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span></span>
-<span id="cb14-15">    <span class="cf" style="color: #003B4F;
+<span id="cb13-15">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">elif</span> alt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">==</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'C'</span> :</span>
-<span id="cb14-16">        alt_ix <span class="op" style="color: #5E5E5E;
+<span id="cb13-16">        alt_ix <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span></span>
-<span id="cb14-17">    <span class="cf" style="color: #003B4F;
+<span id="cb13-17">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">elif</span> alt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">==</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'G'</span> :</span>
-<span id="cb14-18">        alt_ix <span class="op" style="color: #5E5E5E;
+<span id="cb13-18">        alt_ix <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">2</span></span>
-<span id="cb14-19">    <span class="cf" style="color: #003B4F;
+<span id="cb13-19">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">elif</span> alt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">==</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'T'</span> :</span>
-<span id="cb14-20">        alt_ix <span class="op" style="color: #5E5E5E;
+<span id="cb13-20">        alt_ix <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">3</span></span>
-<span id="cb14-21"></span>
-<span id="cb14-22">    sequence_one_hot_mut[pos<span class="op" style="color: #5E5E5E;
+<span id="cb13-21"></span>
+<span id="cb13-22">    sequence_one_hot_mut[pos<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">-</span>start<span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -2469,7 +2474,7 @@ background-color: null;
 font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.</span></span>
-<span id="cb14-23">    sequence_one_hot_mut[pos<span class="op" style="color: #5E5E5E;
+<span id="cb13-23">    sequence_one_hot_mut[pos<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">-</span>start<span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -2480,157 +2485,157 @@ background-color: null;
 font-style: inherit;">=</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1.</span></span>
-<span id="cb14-24"></span>
-<span id="cb14-25"><span class="co" style="color: #5E5E5E;
+<span id="cb13-24"></span>
+<span id="cb13-25"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Make predictions</span></span>
-<span id="cb14-26">y_wt <span class="op" style="color: #5E5E5E;
+<span id="cb13-26">y_wt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> predict_tracks(models, sequence_one_hot_wt)</span>
-<span id="cb14-27">y_mut <span class="op" style="color: #5E5E5E;
+<span id="cb13-27">y_mut <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> predict_tracks(models, sequence_one_hot_mut)</span>
-<span id="cb14-28"></span>
-<span id="cb14-29"><span class="co" style="color: #5E5E5E;
+<span id="cb13-28"></span>
+<span id="cb13-29"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Visualize quantized tracks over SNP</span></span>
-<span id="cb14-30"></span>
-<span id="cb14-31">plot_window <span class="op" style="color: #5E5E5E;
+<span id="cb13-30"></span>
+<span id="cb13-31">plot_window <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">131072</span></span>
-<span id="cb14-32">bin_size <span class="op" style="color: #5E5E5E;
+<span id="cb13-32">bin_size <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">32</span></span>
-<span id="cb14-33">pad <span class="op" style="color: #5E5E5E;
+<span id="cb13-33">pad <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">16</span></span>
-<span id="cb14-34"></span>
-<span id="cb14-35">rescale_tracks <span class="op" style="color: #5E5E5E;
+<span id="cb13-34"></span>
+<span id="cb13-35">rescale_tracks <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">True</span></span>
-<span id="cb14-36">normalize_counts <span class="op" style="color: #5E5E5E;
+<span id="cb13-36">normalize_counts <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span></span>
-<span id="cb14-37"></span>
-<span id="cb14-38">anno_df <span class="op" style="color: #5E5E5E;
+<span id="cb13-37"></span>
+<span id="cb13-38">anno_df <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">None</span> <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#splice_df</span></span>
-<span id="cb14-39"></span>
-<span id="cb14-40"><span class="co" style="color: #5E5E5E;
+<span id="cb13-39"></span>
+<span id="cb13-40"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Tracks</span></span>
-<span id="cb14-41">track_indices <span class="op" style="color: #5E5E5E;
+<span id="cb13-41">track_indices <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
-<span id="cb14-42">    np.arange(<span class="dv" style="color: #AD0000;
+<span id="cb13-42">    np.arange(<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">89</span>).tolist(),</span>
-<span id="cb14-43">    [<span class="dv" style="color: #AD0000;
+<span id="cb13-43">    [<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">9</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">11</span>],</span>
-<span id="cb14-44">    [<span class="dv" style="color: #AD0000;
+<span id="cb13-44">    [<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">47</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">48</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">49</span>],</span>
-<span id="cb14-45">]</span>
-<span id="cb14-46"></span>
-<span id="cb14-47">track_names <span class="op" style="color: #5E5E5E;
+<span id="cb13-45">]</span>
+<span id="cb13-46"></span>
+<span id="cb13-47">track_names <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
-<span id="cb14-48">    <span class="st" style="color: #20794D;
+<span id="cb13-48">    <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'GTEx Coverage (All tissues)'</span>,</span>
-<span id="cb14-49">    <span class="st" style="color: #20794D;
+<span id="cb13-49">    <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'GTEx Coverage (Blood)'</span>,</span>
-<span id="cb14-50">    <span class="st" style="color: #20794D;
+<span id="cb13-50">    <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'GTEx Coverage (Muscle)'</span>,</span>
-<span id="cb14-51">]</span>
-<span id="cb14-52"></span>
-<span id="cb14-53">track_scales <span class="op" style="color: #5E5E5E;
+<span id="cb13-51">]</span>
+<span id="cb13-52"></span>
+<span id="cb13-53">track_scales <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
-<span id="cb14-54">    <span class="fl" style="color: #AD0000;
+<span id="cb13-54">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.01</span>,</span>
-<span id="cb14-55">    <span class="fl" style="color: #AD0000;
+<span id="cb13-55">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.01</span>,</span>
-<span id="cb14-56">    <span class="fl" style="color: #AD0000;
+<span id="cb13-56">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.01</span>,</span>
-<span id="cb14-57">]</span>
-<span id="cb14-58"></span>
-<span id="cb14-59">track_transforms <span class="op" style="color: #5E5E5E;
+<span id="cb13-57">]</span>
+<span id="cb13-58"></span>
+<span id="cb13-59">track_transforms <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
-<span id="cb14-60">    <span class="fl" style="color: #AD0000;
+<span id="cb13-60">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">3.</span><span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">/</span><span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">4.</span>,</span>
-<span id="cb14-61">    <span class="fl" style="color: #AD0000;
+<span id="cb13-61">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">3.</span><span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">/</span><span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">4.</span>,</span>
-<span id="cb14-62">    <span class="fl" style="color: #AD0000;
+<span id="cb13-62">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">3.</span><span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">/</span><span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">4.</span>,</span>
-<span id="cb14-63">]</span>
-<span id="cb14-64"></span>
-<span id="cb14-65">soft_clips <span class="op" style="color: #5E5E5E;
+<span id="cb13-63">]</span>
+<span id="cb13-64"></span>
+<span id="cb13-65">soft_clips <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
-<span id="cb14-66">    <span class="fl" style="color: #AD0000;
+<span id="cb13-66">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">384.</span>,</span>
-<span id="cb14-67">    <span class="fl" style="color: #AD0000;
+<span id="cb13-67">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">384.</span>,</span>
-<span id="cb14-68">    <span class="fl" style="color: #AD0000;
+<span id="cb13-68">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">384.</span>,</span>
-<span id="cb14-69">]</span>
-<span id="cb14-70"></span>
-<span id="cb14-71"><span class="bu" style="color: null;
+<span id="cb13-69">]</span>
+<span id="cb13-70"></span>
+<span id="cb13-71"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"-- Counts --"</span>)</span>
-<span id="cb14-72">plot_coverage_track_pair_bins(y_wt, y_mut, chrom, start, center_pos, poses, track_indices, track_names, track_scales, track_transforms, soft_clips, plot_window<span class="op" style="color: #5E5E5E;
+<span id="cb13-72">plot_coverage_track_pair_bins(y_wt, y_mut, chrom, start, center_pos, poses, track_indices, track_names, track_scales, track_transforms, soft_clips, plot_window<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>plot_window, normalize_window<span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -2684,12 +2689,12 @@ font-style: inherit;">=</span>anno_df)</span></code></pre></div>
 </div>
 </div>
 <div class="cell" data-execution_count="16">
-<div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><span class="bu" style="color: null;
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"Output Shape:"</span>,y_wt.shape)</span>
-<span id="cb16-2">y_wt</span></code></pre></div>
+<span id="cb15-2">y_wt</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Output Shape: (1, 4, 16352, 89)</code></pre>
 </div>
@@ -2752,19 +2757,19 @@ font-style: inherit;">"Output Shape:"</span>,y_wt.shape)</span>
 </div>
 </div>
 <div class="cell" data-execution_count="51">
-<div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><span class="im" style="color: #00769E;
+<div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">import</span> importlib</span>
-<span id="cb19-2"><span class="im" style="color: #00769E;
+<span id="cb18-2"><span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">import</span> borzoi_helpers_sm</span>
-<span id="cb19-3">importlib.<span class="bu" style="color: null;
+<span id="cb18-3">importlib.<span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">reload</span>(borzoi_helpers_sm)</span>
-<span id="cb19-4"><span class="co" style="color: #5E5E5E;
+<span id="cb18-4"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">## GTEx blood tracks</span></span>
-<span id="cb19-5">track_index <span class="op" style="color: #5E5E5E;
+<span id="cb18-5">track_index <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [<span class="dv" style="color: #AD0000;
 background-color: null;
@@ -2773,7 +2778,7 @@ background-color: null;
 font-style: inherit;">48</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">49</span>]</span>
-<span id="cb19-6">y_wt_curr <span class="op" style="color: #5E5E5E;
+<span id="cb18-6">y_wt_curr <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> borzoi_helpers_sm.inverse_transform(y_wt, <span class="fl" style="color: #AD0000;
 background-color: null;
@@ -2786,7 +2791,7 @@ background-color: null;
 font-style: inherit;">4.</span>, <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">384.</span>)</span>
-<span id="cb19-7"><span class="bu" style="color: null;
+<span id="cb18-7"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
@@ -2799,73 +2804,73 @@ font-style: inherit;">"Sum (Expression Attribution):"</span>, borzoi_helpers_sm.
 <section id="score-variants" class="level2">
 <h2 class="anchored" data-anchor-id="score-variants">Score Variants</h2>
 <div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><span class="co" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Get contribution scores (gradient) for blood GTEX tracks</span></span>
-<span id="cb21-2"></span>
-<span id="cb21-3">_, _, [pred_grad_wt, pred_grad_mut] <span class="op" style="color: #5E5E5E;
+<span id="cb20-2"></span>
+<span id="cb20-3">_, _, [pred_grad_wt, pred_grad_mut] <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> get_prediction_gradient_w_rc(</span>
-<span id="cb21-4">    models,</span>
-<span id="cb21-5">    [sequence_one_hot_wt, sequence_one_hot_mut],</span>
-<span id="cb21-6">    <span class="dv" style="color: #AD0000;
+<span id="cb20-4">    models,</span>
+<span id="cb20-5">    [sequence_one_hot_wt, sequence_one_hot_mut],</span>
+<span id="cb20-6">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>,</span>
-<span id="cb21-7">    <span class="dv" style="color: #AD0000;
+<span id="cb20-7">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>,</span>
-<span id="cb21-8">    <span class="dv" style="color: #AD0000;
+<span id="cb20-8">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>,</span>
-<span id="cb21-9">    <span class="dv" style="color: #AD0000;
+<span id="cb20-9">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>,</span>
-<span id="cb21-10">    target_index[[<span class="dv" style="color: #AD0000;
+<span id="cb20-10">    target_index[[<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">9</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">11</span>]].tolist(),</span>
-<span id="cb21-11">    <span class="fl" style="color: #AD0000;
+<span id="cb20-11">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.01</span>,</span>
-<span id="cb21-12">    <span class="fl" style="color: #AD0000;
+<span id="cb20-12">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">3.</span><span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">/</span><span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">4.</span>,</span>
-<span id="cb21-13">    clip_soft<span class="op" style="color: #5E5E5E;
+<span id="cb20-13">    clip_soft<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">384.</span>,</span>
-<span id="cb21-14">    dist_bin_index<span class="op" style="color: #5E5E5E;
+<span id="cb20-14">    dist_bin_index<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>gene_slice.tolist(),</span>
-<span id="cb21-15">    use_mean<span class="op" style="color: #5E5E5E;
+<span id="cb20-15">    use_mean<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span>,</span>
-<span id="cb21-16">    use_ratio<span class="op" style="color: #5E5E5E;
+<span id="cb20-16">    use_ratio<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span>,</span>
-<span id="cb21-17">    use_logodds<span class="op" style="color: #5E5E5E;
+<span id="cb20-17">    use_logodds<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span>,</span>
-<span id="cb21-18">    subtract_avg<span class="op" style="color: #5E5E5E;
+<span id="cb20-18">    subtract_avg<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">True</span>,</span>
-<span id="cb21-19">    fold_index<span class="op" style="color: #5E5E5E;
+<span id="cb20-19">    fold_index<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>[<span class="dv" style="color: #AD0000;
 background-color: null;
@@ -2876,7 +2881,7 @@ background-color: null;
 font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">3</span>],</span>
-<span id="cb21-20">)</span></code></pre></div>
+<span id="cb20-20">)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>WARNING:tensorflow:
 The following Variables were used a Lambda layer's call (inp_grad), but
@@ -4402,14 +4407,14 @@ formulated as a subclassed Layer rather than a Lambda layer.
 </div>
 </div>
 <div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><span class="co" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Visualize contribution scores</span></span>
-<span id="cb23-2"></span>
-<span id="cb23-3">visualize_input_gradient_pair(</span>
-<span id="cb23-4">    pred_grad_wt,</span>
-<span id="cb23-5">    pred_grad_mut,</span>
-<span id="cb23-6">    plot_start<span class="op" style="color: #5E5E5E;
+<span id="cb22-2"></span>
+<span id="cb22-3">visualize_input_gradient_pair(</span>
+<span id="cb22-4">    pred_grad_wt,</span>
+<span id="cb22-5">    pred_grad_mut,</span>
+<span id="cb22-6">    plot_start<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>(poses[<span class="dv" style="color: #AD0000;
 background-color: null;
@@ -4420,7 +4425,7 @@ background-color: null;
 font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">64</span>,</span>
-<span id="cb23-7">    plot_end<span class="op" style="color: #5E5E5E;
+<span id="cb22-7">    plot_end<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>(poses[<span class="dv" style="color: #AD0000;
 background-color: null;
@@ -4431,12 +4436,12 @@ background-color: null;
 font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">64</span>,</span>
-<span id="cb23-8">    save_figs<span class="op" style="color: #5E5E5E;
+<span id="cb22-8">    save_figs<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">True</span>,</span>
-<span id="cb23-9">    fig_name<span class="op" style="color: #5E5E5E;
+<span id="cb22-9">    fig_name<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>chrom <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4453,7 +4458,7 @@ background-color: null;
 font-style: inherit;">+</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'_prediction_grad_gtex_snp_4_folds_gtex_blood_cov_undo_clip'</span></span>
-<span id="cb23-10">)</span></code></pre></div>
+<span id="cb22-10">)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>--- WT ---
 --- Mut ---</code></pre>
@@ -4466,16 +4471,16 @@ font-style: inherit;">'_prediction_grad_gtex_snp_4_folds_gtex_blood_cov_undo_cli
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><span class="co" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Get contribution scores (ISM) for blood GTEX tracks</span></span>
-<span id="cb25-2"></span>
-<span id="cb25-3">[pred_ism_wt, pred_ism_mut] <span class="op" style="color: #5E5E5E;
+<span id="cb24-2"></span>
+<span id="cb24-3">[pred_ism_wt, pred_ism_mut] <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> get_ism(</span>
-<span id="cb25-4">    models,</span>
-<span id="cb25-5">    [sequence_one_hot_wt, sequence_one_hot_mut],</span>
-<span id="cb25-6">    (poses[<span class="dv" style="color: #AD0000;
+<span id="cb24-4">    models,</span>
+<span id="cb24-5">    [sequence_one_hot_wt, sequence_one_hot_mut],</span>
+<span id="cb24-6">    (poses[<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>] <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4484,7 +4489,7 @@ background-color: null;
 font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">64</span>,</span>
-<span id="cb25-7">    (poses[<span class="dv" style="color: #AD0000;
+<span id="cb24-7">    (poses[<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>] <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4493,67 +4498,67 @@ background-color: null;
 font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">64</span>,</span>
-<span id="cb25-8">    <span class="dv" style="color: #AD0000;
+<span id="cb24-8">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>,</span>
-<span id="cb25-9">    <span class="dv" style="color: #AD0000;
+<span id="cb24-9">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>,</span>
-<span id="cb25-10">    <span class="dv" style="color: #AD0000;
+<span id="cb24-10">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>,</span>
-<span id="cb25-11">    <span class="dv" style="color: #AD0000;
+<span id="cb24-11">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>,</span>
-<span id="cb25-12">    [<span class="dv" style="color: #AD0000;
+<span id="cb24-12">    [<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">9</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">11</span>],</span>
-<span id="cb25-13">    <span class="fl" style="color: #AD0000;
+<span id="cb24-13">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.01</span>,</span>
-<span id="cb25-14">    <span class="fl" style="color: #AD0000;
+<span id="cb24-14">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">3.</span><span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">/</span><span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">4.</span>,</span>
-<span id="cb25-15">    <span class="fl" style="color: #AD0000;
+<span id="cb24-15">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">384.</span>,</span>
-<span id="cb25-16">    dist_bin_index<span class="op" style="color: #5E5E5E;
+<span id="cb24-16">    dist_bin_index<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>gene_slice.tolist(),</span>
-<span id="cb25-17">    use_mean<span class="op" style="color: #5E5E5E;
+<span id="cb24-17">    use_mean<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">True</span>,</span>
-<span id="cb25-18">    use_ratio<span class="op" style="color: #5E5E5E;
+<span id="cb24-18">    use_ratio<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span>,</span>
-<span id="cb25-19">    use_logodds<span class="op" style="color: #5E5E5E;
+<span id="cb24-19">    use_logodds<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span>,</span>
-<span id="cb25-20">)</span></code></pre></div>
+<span id="cb24-20">)</span></code></pre></div>
 </div>
 <div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><span class="co" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Visualize contribution scores</span></span>
-<span id="cb26-2"></span>
-<span id="cb26-3">visualize_input_gradient_pair(</span>
-<span id="cb26-4">    pred_ism_wt,</span>
-<span id="cb26-5">    pred_ism_mut,</span>
-<span id="cb26-6">    plot_start<span class="op" style="color: #5E5E5E;
+<span id="cb25-2"></span>
+<span id="cb25-3">visualize_input_gradient_pair(</span>
+<span id="cb25-4">    pred_ism_wt,</span>
+<span id="cb25-5">    pred_ism_mut,</span>
+<span id="cb25-6">    plot_start<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>(poses[<span class="dv" style="color: #AD0000;
 background-color: null;
@@ -4564,7 +4569,7 @@ background-color: null;
 font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">64</span>,</span>
-<span id="cb26-7">    plot_end<span class="op" style="color: #5E5E5E;
+<span id="cb25-7">    plot_end<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>(poses[<span class="dv" style="color: #AD0000;
 background-color: null;
@@ -4575,12 +4580,12 @@ background-color: null;
 font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">64</span>,</span>
-<span id="cb26-8">    save_figs<span class="op" style="color: #5E5E5E;
+<span id="cb25-8">    save_figs<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">True</span>,</span>
-<span id="cb26-9">    fig_name<span class="op" style="color: #5E5E5E;
+<span id="cb25-9">    fig_name<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>chrom <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4597,7 +4602,7 @@ background-color: null;
 font-style: inherit;">+</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'_prediction_ism_gtex_snp_4_folds_gtex_blood_cov_undo_clip'</span></span>
-<span id="cb26-10">)</span></code></pre></div>
+<span id="cb25-10">)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>--- WT ---
 --- Mut ---</code></pre>
@@ -4610,16 +4615,16 @@ font-style: inherit;">'_prediction_ism_gtex_snp_4_folds_gtex_blood_cov_undo_clip
 </div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><span class="co" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Get contribution scores (ISM shuffle) for blood GTEX tracks</span></span>
-<span id="cb28-2"></span>
-<span id="cb28-3">[pred_ism_wt, pred_ism_mut] <span class="op" style="color: #5E5E5E;
+<span id="cb27-2"></span>
+<span id="cb27-3">[pred_ism_wt, pred_ism_mut] <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> get_ism_shuffle(</span>
-<span id="cb28-4">    models,</span>
-<span id="cb28-5">    [sequence_one_hot_wt, sequence_one_hot_mut],</span>
-<span id="cb28-6">    (poses[<span class="dv" style="color: #AD0000;
+<span id="cb27-4">    models,</span>
+<span id="cb27-5">    [sequence_one_hot_wt, sequence_one_hot_mut],</span>
+<span id="cb27-6">    (poses[<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>] <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4628,7 +4633,7 @@ background-color: null;
 font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">64</span>,</span>
-<span id="cb28-7">    (poses[<span class="dv" style="color: #AD0000;
+<span id="cb27-7">    (poses[<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>] <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4637,82 +4642,82 @@ background-color: null;
 font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">64</span>,</span>
-<span id="cb28-8">    <span class="dv" style="color: #AD0000;
+<span id="cb27-8">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>,</span>
-<span id="cb28-9">    <span class="dv" style="color: #AD0000;
+<span id="cb27-9">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>,</span>
-<span id="cb28-10">    <span class="dv" style="color: #AD0000;
+<span id="cb27-10">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>,</span>
-<span id="cb28-11">    <span class="dv" style="color: #AD0000;
+<span id="cb27-11">    <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>,</span>
-<span id="cb28-12">    [<span class="dv" style="color: #AD0000;
+<span id="cb27-12">    [<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">9</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">11</span>],</span>
-<span id="cb28-13">    <span class="fl" style="color: #AD0000;
+<span id="cb27-13">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.01</span>,</span>
-<span id="cb28-14">    <span class="fl" style="color: #AD0000;
+<span id="cb27-14">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">3.</span><span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">/</span><span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">4.</span>,</span>
-<span id="cb28-15">    <span class="fl" style="color: #AD0000;
+<span id="cb27-15">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">384.</span>,</span>
-<span id="cb28-16">    window_size<span class="op" style="color: #5E5E5E;
+<span id="cb27-16">    window_size<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">7</span>,</span>
-<span id="cb28-17">    n_samples<span class="op" style="color: #5E5E5E;
+<span id="cb27-17">    n_samples<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">24</span>,</span>
-<span id="cb28-18">    dinuc_shuffle<span class="op" style="color: #5E5E5E;
+<span id="cb27-18">    dinuc_shuffle<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">True</span>,</span>
-<span id="cb28-19">    dist_bin_index<span class="op" style="color: #5E5E5E;
+<span id="cb27-19">    dist_bin_index<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>gene_slice.tolist(),</span>
-<span id="cb28-20">    use_mean<span class="op" style="color: #5E5E5E;
+<span id="cb27-20">    use_mean<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">True</span>,</span>
-<span id="cb28-21">    use_ratio<span class="op" style="color: #5E5E5E;
+<span id="cb27-21">    use_ratio<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span>,</span>
-<span id="cb28-22">    use_logodds<span class="op" style="color: #5E5E5E;
+<span id="cb27-22">    use_logodds<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span>,</span>
-<span id="cb28-23">)</span></code></pre></div>
+<span id="cb27-23">)</span></code></pre></div>
 </div>
 <div class="cell" data-execution_count="15">
-<div class="sourceCode cell-code" id="cb29" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><span class="co" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Visualize contribution scores</span></span>
-<span id="cb29-2"></span>
-<span id="cb29-3">visualize_input_gradient_pair(</span>
-<span id="cb29-4">    pred_ism_wt,</span>
-<span id="cb29-5">    pred_ism_mut,</span>
-<span id="cb29-6">    plot_start<span class="op" style="color: #5E5E5E;
+<span id="cb28-2"></span>
+<span id="cb28-3">visualize_input_gradient_pair(</span>
+<span id="cb28-4">    pred_ism_wt,</span>
+<span id="cb28-5">    pred_ism_mut,</span>
+<span id="cb28-6">    plot_start<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>(poses[<span class="dv" style="color: #AD0000;
 background-color: null;
@@ -4723,7 +4728,7 @@ background-color: null;
 font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">64</span>,</span>
-<span id="cb29-7">    plot_end<span class="op" style="color: #5E5E5E;
+<span id="cb28-7">    plot_end<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>(poses[<span class="dv" style="color: #AD0000;
 background-color: null;
@@ -4734,12 +4739,12 @@ background-color: null;
 font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">64</span>,</span>
-<span id="cb29-8">    save_figs<span class="op" style="color: #5E5E5E;
+<span id="cb28-8">    save_figs<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">True</span>,</span>
-<span id="cb29-9">    fig_name<span class="op" style="color: #5E5E5E;
+<span id="cb28-9">    fig_name<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>chrom <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4756,7 +4761,7 @@ background-color: null;
 font-style: inherit;">+</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'_prediction_ism_shuffle_gtex_snp_4_folds_gtex_blood_cov_undo_clip'</span></span>
-<span id="cb29-10">)</span></code></pre></div>
+<span id="cb28-10">)</span></code></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>--- WT ---
 --- Mut ---</code></pre>
@@ -4769,15 +4774,15 @@ font-style: inherit;">'_prediction_ism_shuffle_gtex_snp_4_folds_gtex_blood_cov_u
 </div>
 </div>
 <div class="cell" data-execution_count="12">
-<div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><span class="co" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Load samples with reference- and alternate alleles respectively</span></span>
-<span id="cb31-2"></span>
-<span id="cb31-3"><span class="co" style="color: #5E5E5E;
+<span id="cb30-2"></span>
+<span id="cb30-3"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#These files are protected by dbGaP - email to request access</span></span>
-<span id="cb31-4"></span>
-<span id="cb31-5">cov_files_wt <span class="op" style="color: #5E5E5E;
+<span id="cb30-4"></span>
+<span id="cb30-5">cov_files_wt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
 background-color: null;
@@ -4796,7 +4801,7 @@ background-color: null;
 font-style: inherit;">'file'</span>])[<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'file'</span>].values.tolist()</span>
-<span id="cb31-6">cov_files_mut <span class="op" style="color: #5E5E5E;
+<span id="cb30-6">cov_files_mut <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
 background-color: null;
@@ -4817,44 +4822,44 @@ background-color: null;
 font-style: inherit;">'file'</span>].values.tolist()</span></code></pre></div>
 </div>
 <div class="cell" data-execution_count="13">
-<div class="sourceCode cell-code" id="cb32" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><span class="co" style="color: #5E5E5E;
+<div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Visualize measured coverage tracks for chr10_116952944_T_C</span></span>
-<span id="cb32-2"></span>
-<span id="cb32-3">save_figs <span class="op" style="color: #5E5E5E;
+<span id="cb31-2"></span>
+<span id="cb31-3">save_figs <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">False</span></span>
-<span id="cb32-4">save_suffix <span class="op" style="color: #5E5E5E;
+<span id="cb31-4">save_suffix <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'_chr10_116952944_T_C_meas_32_subjects'</span></span>
-<span id="cb32-5"></span>
-<span id="cb32-6">center_pos <span class="op" style="color: #5E5E5E;
+<span id="cb31-5"></span>
+<span id="cb31-6">center_pos <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">116952944</span></span>
-<span id="cb32-7"></span>
-<span id="cb32-8">chrom <span class="op" style="color: #5E5E5E;
+<span id="cb31-7"></span>
+<span id="cb31-8">chrom <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'chr10'</span></span>
-<span id="cb32-9">poses <span class="op" style="color: #5E5E5E;
+<span id="cb31-9">poses <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">116952944</span>]</span>
-<span id="cb32-10">alts <span class="op" style="color: #5E5E5E;
+<span id="cb31-10">alts <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'C'</span>]</span>
-<span id="cb32-11"></span>
-<span id="cb32-12">start <span class="op" style="color: #5E5E5E;
+<span id="cb31-11"></span>
+<span id="cb31-12">start <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> center_pos <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4863,7 +4868,7 @@ background-color: null;
 font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">2</span></span>
-<span id="cb32-13">end <span class="op" style="color: #5E5E5E;
+<span id="cb31-13">end <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> center_pos <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4872,29 +4877,29 @@ background-color: null;
 font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">2</span></span>
-<span id="cb32-14"></span>
-<span id="cb32-15">blacklist_bed <span class="op" style="color: #5E5E5E;
+<span id="cb31-14"></span>
+<span id="cb31-15">blacklist_bed <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"/home/drk/common/data/genomes/hg38/blacklist/blacklist_hg38_all.bed"</span></span>
-<span id="cb32-16"></span>
-<span id="cb32-17">read_coverage_func_wt, close_coverage_func_wt <span class="op" style="color: #5E5E5E;
+<span id="cb31-16"></span>
+<span id="cb31-17">read_coverage_func_wt, close_coverage_func_wt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> get_coverage_reader(cov_files_wt, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">16384</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">16</span>, blacklist_bed)</span>
-<span id="cb32-18">read_coverage_func_mut, close_coverage_func_mut <span class="op" style="color: #5E5E5E;
+<span id="cb31-18">read_coverage_func_mut, close_coverage_func_mut <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> get_coverage_reader(cov_files_mut, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">16384</span>, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">16</span>, blacklist_bed)</span>
-<span id="cb32-19"></span>
-<span id="cb32-20">gtex_targets_wt <span class="op" style="color: #5E5E5E;
+<span id="cb31-19"></span>
+<span id="cb31-20">gtex_targets_wt <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> read_coverage_func_wt(chrom, start, end, clip_soft<span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4909,7 +4914,7 @@ background-color: null;
 font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.01</span>)</span>
-<span id="cb32-21">gtex_targets_mut <span class="op" style="color: #5E5E5E;
+<span id="cb31-21">gtex_targets_mut <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> read_coverage_func_mut(chrom, start, end, clip_soft<span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -4924,11 +4929,11 @@ background-color: null;
 font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.01</span>)</span>
-<span id="cb32-22"></span>
-<span id="cb32-23">close_coverage_func_wt()</span>
-<span id="cb32-24">close_coverage_func_mut()</span>
-<span id="cb32-25"></span>
-<span id="cb32-26"><span class="bu" style="color: null;
+<span id="cb31-22"></span>
+<span id="cb31-23">close_coverage_func_wt()</span>
+<span id="cb31-24">close_coverage_func_mut()</span>
+<span id="cb31-25"></span>
+<span id="cb31-26"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
@@ -4937,7 +4942,7 @@ background-color: null;
 font-style: inherit;">+</span> <span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">str</span>(gtex_targets_wt.shape))</span>
-<span id="cb32-27"><span class="bu" style="color: null;
+<span id="cb31-27"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
@@ -4946,95 +4951,95 @@ background-color: null;
 font-style: inherit;">+</span> <span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">str</span>(gtex_targets_mut.shape))</span>
-<span id="cb32-28"></span>
-<span id="cb32-29">plot_window <span class="op" style="color: #5E5E5E;
+<span id="cb31-28"></span>
+<span id="cb31-29">plot_window <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">131072</span></span>
-<span id="cb32-30">bin_size <span class="op" style="color: #5E5E5E;
+<span id="cb31-30">bin_size <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">32</span></span>
-<span id="cb32-31">pad <span class="op" style="color: #5E5E5E;
+<span id="cb31-31">pad <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">16</span></span>
-<span id="cb32-32"></span>
-<span id="cb32-33">anno_df <span class="op" style="color: #5E5E5E;
+<span id="cb31-32"></span>
+<span id="cb31-33">anno_df <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">None</span> <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#splice_df</span></span>
-<span id="cb32-34"></span>
-<span id="cb32-35">rescale_tracks <span class="op" style="color: #5E5E5E;
+<span id="cb31-34"></span>
+<span id="cb31-35">rescale_tracks <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">True</span></span>
-<span id="cb32-36">normalize_counts <span class="op" style="color: #5E5E5E;
+<span id="cb31-36">normalize_counts <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">True</span></span>
-<span id="cb32-37"></span>
-<span id="cb32-38"><span class="co" style="color: #5E5E5E;
+<span id="cb31-37"></span>
+<span id="cb31-38"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#Tracks</span></span>
-<span id="cb32-39">track_indices <span class="op" style="color: #5E5E5E;
+<span id="cb31-39">track_indices <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
-<span id="cb32-40">    np.arange(<span class="dv" style="color: #AD0000;
+<span id="cb31-40">    np.arange(<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">32</span>).tolist(),</span>
-<span id="cb32-41">]</span>
-<span id="cb32-42"></span>
-<span id="cb32-43">track_names <span class="op" style="color: #5E5E5E;
+<span id="cb31-41">]</span>
+<span id="cb31-42"></span>
+<span id="cb31-43">track_names <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
-<span id="cb32-44">    <span class="st" style="color: #20794D;
+<span id="cb31-44">    <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'GTEx Blood (32 subjects)'</span>,</span>
-<span id="cb32-45">]</span>
-<span id="cb32-46"></span>
-<span id="cb32-47">track_scales <span class="op" style="color: #5E5E5E;
+<span id="cb31-45">]</span>
+<span id="cb31-46"></span>
+<span id="cb31-47">track_scales <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
-<span id="cb32-48">    <span class="fl" style="color: #AD0000;
+<span id="cb31-48">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.01</span>,</span>
-<span id="cb32-49">]</span>
-<span id="cb32-50"></span>
-<span id="cb32-51">track_transforms <span class="op" style="color: #5E5E5E;
+<span id="cb31-49">]</span>
+<span id="cb31-50"></span>
+<span id="cb31-51">track_transforms <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
-<span id="cb32-52">    <span class="fl" style="color: #AD0000;
+<span id="cb31-52">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">3.</span><span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">/</span><span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">4.</span>,</span>
-<span id="cb32-53">]</span>
-<span id="cb32-54"></span>
-<span id="cb32-55">soft_clips <span class="op" style="color: #5E5E5E;
+<span id="cb31-53">]</span>
+<span id="cb31-54"></span>
+<span id="cb31-55">soft_clips <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> [</span>
-<span id="cb32-56">    <span class="fl" style="color: #AD0000;
+<span id="cb31-56">    <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">384.</span>,</span>
-<span id="cb32-57">]</span>
-<span id="cb32-58"></span>
-<span id="cb32-59"><span class="bu" style="color: null;
+<span id="cb31-57">]</span>
+<span id="cb31-58"></span>
+<span id="cb31-59"><span class="bu" style="color: null;
 background-color: null;
 font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"-- Counts --"</span>)</span>
-<span id="cb32-60">plot_coverage_track_pair_bins(gtex_targets_wt[<span class="va" style="color: #111111;
+<span id="cb31-60">plot_coverage_track_pair_bins(gtex_targets_wt[<span class="va" style="color: #111111;
 background-color: null;
 font-style: inherit;">None</span>, <span class="va" style="color: #111111;
 background-color: null;
