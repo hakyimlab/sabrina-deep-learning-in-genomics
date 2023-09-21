@@ -3,6 +3,8 @@
     "listing": "/index.html",
     "items": [
       "/posts/enformer-rat-human-analysis-overview/index.html",
+      "/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html",
+      "/posts/2023-09-20-borzoi-tutorial/borzoi_example_eqtl_chr10_116952944_T_C.html",
       "/posts/2023-09-15-PrediXcan-and-Enformer-plots/index.html",
       "/posts/2023-09-13-all-correlation-across-genes-plots/index.html",
       "/posts/2023-09-12-processing-HS-founder-rat-genotypes/index.html",
