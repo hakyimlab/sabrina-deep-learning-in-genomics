@@ -123,14 +123,35 @@
     "href": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html",
     "title": "Borzoi test predictions on small gene set",
     "section": "",
-    "text": "module load conda\nconda activate borzoi\ncd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test\npython borzoi_predict.py --gene_df gene_list.txt --tracks \"17,18,19\""
+    "text": "import pandas as pd\nfrom scipy import stats\nannot_df = pd.read_csv(\"/home/s1mi/enformer_rat_data/annotation/hg38.gene.txt\", sep=\"\\t\")\ngene_list = pd.read_csv(\"/home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv\", header=None)\ngene_df = annot_df[~annot_df[\"ensembl_gene_id\"].isin(gene_list[0])]\ngene_df = annot_df.sample(n=1000).drop(columns=[\"external_gene_name\", \"transcription_start_site\"])\ngene_df.to_csv(\"gene_list.txt\", header=False, index=False)"
+  },
+  {
+    "objectID": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#sample-genes",
+    "href": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#sample-genes",
+    "title": "Borzoi test predictions on small gene set",
+    "section": "",
+    "text": "import pandas as pd\nfrom scipy import stats\nannot_df = pd.read_csv(\"/home/s1mi/enformer_rat_data/annotation/hg38.gene.txt\", sep=\"\\t\")\ngene_list = pd.read_csv(\"/home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv\", header=None)\ngene_df = annot_df[~annot_df[\"ensembl_gene_id\"].isin(gene_list[0])]\ngene_df = annot_df.sample(n=1000).drop(columns=[\"external_gene_name\", \"transcription_start_site\"])\ngene_df.to_csv(\"gene_list.txt\", header=False, index=False)"
+  },
+  {
+    "objectID": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#run-borzoi",
+    "href": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#run-borzoi",
+    "title": "Borzoi test predictions on small gene set",
+    "section": "Run Borzoi",
+    "text": "Run Borzoi\nmodule load conda\nconda activate borzoi\ncd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test\npython borzoi_predict.py --gene_df gene_list.txt --tracks \"17,18,19\""
+  },
+  {
+    "objectID": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#plot-comparisons-across-genes",
+    "href": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#plot-comparisons-across-genes",
+    "title": "Borzoi test predictions on small gene set",
+    "section": "Plot Comparisons Across Genes",
+    "text": "Plot Comparisons Across Genes\n\n#!cat gene_predictions.csv gene_predictions0.csv &gt; /home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv\noutput_df = pd.read_csv(\"/home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv\", header=None).dropna()\n\n\nhuman_brain_gex = pd.read_csv(\"/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_all_GTEx_brain_tissues.csv\", index_col=0).dropna()\nmerged_df = output_df.merge(human_brain_gex, left_on=0, right_index=True)\nmerged_df = merged_df[[0, 4, \"enformer\", \"cortex\"]]\nmerged_df.columns=[\"gene\", \"borzoi\", \"enformer\", \"observed\"]\nmerged_df\n\n\n\n\n\n\n\n\ngene\nborzoi\nenformer\nobserved\n\n\n\n\n0\nENSG00000260286\n6.873438e+02\n0.005209\n0.086014\n\n\n1\nENSG00000162877\n3.553310e+03\n0.270328\n0.128466\n\n\n2\nENSG00000083845\n9.018748e+06\n18.964096\n135.113922\n\n\n3\nENSG00000143199\n1.511829e+03\n0.049658\n0.256258\n\n\n5\nENSG00000188522\n8.282543e+04\n0.083827\n0.460673\n\n\n...\n...\n...\n...\n...\n\n\n998\nENSG00000198626\n3.959017e+04\n11.577308\n8.737213\n\n\n999\nENSG00000184206\n8.352521e+03\n0.002583\n0.155200\n\n\n1000\nENSG00000140043\n3.883056e+04\n5.710264\n7.826176\n\n\n1001\nENSG00000081248\n3.480795e+03\n0.021962\n0.345895\n\n\n1002\nENSG00000198774\n1.029021e+04\n0.156194\n0.116595\n\n\n\n\n973 rows × 4 columns\n\n\n\n\nimport matplotlib.pyplot as plt\nx = merged_df[\"observed\"]\ny = merged_df[\"borzoi\"]\ncorr, pval = stats.pearsonr(x, y)\nplt.scatter(stats.rankdata(x), stats.rankdata(y), s=5, alpha=0.6, label=f'R = {corr:.3f}')\nplt.xlabel('Observed')\nplt.ylabel('Borzoi')\nplt.title(\"Human Reference Gene Expression in Brain Tissue\")\nplt.legend()\nplt.show()\n\n\n\n\n\nx = merged_df[\"observed\"]\ny = merged_df[\"borzoi\"]\ncorr, pval = stats.spearmanr(x, y)\nplt.scatter(stats.rankdata(x), stats.rankdata(y), s=5, alpha=0.6, label=f'R = {corr:.3f}')\nplt.xlabel('Observed Rank')\nplt.ylabel('Borzoi Rank')\nplt.title(\"Human Reference Gene Expression in Brain Tissue\")\nplt.legend()\nplt.show()\n\n\n\n\n\nx = merged_df[\"observed\"]\ny = merged_df[\"enformer\"]\ncorr, pval = stats.spearmanr(x, y)\nplt.scatter(stats.rankdata(x), stats.rankdata(y), s=5, alpha=0.6, label=f'R = {corr:.3f}')\nplt.xlabel('Rank Observed')\nplt.ylabel('Rank Enformer')\nplt.title(\"Human Reference Gene Expression in Brain Tissue\")\nplt.legend()\nplt.show()\n\n\n\n\n\nx = merged_df[\"borzoi\"]\ny = merged_df[\"enformer\"]\ncorr, pval = stats.spearmanr(x, y)\nplt.scatter(stats.rankdata(x), stats.rankdata(y), s=5, alpha=0.6, label=f'R = {corr:.3f}')\nplt.xlabel('Rank Borzoi')\nplt.ylabel('Rank Enformer')\nplt.title(\"Human Reference Gene Expression in Brain Tissue\")\nplt.legend()\nplt.show()"
   },
   {
     "objectID": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#summary",
     "href": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#summary",
     "title": "Borzoi test predictions on small gene set",
     "section": "Summary",
-    "text": "Summary"
+    "text": "Summary\n\nprint(\"Pearson R\")\nmerged_df.corr(method=\"pearson\")\n\nPearson R\n\n\n/tmp/ipykernel_42770/1150790563.py:2: FutureWarning: The default value of numeric_only in DataFrame.corr is deprecated. In a future version, it will default to False. Select only valid columns or specify the value of numeric_only to silence this warning.\n  merged_df.corr(method=\"pearson\")\n\n\n\n\n\n\n\n\n\nborzoi\nenformer\nobserved\n\n\n\n\nborzoi\n1.000000\n0.225605\n0.620217\n\n\nenformer\n0.225605\n1.000000\n0.593030\n\n\nobserved\n0.620217\n0.593030\n1.000000\n\n\n\n\n\n\n\n\nprint(\"Spearman R\")\nmerged_df.corr(method=\"spearman\")\n\nSpearman R\n\n\n/tmp/ipykernel_42770/774805496.py:2: FutureWarning: The default value of numeric_only in DataFrame.corr is deprecated. In a future version, it will default to False. Select only valid columns or specify the value of numeric_only to silence this warning.\n  merged_df.corr(method=\"spearman\")\n\n\n\n\n\n\n\n\n\nborzoi\nenformer\nobserved\n\n\n\n\nborzoi\n1.000000\n0.773361\n0.856641\n\n\nenformer\n0.773361\n1.000000\n0.795909\n\n\nobserved\n0.856641\n0.795909\n1.000000"
   },
   {
     "objectID": "posts/2023-09-06-validating-Huang-et-al/index.html",
@@ -915,19 +936,5 @@
     "title": "About",
     "section": "",
     "text": "About this blog"
-  },
-  {
-    "objectID": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#run-borzoi",
-    "href": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#run-borzoi",
-    "title": "Borzoi test predictions on small gene set",
-    "section": "Run Borzoi",
-    "text": "Run Borzoi\nmodule load conda\nconda activate borzoi\ncd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test\npython borzoi_predict.py --gene_df gene_list.txt --tracks \"17,18,19\""
-  },
-  {
-    "objectID": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#plot-comparisons-across-genes",
-    "href": "posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html#plot-comparisons-across-genes",
-    "title": "Borzoi test predictions on small gene set",
-    "section": "Plot Comparisons Across Genes",
-    "text": "Plot Comparisons Across Genes"
   }
 ]

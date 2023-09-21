@@ -22,6 +22,73 @@
 
 <section id="sample-genes" class="level2">
 <h2 class="anchored" data-anchor-id="sample-genes">Sample Genes</h2>
+<div class="cell" data-execution_count="24">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pd</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> scipy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> stats</span>
+<span id="cb1-3">annot_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/enformer_rat_data/annotation/hg38.gene.txt"</span>, sep<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\t</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb1-4">gene_list <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv"</span>, header<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>)</span>
+<span id="cb1-5">gene_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> annot_df[<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span>annot_df[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ensembl_gene_id"</span>].isin(gene_list[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])]</span>
+<span id="cb1-6">gene_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> annot_df.sample(n<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span>).drop(columns<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"external_gene_name"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"transcription_start_site"</span>])</span>
+<span id="cb1-7">gene_df.to_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gene_list.txt"</span>, header<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span>, index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span>)</span></code></pre></div>
+</div>
 </section>
 <section id="run-borzoi" class="level2">
 <h2 class="anchored" data-anchor-id="run-borzoi">Run Borzoi</h2>
@@ -32,9 +99,475 @@ python borzoi_predict.py --gene_df gene_list.txt --tracks "17,18,19" </code></pr
 </section>
 <section id="plot-comparisons-across-genes" class="level2">
 <h2 class="anchored" data-anchor-id="plot-comparisons-across-genes">Plot Comparisons Across Genes</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#!cat gene_predictions.csv gene_predictions0.csv &gt; /home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv</span></span>
+<span id="cb3-2">output_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv"</span>, header<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>).dropna()</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="22">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">human_brain_gex <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_all_GTEx_brain_tissues.csv"</span>, index_col<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>).dropna()</span>
+<span id="cb4-2">merged_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> output_df.merge(human_brain_gex, left_on<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, right_index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb4-3">merged_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_df[[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"enformer"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cortex"</span>]]</span>
+<span id="cb4-4">merged_df.columns<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gene"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"borzoi"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"enformer"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"observed"</span>]</span>
+<span id="cb4-5">merged_df</span></code></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="22">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">gene</th>
+<th data-quarto-table-cell-role="th">borzoi</th>
+<th data-quarto-table-cell-role="th">enformer</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>ENSG00000260286</td>
+<td>6.873438e+02</td>
+<td>0.005209</td>
+<td>0.086014</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>ENSG00000162877</td>
+<td>3.553310e+03</td>
+<td>0.270328</td>
+<td>0.128466</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>ENSG00000083845</td>
+<td>9.018748e+06</td>
+<td>18.964096</td>
+<td>135.113922</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>ENSG00000143199</td>
+<td>1.511829e+03</td>
+<td>0.049658</td>
+<td>0.256258</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">5</td>
+<td>ENSG00000188522</td>
+<td>8.282543e+04</td>
+<td>0.083827</td>
+<td>0.460673</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+<td>...</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">998</td>
+<td>ENSG00000198626</td>
+<td>3.959017e+04</td>
+<td>11.577308</td>
+<td>8.737213</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">999</td>
+<td>ENSG00000184206</td>
+<td>8.352521e+03</td>
+<td>0.002583</td>
+<td>0.155200</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1000</td>
+<td>ENSG00000140043</td>
+<td>3.883056e+04</td>
+<td>5.710264</td>
+<td>7.826176</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1001</td>
+<td>ENSG00000081248</td>
+<td>3.480795e+03</td>
+<td>0.021962</td>
+<td>0.345895</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1002</td>
+<td>ENSG00000198774</td>
+<td>1.029021e+04</td>
+<td>0.156194</td>
+<td>0.116595</td>
+</tr>
+</tbody>
+</table>
+
+<p>973 rows × 4 columns</p>
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> plt</span>
+<span id="cb5-2">x <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"observed"</span>]</span>
+<span id="cb5-3">y <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"borzoi"</span>]</span>
+<span id="cb5-4">corr, pval <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> stats.pearsonr(x, y)</span>
+<span id="cb5-5">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>)</span>
+<span id="cb5-6">plt.xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Observed'</span>)</span>
+<span id="cb5-7">plt.ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Borzoi'</span>)</span>
+<span id="cb5-8">plt.title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Human Reference Gene Expression in Brain Tissue"</span>)</span>
+<span id="cb5-9">plt.legend()</span>
+<span id="cb5-10">plt.show()</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index_files/figure-html/cell-5-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">x <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"observed"</span>]</span>
+<span id="cb6-2">y <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"borzoi"</span>]</span>
+<span id="cb6-3">corr, pval <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> stats.spearmanr(x, y)</span>
+<span id="cb6-4">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>)</span>
+<span id="cb6-5">plt.xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Observed Rank'</span>)</span>
+<span id="cb6-6">plt.ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Borzoi Rank'</span>)</span>
+<span id="cb6-7">plt.title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Human Reference Gene Expression in Brain Tissue"</span>)</span>
+<span id="cb6-8">plt.legend()</span>
+<span id="cb6-9">plt.show()</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index_files/figure-html/cell-6-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="30">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">x <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"observed"</span>]</span>
+<span id="cb7-2">y <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"enformer"</span>]</span>
+<span id="cb7-3">corr, pval <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> stats.spearmanr(x, y)</span>
+<span id="cb7-4">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>)</span>
+<span id="cb7-5">plt.xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Rank Observed'</span>)</span>
+<span id="cb7-6">plt.ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Rank Enformer'</span>)</span>
+<span id="cb7-7">plt.title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Human Reference Gene Expression in Brain Tissue"</span>)</span>
+<span id="cb7-8">plt.legend()</span>
+<span id="cb7-9">plt.show()</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index_files/figure-html/cell-7-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="31">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">x <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"borzoi"</span>]</span>
+<span id="cb8-2">y <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"enformer"</span>]</span>
+<span id="cb8-3">corr, pval <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> stats.spearmanr(x, y)</span>
+<span id="cb8-4">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>)</span>
+<span id="cb8-5">plt.xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Rank Borzoi'</span>)</span>
+<span id="cb8-6">plt.ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Rank Enformer'</span>)</span>
+<span id="cb8-7">plt.title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Human Reference Gene Expression in Brain Tissue"</span>)</span>
+<span id="cb8-8">plt.legend()</span>
+<span id="cb8-9">plt.show()</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index_files/figure-html/cell-8-output-1.png" class="img-fluid"></p>
+</div>
+</div>
 </section>
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<div class="cell" data-execution_count="35">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Pearson R"</span>)</span>
+<span id="cb9-2">merged_df.corr(method<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pearson"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Pearson R</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_42770/1150790563.py:2: FutureWarning: The default value of numeric_only in DataFrame.corr is deprecated. In a future version, it will default to False. Select only valid columns or specify the value of numeric_only to silence this warning.
+  merged_df.corr(method="pearson")</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="35">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">borzoi</th>
+<th data-quarto-table-cell-role="th">enformer</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">borzoi</td>
+<td>1.000000</td>
+<td>0.225605</td>
+<td>0.620217</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">enformer</td>
+<td>0.225605</td>
+<td>1.000000</td>
+<td>0.593030</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">observed</td>
+<td>0.620217</td>
+<td>0.593030</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Spearman R"</span>)</span>
+<span id="cb12-2">merged_df.corr(method<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"spearman"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Spearman R</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_42770/774805496.py:2: FutureWarning: The default value of numeric_only in DataFrame.corr is deprecated. In a future version, it will default to False. Select only valid columns or specify the value of numeric_only to silence this warning.
+  merged_df.corr(method="spearman")</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="34">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">borzoi</th>
+<th data-quarto-table-cell-role="th">enformer</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">borzoi</td>
+<td>1.000000</td>
+<td>0.773361</td>
+<td>0.856641</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">enformer</td>
+<td>0.773361</td>
+<td>1.000000</td>
+<td>0.795909</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">observed</td>
+<td>0.856641</td>
+<td>0.795909</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
 
 
 </section>
