@@ -10,7 +10,7 @@ format: html
 * Started running predictions on human reference genome for 981 genes
     * No results yet, waiting in the queue
     * Average GPU time per prediction doubled? (~2.5 -> ~5 seconds)
-* [Set up personalized prediction pipeline](/home/s1mi/Github/deep-learning-in-genomics/posts/2023-09-26-borzoi-personalized-test/)
+* [Set up personalized prediction pipeline](https://sabrina-dl.hakyimlab.org/posts/2023-09-26-borzoi-personalized-test/geuvadis_personalized_test)
 
 ## Introduction
 
