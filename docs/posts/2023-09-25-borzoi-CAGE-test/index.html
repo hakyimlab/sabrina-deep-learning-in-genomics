@@ -6,8 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Sabrina Mi">
+<meta name="dcterms.date" content="2023-08-26">
 
-<title>deep-learning-in-genomics - Home Page for Enformer Human and Rat Cross-species Analysis</title>
+<title>deep-learning-in-genomics - Borzoi CAGE test</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -60,8 +96,6 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 <link rel="stylesheet" href="../../styles.css">
 </head>
@@ -108,14 +142,26 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Home Page for Enformer Human and Rat Cross-species Analysis</h1>
+      <h1 class="title">Borzoi CAGE test</h1>
                       </div>
   </div>
     
   
   <div class="quarto-title-meta">
 
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Sabrina Mi </p>
+            </div>
+    </div>
       
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">August 26, 2023</p>
+      </div>
+    </div>
     
       
     </div>
@@ -131,66 +177,30 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="updates-this-week" class="level2">
-<h2 class="anchored" data-anchor-id="updates-this-week">Updates this Week</h2>
-<ul>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/home/s1mi/Github/deep-learning-in-genomics/posts/2023-09-25-baskerville-tutorial/">Found human head output (7,611 tracks)</a></li>
-<li>Started running predictions on human reference genome for 981 genes
-<ul>
-<li>No results yet, waiting in the queue</li>
-<li>Average GPU time per prediction doubled? (~2.5 -&gt; ~5 seconds)</li>
-</ul></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-09-26-borzoi-personalized-test/geuvadis_personalized_test">Set up personalized prediction pipeline</a></li>
-</ul>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>annot_df <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/annotation/hg38.gene.txt"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv"</span>, header<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> gene_list.dropna()</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>gene_df <span class="op">=</span> gene_list.merge(annot_df, left_on<span class="op">=</span> <span class="dv">0</span>, right_on <span class="op">=</span> <span class="st">"ensembl_gene_id"</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>gene_df <span class="op">=</span> gene_df[[<span class="st">"ensembl_gene_id"</span>, <span class="st">"chromosome_name"</span>, <span class="st">"transcription_start_site"</span>]]</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>gene_df.to_csv(<span class="st">"gene_list.csv"</span>, header<span class="op">=</span><span class="va">False</span>, index<span class="op">=</span><span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="run-predictions" class="level3">
+<h3 class="anchored" data-anchor-id="run-predictions">Run Predictions</h3>
+<p>I first started an interactive job, <code>qsub -I -A AIHPC4EDU -l walltime=1:30:00 -l filesystems=home:grand -q preemptable</code></p>
+<pre><code>module load conda
+conda activate borzoi
+cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-09-25-borzoi-CAGE-test
+python borzoi_predict_CAGE.py --gene_df gene_list.csv --CAGE_tracks 610,611 </code></pre>
 </section>
-<section id="introduction" class="level2">
-<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<section id="data-inventory" class="level3">
-<h3 class="anchored" data-anchor-id="data-inventory">Data Inventory</h3>
-<ul>
-<li>Genotype and gene expression data for 340 rats in the Br study
-<ul>
-<li>Mean gene expression used as ground truth reference gene expression</li>
-</ul></li>
-<li>GTEx gene expression data used as ground truth reference gene expression</li>
-<li>Rat reference genome as input to Enformer to predict reference gene expression</li>
-<li>Human reference genome as input to Enformer to predict reference gene expression</li>
-</ul>
-</section>
-<section id="goals" class="level3">
-<h3 class="anchored" data-anchor-id="goals">Goals</h3>
-<ul>
-<li>Determine whether Enformer models (human and mouse) can predict expression across genes</li>
-<li>Use genotypes to predict gene expression in the Br rats with the Enformer models</li>
-</ul>
-</section>
-</section>
-<section id="correlation-across-genes" class="level2">
-<h2 class="anchored" data-anchor-id="correlation-across-genes">Correlation across genes</h2>
-<p>We are currently using the CAGE:Brain human track at a gene’s TSS to estimate gene expression in rats. For all GTEx gene expression comparisons, we used mean TPM in brain cortex tissue. We want to make 3 types of comparison:</p>
-<ol type="1">
-<li><span class="math inline">\(\rho^h_{Hh}\)</span>: Correlation between human reference gene expression predicted with Enformer human head and GTEx mean gene expression</li>
-<li><span class="math inline">\(\rho^h_{Rr}\)</span>: Correlation between rat reference gene expression predicted with Enformer human head and Br reference gene expression</li>
-<li><span class="math inline">\(\rho^h_{HR}\)</span>: Correlation between rat reference gene expression and human reference gene expression</li>
-</ol>
-<p>Enformer is optimized to predict variation across the genome, so we use <span class="math inline">\(\rho^h_{Hh}\)</span> as the baseline performance. Intuitively, we hope to see <span class="math inline">\(\rho^h_{Rr} = \rho^h_{HR} \rho^h_{Hh}\)</span>.</p>
-<p><a href="https://www.biorxiv.org/content/10.1101/2023.06.30.547100v1.full.pdf">Personal transcriptome variation is poorly explained by current genomic deep learning models, Huang et al</a> performed the same analysis on GEUVADIS LCL gene expression data and found a correlation of 0.57</p>
-<section id="analysis-summary" class="level3">
-<h3 class="anchored" data-anchor-id="analysis-summary">Analysis Summary</h3>
-<ol type="1">
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-between-enformer-and-gtex-expression-across-genes-by-chromosome/"><span class="math inline">\(\rho^h_{Hh} = 0.539\)</span></a></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-22-correlation-across-rn7-genes-by-chromosome/"><span class="math inline">\(\rho^h_{Rr} = 0.453\)</span></a></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-09-01-comparing-human-vs-rat-mean-expression-across-genes"><span class="math inline">\(\rho^h_{HR} = 0.886\)</span></a></li>
-</ol>
-<p>Other analysis includes: 1. Validating Huang et al.’s <a href="https://sabrina-dl.hakyimlab.org/posts/2023-09-06-validating-Huang-et-al">correlation of 0.57</a> in human LCL tissues, I even obtained a higher correlation of 0.77 when I included all GEUVADIS genes</p>
-</section>
-</section>
-<section id="correlation-across-individuals" class="level2">
-<h2 class="anchored" data-anchor-id="correlation-across-individuals">Correlation across individuals</h2>
-<p>I added support for unphased VCFs, which cuts the number of Enformer runs in half by averaging the two haplotypes. I also added options to output mouse head predictions or both.</p>
-<ul>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-31-Br-personalized-prediction-on-more-genes/">Results for 868 genes selected for significant eQTLs and observed variation</a></li>
-</ul>
+<section id="compare-cage-tracks" class="level3">
+<h3 class="anchored" data-anchor-id="compare-cage-tracks">Compare CAGE Tracks</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>predictions <span class="op">=</span> <span class="st">"gene_predictions.csv"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 
 
 </section>

@@ -3,6 +3,7 @@
     "listing": "/index.html",
     "items": [
       "/posts/enformer-rat-human-analysis-overview/index.html",
+      "/posts/2023-09-26-borzoi-personalized-test/geuvadis_personalized_test.html",
       "/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index.html",
       "/posts/2023-09-20-borzoi-tutorial/borzoi_example_eqtl_chr10_116952944_T_C.html",
       "/posts/2023-09-15-PrediXcan-and-Enformer-plots/index.html",
@@ -18,6 +19,7 @@
       "/posts/2023-08-31-testing-multiple-heads-in-pipeline/index.html",
       "/posts/2023-08-30-comparing-predicted-reference-expression-to-various-GTEx-brain-tissues/index.html",
       "/posts/2023-08-28-comparing-enformer-at-gene-tss-vs-reference-epigenome-vs-encode-experiments/index.html",
+      "/posts/2023-09-25-borzoi-CAGE-test/index.html",
       "/posts/2023-08-24-Cisd2-correlation-across-rats/index.html",
       "/posts/2023-08-22-correlation-across-rn7-genes-by-chromosome/index.html",
       "/posts/2023-08-22-correlation-between-Enformer-and-GTEx-expression-across-genes-by-chromosome/index.html",
