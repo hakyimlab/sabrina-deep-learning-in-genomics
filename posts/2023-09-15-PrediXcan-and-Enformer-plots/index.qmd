@@ -60,7 +60,7 @@ qqunif(spearman_corr_mouse$pvalue, main="Mouse Head Prediction for Br Rats: Spea
 ```{r}
 enet_Br_perf <- read.csv("/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/Within-Lab-Sharing/Sabrina-Data/rat_data/misc/highestR2genes.csv")[,c(1,6)]
 enet_Br_merged <- merge(enet_Br_perf, spearman_corr_human, by.x ="gene", by.y = "row.names")
-plot(enet_Br_merged$cor, enet_Br_merged$spearman.r, main = "Cross-Individual Correlations from PrediXcan and Enformer's Human Head", type = "n", xlab = "PrediXcan", ylab = "Enformer")
+plot(enet_Br_merged$cor, enet_Br_merged$spearman.r, main = "Cross-Individual Correlations for 399 Genes", type = "n", xlab = "PrediXcan", ylab = "Enformer Human Head")
 points(enet_Br_merged$cor, enet_Br_merged$spearman.r)
 abline(a=0,b=0)
 abline(v=0)
