@@ -1,0 +1,17 @@
+#PBS -A AIHPC4EDU
+#PBS -q preemptable
+#PBS -l walltime=06:00:00
+#PBS -l filesystems=home:grand
+#PBS -N borzoi_across_geuvadis
+
+module load conda
+conda activate borzoi
+cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-10-04-personalized-test-on-a-few-genes
+
+python3 personalized_prediction.py \
+--gene_df gene_list.csv \
+--fasta_file /home/s1mi/borzoi_tutorial/hg38.fa \
+--vcf_dir /grand/TFXcan/imlab/data/1000G/vcf_snps_only \
+--individuals_file individuals.txt \
+--model_dir /home/s1mi/borzoi_tutorial \
+--output_dir /grand/TFXcan/imlab/users/sabrina/borzoi-personalized-test
