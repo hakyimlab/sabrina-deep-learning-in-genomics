@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-08-26">
+<meta name="dcterms.date" content="2023-09-26">
 <meta name="description" content="A 3-way comparison of Enformer/Borzoi prediction models against observed gene expression in human brain tissue. Correlation tests support the Borzoi paper’s claims, we report Spearman correlations of (1) R = 0.856 for Borzoi GTEx, (2) R = 0.807 for Borzoi CAGE, and (3) R = 0.796 for Enformer CAGE tracks against observed gene expression">
 
 <title>deep-learning-in-genomics - Borzoi CAGE test</title>
@@ -168,7 +168,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">August 26, 2023</p>
+        <p class="date">September 26, 2023</p>
       </div>
     </div>
     
@@ -206,13 +206,13 @@ python borzoi_predict_CAGE.py --gene_df gene_list.csv --CAGE_tracks 610,611 </co
 </section>
 <section id="process-results" class="level1">
 <h1>Process Results</h1>
-<div class="cell" data-execution_count="27">
+<div class="cell" data-execution_count="9">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> stats</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="17">
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># read CAGE predictions</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>hg38_predictions <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_CAGE_test_predictions.csv"</span>, header<span class="op">=</span><span class="va">None</span>)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># read GTEx predictions</span></span>
@@ -225,16 +225,16 @@ python borzoi_predict_CAGE.py --gene_df gene_list.csv --CAGE_tracks 610,611 </co
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>merged_df.columns<span class="op">=</span>[<span class="st">"Gene"</span>, <span class="st">"Borzoi (GTEx)"</span>, <span class="st">"Enformer (CAGE)"</span>, <span class="st">"Observed"</span>]</span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>merged_df <span class="op">=</span> merged_df.merge(hg38_predictions, left_on<span class="op">=</span><span class="st">"Gene"</span>, right_on<span class="op">=</span><span class="dv">0</span>, how <span class="op">=</span><span class="st">"inner"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="18">
+<div class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>merged_df <span class="op">=</span> merged_df[[<span class="st">"Gene"</span>, <span class="st">"Borzoi (GTEx)"</span>, <span class="dv">3</span>, <span class="st">"Enformer (CAGE)"</span>, <span class="st">"Observed"</span>]]</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>merged_df.columns <span class="op">=</span> [<span class="st">"Gene"</span>, <span class="st">"Borzoi (GTEx)"</span>, <span class="st">"Borzoi (CAGE)"</span>, <span class="st">"Enformer (CAGE)"</span>, <span class="st">"Observed"</span>]</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Write to File</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>merged_df.to_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_vs_enformer_test_predictions.csv"</span>, header <span class="op">=</span> <span class="va">True</span>,index <span class="op">=</span> <span class="va">False</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We have 3 different prediction methods to evaluate, the outputs are combined in the following table:</p>
-<div class="cell" data-execution_count="23">
+<div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>merged_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
+<div class="cell-output cell-output-display" data-execution_count="7">
 <div>
 
 
@@ -359,10 +359,10 @@ python borzoi_predict_CAGE.py --gene_df gene_list.csv --CAGE_tracks 610,611 </co
 </ol>
 <p>Although this experiment was tested on N=981 randomly selected genes, I believe this sample decently reflects how the Enformer/Borzoi methods would perform genome-wide. This subset has correlations similar to the full set of human genes when we look at the CAGE tracks, with Spearman R = 0.796 (subset) and R = 0.794 (all genes).</p>
 <p><strong>Pearson Correlations</strong></p>
-<div class="cell" data-execution_count="21">
+<div class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>pearson_corr_df <span class="op">=</span> merged_df.corr(method<span class="op">=</span><span class="st">"pearson"</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>pearson_corr_df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="21">
+<div class="cell-output cell-output-display" data-execution_count="8">
 <div>
 
 
@@ -411,6 +411,7 @@ python borzoi_predict_CAGE.py --gene_df gene_list.csv --CAGE_tracks 610,611 </co
 </div>
 </div>
 </div>
+<p>The low correlations between CAGE tracks (Enformer and Borzoi) and GTex tracks can be explained by non-linearity. We calculated RNA-seq coverage from a series of exponents, log transforms to better represent counts of transcripts, which can also explains why it has the highest correlation with observed GTEx TPM.</p>
 <p><strong>Spearman Correlations</strong></p>
 <div class="cell" data-execution_count="22">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_df <span class="op">=</span> merged_df.corr(method<span class="op">=</span><span class="st">"spearman"</span>)</span>
@@ -464,8 +465,8 @@ python borzoi_predict_CAGE.py --gene_df gene_list.csv --CAGE_tracks 610,611 </co
 </div>
 </div>
 </div>
-<section id="scatter-plots" class="level3">
-<h3 class="anchored" data-anchor-id="scatter-plots">Scatter Plots</h3>
+<section id="plot-against-observed" class="level3">
+<h3 class="anchored" data-anchor-id="plot-against-observed">Plot against Observed</h3>
 <blockquote class="blockquote">
 <p>All plots are comparing predicted and observed reference gene expression in human brain tissue, based off data from N=981 human genes. To account for outliers, we are plotting relative expression levels (rank) and the correlations shown are all Spearman R.</p>
 </blockquote>
@@ -518,6 +519,45 @@ python borzoi_predict_CAGE.py --gene_df gene_list.csv --CAGE_tracks 610,611 </co
 </details>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="extra-plots" class="level2">
+<h2 class="anchored" data-anchor-id="extra-plots">Extra Plots</h2>
+<p>Since Borzoi and Enformer CAGE tracks are measured on the same scale, it makes sense that the two have the highest pearson correlation out of all pairs. It’s not clear why the plot looks curved though.</p>
+<div class="cell" data-execution_count="10">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> merged_df[<span class="st">"Enformer (CAGE)"</span>]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> merged_df[<span class="st">"Borzoi (CAGE)"</span>]</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> pearson_corr_df.loc[<span class="st">"Enformer (CAGE)"</span>, <span class="st">"Borzoi (CAGE)"</span>]</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>plt.scatter(x, y, s<span class="op">=</span><span class="dv">5</span>, alpha<span class="op">=</span><span class="fl">0.6</span>, label<span class="op">=</span><span class="ss">f'R = </span><span class="sc">{</span>corr<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Enformer CAGE'</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Borzoi CAGE'</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Enformer and Borzoi CAGE Predictions"</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p>Borzoi CAGE and GTEx had a large improvement from Pearson R = 0.191 to Spearman R = 0.843.</p>
+<div class="cell" data-execution_count="11">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> merged_df[<span class="st">"Borzoi (GTEx)"</span>]</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> merged_df[<span class="st">"Borzoi (CAGE)"</span>]</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>corr <span class="op">=</span> pearson_corr_df.loc[<span class="st">"Borzoi (GTEx)"</span>, <span class="st">"Borzoi (CAGE)"</span>]</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>plt.scatter(x, y, s<span class="op">=</span><span class="dv">5</span>, alpha<span class="op">=</span><span class="fl">0.6</span>, label<span class="op">=</span><span class="ss">f'R = </span><span class="sc">{</span>corr<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Borzoi GTEx'</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Borzoi CAGE'</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Borzoi CAGE and GTEx Predictions"</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-13-output-1.png" class="img-fluid"></p>
 </div>
 </div>
 
