@@ -1,0 +1,4 @@
+Available GPUs: [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU'), PhysicalDevice(name='/physical_device:GPU:1', device_type='GPU'), PhysicalDevice(name='/physical_device:GPU:2', device_type='GPU'), PhysicalDevice(name='/physical_device:GPU:3', device_type='GPU')]
+Extract Reference Sequence: {'chr': 'chr1', 'start': 43315130, 'end': 43839418}
+Create Personalized Sequence for 5 Individuals
+Predicting on Sample: NA20521
