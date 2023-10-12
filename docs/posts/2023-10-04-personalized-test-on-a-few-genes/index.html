@@ -95,6 +95,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
 
 <link rel="stylesheet" href="../../styles.css">
@@ -256,6 +259,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 conda activate borzoi
 cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-10-04-personalized-test-on-a-few-genes
 
+export LD_LIBRARY_PATH=/soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:$LD_LIBRARY_PATH
+
+echo $LD_LIBRARY_PATH
+
 python3 personalized_prediction.py \
 --gene_df gene_list.csv \
 --fasta_file /home/s1mi/borzoi_tutorial/hg38.fa \
@@ -267,21 +274,535 @@ python3 personalized_prediction.py \
 </section>
 <section id="check-results" class="level3">
 <h3 class="anchored" data-anchor-id="check-results">Check Results</h3>
-<div class="cell" data-execution_count="91">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(<span class="st">"/grand/TFXcan/imlab/users/sabrina/borzoi-personalized-test/NA21144/chr1_43530883_43623666_predictions.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, value <span class="kw">in</span> hf.items():</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(key)</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(value)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Expand the code below for setting global variables and reading GEUVADIS data.</p>
+<div class="cell" data-execution_count="1">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co">#### LIBRARIES AND DEFINITIONS</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="ss">f"/grand/TFXcan/imlab/users/sabrina/borzoi-personalized-test"</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>geuvadis_gex <span class="op">=</span> pd.read_csv(<span class="st">"/lus/grand/projects/TFXcan/imlab/data/1000G/expression/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt.gz"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>geuvadis_gex[<span class="st">'TargetID'</span>] <span class="op">=</span> geuvadis_gex[<span class="st">'TargetID'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> gene: gene.split(<span class="st">'.'</span>)[<span class="dv">0</span>])</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>geuvadis_gex.set_index(<span class="st">'TargetID'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>hg38_annot <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/annotation/hg38.gene.txt"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, index_col<span class="op">=</span><span class="st">"ensembl_gene_id"</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="co">#### GET LIST OF GENES</span></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>genes <span class="op">=</span> pd.read_csv(<span class="st">"gene_list.csv"</span>)[<span class="st">'ensembl_gene_id'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> x: <span class="bu">str</span>(x)).to_list()</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="co">#### GET LIST OF INDIVIDUALS</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"individuals.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    individuals <span class="op">=</span> <span class="bu">file</span>.read().splitlines()</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> borzoi_helpers <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> baskerville <span class="im">import</span> gene <span class="im">as</span> bgene</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>prefix<span class="op">=</span><span class="st">"/home/s1mi/borzoi_tutorial"</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>splice_df <span class="op">=</span> pd.read_csv(<span class="ss">f'</span><span class="sc">{</span>prefix<span class="sc">}</span><span class="ss">/gencode41_basic_protein_splice.csv.gz'</span>, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>, compression<span class="op">=</span><span class="st">'gzip'</span>)</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>transcriptome <span class="op">=</span> bgene.Transcriptome(<span class="ss">f'</span><span class="sc">{</span>prefix<span class="sc">}</span><span class="ss">/gencode41_basic_nort.gtf'</span>)</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>targets_df <span class="op">=</span> pd.read_csv(<span class="ss">f'</span><span class="sc">{</span>prefix<span class="sc">}</span><span class="ss">/targets_human.txt'</span>, index_col<span class="op">=</span><span class="dv">0</span>, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>target_index <span class="op">=</span> targets_df.index</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a><span class="co">#Create local index of strand_pair (relative to sliced targets)</span></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>strand_pair <span class="op">=</span> targets_df.strand_pair</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>target_slice_dict <span class="op">=</span> {ix : i <span class="cf">for</span> i, ix <span class="kw">in</span> <span class="bu">enumerate</span>(target_index.values.tolist())}</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>slice_pair <span class="op">=</span> np.array([</span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>    target_slice_dict[ix] <span class="cf">if</span> ix <span class="kw">in</span> target_slice_dict <span class="cf">else</span> ix <span class="cf">for</span> ix <span class="kw">in</span> strand_pair.values.tolist()</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>], dtype<span class="op">=</span><span class="st">'int32'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>2023-10-12 03:16:08.150141: I tensorflow/core/platform/cpu_feature_guard.cc:182] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2023-10-12 03:16:11.340129: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+2023-10-12 03:16:16.242235: E tensorflow/compiler/xla/stream_executor/cuda/cuda_driver.cc:266] failed call to cuInit: CUDA_ERROR_NOT_INITIALIZED: initialization error
+2023-10-12 03:16:16.242438: I tensorflow/compiler/xla/stream_executor/cuda/cuda_diagnostics.cc:168] retrieving CUDA diagnostic information for host: polaris-login-02
+2023-10-12 03:16:16.242469: I tensorflow/compiler/xla/stream_executor/cuda/cuda_diagnostics.cc:175] hostname: polaris-login-02
+2023-10-12 03:16:16.243018: I tensorflow/compiler/xla/stream_executor/cuda/cuda_diagnostics.cc:199] libcuda reported version is: 470.103.4
+2023-10-12 03:16:16.243100: I tensorflow/compiler/xla/stream_executor/cuda/cuda_diagnostics.cc:203] kernel reported version is: 470.103.4
+2023-10-12 03:16:16.243112: I tensorflow/compiler/xla/stream_executor/cuda/cuda_diagnostics.cc:309] kernel version seems to match DSO: 470.103.4</code></pre>
+</div>
+</div>
+<p>We compare gene expression predictions derived from borzoi’s CAGE and RNA tracks. The GEUVADIS dataset includes RNA-seq data collected from LCL samples. Borzoi was trained on ENCODE’s CAGE:B lymphoblastoid cell line data (tracks 870, 871) as well as GTEx RNA-seq data from EBV-transformed lymphosites, however, it’s unclear to me which track this fell under. My guess is that track 7531:GTEX-1I4MK-0002-SM-EZ6M9 is the best approximation for LCL tissue.</p>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> borzoi_calculation_helpers <span class="im">import</span> <span class="op">*</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_RNA(ensembl_gene_id, seq_out_start, predictions, tracks, seq_out_len <span class="op">=</span> <span class="dv">523264</span>):</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>    gene_keys <span class="op">=</span> [gene_key <span class="cf">for</span> gene_key <span class="kw">in</span> transcriptome.genes.keys() <span class="cf">if</span> ensembl_gene_id <span class="kw">in</span> gene_key]</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    gene <span class="op">=</span> transcriptome.genes[gene_keys[<span class="dv">0</span>]]</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    gene_slice <span class="op">=</span> gene.output_slice(seq_out_start, seq_out_len, <span class="dv">32</span>, <span class="va">False</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> expr_attr(predictions, tracks, gene_slice)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> extract_CAGE(predictions, tss_bin, tracks):</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> np.mean(predictions[:, tss_bin<span class="op">-</span><span class="dv">1</span>:tss_bin<span class="op">+</span><span class="dv">2</span>, tracks])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>seq_len <span class="op">=</span> <span class="dv">524288</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>seq_out_len <span class="op">=</span> <span class="dv">523264</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>expr_dict <span class="op">=</span> {}</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> genes:</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(gene)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="bu">chr</span> <span class="op">=</span> hg38_annot.loc[gene, <span class="st">'chromosome_name'</span>]</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    interval_start <span class="op">=</span> hg38_annot.loc[gene, <span class="st">'transcript_start'</span>]</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    interval_end <span class="op">=</span> hg38_annot.loc[gene, <span class="st">'transcript_end'</span>]</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    tss <span class="op">=</span> hg38_annot.loc[gene, <span class="st">'transcription_start_site'</span>]</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    center <span class="op">=</span> (interval_start <span class="op">+</span> interval_end) <span class="op">//</span> <span class="dv">2</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    start <span class="op">=</span> center <span class="op">-</span> seq_len <span class="op">//</span> <span class="dv">2</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    end <span class="op">=</span> center <span class="op">+</span> seq_len <span class="op">//</span> <span class="dv">2</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    seq_out_start <span class="op">=</span> start <span class="op">+</span> <span class="dv">512</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    tss_bin <span class="op">=</span> (tss <span class="op">-</span> seq_out_start) <span class="op">//</span> <span class="dv">32</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    CAGE_predictions <span class="op">=</span> []</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    RNA_predictions <span class="op">=</span> []</span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>        predictions_file <span class="op">=</span> os.path.join(predictions_dir, individual, <span class="ss">f'chr</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>start<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>end<span class="sc">}</span><span class="ss">_predictions.h5'</span>)</span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> os.path.exists(predictions_file):</span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(predictions_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a>                haplo1 <span class="op">=</span> hf[<span class="st">'haplotype1'</span>][:]</span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a>                haplo2 <span class="op">=</span> hf[<span class="st">'haplotype2'</span>][:]</span>
+<span id="cb15-23"><a href="#cb15-23" aria-hidden="true" tabindex="-1"></a>            CAGE_mean <span class="op">=</span> (extract_CAGE(haplo1, tss_bin, [<span class="dv">870</span>,<span class="dv">871</span>]) <span class="op">+</span> extract_CAGE(haplo2, tss_bin, [<span class="dv">870</span>,<span class="dv">871</span>])) <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb15-24"><a href="#cb15-24" aria-hidden="true" tabindex="-1"></a>            RNA_mean <span class="op">=</span> (extract_RNA(gene, seq_out_start, haplo1, [<span class="dv">7531</span>]) <span class="op">+</span> extract_RNA(gene, seq_out_start, haplo2, [<span class="dv">7531</span>])) <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb15-25"><a href="#cb15-25" aria-hidden="true" tabindex="-1"></a>            CAGE_predictions.append(CAGE_mean)</span>
+<span id="cb15-26"><a href="#cb15-26" aria-hidden="true" tabindex="-1"></a>            RNA_predictions.append(RNA_mean)</span>
+<span id="cb15-27"><a href="#cb15-27" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb15-28"><a href="#cb15-28" aria-hidden="true" tabindex="-1"></a>            CAGE_predictions.append(np.nan)</span>
+<span id="cb15-29"><a href="#cb15-29" aria-hidden="true" tabindex="-1"></a>            RNA_predictions.append(np.nan)</span>
+<span id="cb15-30"><a href="#cb15-30" aria-hidden="true" tabindex="-1"></a>    expr_dict[gene] <span class="op">=</span> pd.DataFrame({<span class="st">'CAGE predicted'</span>: CAGE_predictions, </span>
+<span id="cb15-31"><a href="#cb15-31" aria-hidden="true" tabindex="-1"></a>                                    <span class="st">'RNA predicted'</span>: RNA_predictions}, index <span class="op">=</span> individuals)</span>
+<span id="cb15-32"><a href="#cb15-32" aria-hidden="true" tabindex="-1"></a>      </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>haplotype1
-&lt;HDF5 dataset "haplotype1": shape (4, 16352, 7611), type "&lt;f2"&gt;
-haplotype2
-&lt;HDF5 dataset "haplotype2": shape (4, 16352, 7611), type "&lt;f2"&gt;</code></pre>
+<pre><code>ENSG00000142949
+ENSG00000133247
+ENSG00000161011</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="34">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(<span class="st">'/home/s1mi/enformer_rat_data/output/borzoi_personalized_predictions_test.h5'</span>, <span class="st">"w"</span>) <span class="im">as</span> hf:</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, value <span class="kw">in</span> expr_dict.items():</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>        hf[key] <span class="op">=</span> value</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="44">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(<span class="st">'/home/s1mi/enformer_rat_data/output/borzoi_personalized_predictions_test.h5'</span>, <span class="st">'r'</span>) <span class="im">as</span> hf:</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, value <span class="kw">in</span> hf.items():</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>        expr_dict[key] <span class="op">=</span> pd.DataFrame(value, index <span class="op">=</span> individuals, columns <span class="op">=</span> [<span class="st">'CAGE predicted'</span>, <span class="st">'RNA predicted'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="45">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> genes:</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    observed <span class="op">=</span> pd.to_numeric(geuvadis_gex.loc[gene][individuals])</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    observed.name <span class="op">=</span> <span class="st">'observed'</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    expr_dict[gene] <span class="op">=</span> expr_dict[gene].merge(observed, left_index <span class="op">=</span> <span class="va">True</span>, right_index <span class="op">=</span> <span class="va">True</span>)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">#expr_dict[gene] = expr_dict[gene].apply(pd.to_numeric)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="compare-predictions-to-observed" class="level4">
+<h4 class="anchored" data-anchor-id="compare-predictions-to-observed">Compare Predictions to Observed</h4>
+<p>To add context to each gene, we’ll first pull correlations from Enformer personalized prediction on rat orthologs.</p>
+<div class="cell" data-execution_count="61">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>rn7_hg38_ortho <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/annotation/rn7_hg38.ortholog_genes.txt"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, index_col<span class="op">=</span><span class="st">"hsapiens_homolog_ensembl_gene"</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>rn7_genes <span class="op">=</span> rn7_hg38_ortho.loc[genes][<span class="st">'ensembl_gene_id'</span>].to_list()</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>rn7_spearman_corr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_spearman_corr_human.csv"</span>, index_col <span class="op">=</span> <span class="dv">0</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>rn7_pearson_corr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_pearson_corr_human.csv"</span>, index_col <span class="op">=</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Br Rat Pearson Correlations</strong></p>
+<div class="cell" data-execution_count="63">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>rn7_pearson_corr.loc[rn7_genes]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="63">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">pearson r</th>
+<th data-quarto-table-cell-role="th">pvalue</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000019977</td>
+<td>-0.245970</td>
+<td>4.443961e-06</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000017508</td>
+<td>0.033957</td>
+<td>5.326182e-01</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000003147</td>
+<td>0.624152</td>
+<td>4.101428e-38</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>Br Rat Spearman Correlations</strong></p>
+<div class="cell" data-execution_count="65">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>rn7_spearman_corr.loc[rn7_genes]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="65">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">spearman r</th>
+<th data-quarto-table-cell-role="th">pvalue</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000019977</td>
+<td>-0.235618</td>
+<td>1.130621e-05</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSRNOG00000017508</td>
+<td>0.012958</td>
+<td>8.118338e-01</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSRNOG00000003147</td>
+<td>0.614930</td>
+<td>9.560589e-37</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>GEUVADIS Human Pearson Correlations</strong></p>
+<p>ENSG00000142949 (Enformer Rat R=-0.246): Both CAGE and RNA tracks predict in the correct direction of gene effect, but with reduced magnitude</p>
+<div class="cell" data-execution_count="49">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>expr_dict[genes[<span class="dv">0</span>]].corr(method<span class="op">=</span><span class="st">'pearson'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="49">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">CAGE predicted</th>
+<th data-quarto-table-cell-role="th">RNA predicted</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CAGE predicted</td>
+<td>1.000000</td>
+<td>0.460416</td>
+<td>0.086982</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">RNA predicted</td>
+<td>0.460416</td>
+<td>1.000000</td>
+<td>0.073000</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">observed</td>
+<td>0.086982</td>
+<td>0.073000</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>ENSG00000133247 (Enformer Rat R = 0.034): Borzoi performs weakly as well.</p>
+<div class="cell" data-execution_count="50">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>expr_dict[genes[<span class="dv">1</span>]].corr(method<span class="op">=</span><span class="st">'pearson'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="50">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">CAGE predicted</th>
+<th data-quarto-table-cell-role="th">RNA predicted</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CAGE predicted</td>
+<td>1.000000</td>
+<td>0.641555</td>
+<td>-0.010348</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">RNA predicted</td>
+<td>0.641555</td>
+<td>1.000000</td>
+<td>0.024595</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">observed</td>
+<td>-0.010348</td>
+<td>0.024595</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>ENSG00000161011 (Enformer Rat R = 0.624): Borzoi underperforms in both tracks, I will need to debug.</p>
+<div class="cell" data-execution_count="69">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>expr_dict[genes[<span class="dv">2</span>]].corr(method<span class="op">=</span><span class="st">'pearson'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="69">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">CAGE predicted</th>
+<th data-quarto-table-cell-role="th">RNA predicted</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CAGE predicted</td>
+<td>1.000000</td>
+<td>0.18870</td>
+<td>0.021334</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">RNA predicted</td>
+<td>0.188700</td>
+<td>1.00000</td>
+<td>0.003480</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">observed</td>
+<td>0.021334</td>
+<td>0.00348</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p><strong>GEUVADIS Human Spearman Correlations</strong></p>
+<div class="cell" data-execution_count="70">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>expr_dict[genes[<span class="dv">0</span>]].corr(method<span class="op">=</span><span class="st">'spearman'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="70">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">CAGE predicted</th>
+<th data-quarto-table-cell-role="th">RNA predicted</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CAGE predicted</td>
+<td>1.000000</td>
+<td>0.526191</td>
+<td>0.071541</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">RNA predicted</td>
+<td>0.526191</td>
+<td>1.000000</td>
+<td>0.085379</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">observed</td>
+<td>0.071541</td>
+<td>0.085379</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="71">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>expr_dict[genes[<span class="dv">1</span>]].corr(method<span class="op">=</span><span class="st">'spearman'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="71">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">CAGE predicted</th>
+<th data-quarto-table-cell-role="th">RNA predicted</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CAGE predicted</td>
+<td>1.000000</td>
+<td>0.665929</td>
+<td>0.00412</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">RNA predicted</td>
+<td>0.665929</td>
+<td>1.000000</td>
+<td>0.02841</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">observed</td>
+<td>0.004120</td>
+<td>0.028410</td>
+<td>1.00000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="72">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>expr_dict[genes[<span class="dv">2</span>]].corr(method<span class="op">=</span><span class="st">'spearman'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="72">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">CAGE predicted</th>
+<th data-quarto-table-cell-role="th">RNA predicted</th>
+<th data-quarto-table-cell-role="th">observed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CAGE predicted</td>
+<td>1.000000</td>
+<td>0.481421</td>
+<td>0.022248</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">RNA predicted</td>
+<td>0.481421</td>
+<td>1.000000</td>
+<td>0.029495</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">observed</td>
+<td>0.022248</td>
+<td>0.029495</td>
+<td>1.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> sns.color_palette(<span class="st">"pastel"</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> scatter_plot(x, y, xlabel, ylabel, title, corr):</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    plt.scatter(x, y, marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>], label<span class="op">=</span><span class="ss">f"Correlation: </span><span class="sc">{</span>corr<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add labels and title</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    plt.xlabel(xlabel)</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    plt.ylabel(ylabel)</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>    plt.title(gene)</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Show the plot</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>    plt.legend()</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> plot_spearman_corr(gene):</span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> expr_dict[gene][<span class="st">"observed"</span>]</span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> expr_dict[gene][<span class="st">"human predicted"</span>]</span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>    corr, pval <span class="op">=</span> stats.spearmanr(x, y)</span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">#plt.scatter(x, y, marker='o', color='blue', label=f"Correlation: {corr:.3f}\nP-value: {pval}")</span></span>
+<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a>    plt.scatter(stats.rankdata(x), stats.rankdata(y), marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>colors[<span class="dv">1</span>], label<span class="op">=</span><span class="ss">f"Correlation: </span><span class="sc">{</span>corr<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Add labels and title</span></span>
+<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a>    plt.xlabel(<span class="st">'Observed Ranks'</span>)</span>
+<span id="cb29-28"><a href="#cb29-28" aria-hidden="true" tabindex="-1"></a>    plt.ylabel(<span class="st">'Predicted Ranks'</span>)</span>
+<span id="cb29-29"><a href="#cb29-29" aria-hidden="true" tabindex="-1"></a>    plt.title(gene)</span>
+<span id="cb29-30"><a href="#cb29-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-31"><a href="#cb29-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Show the plot</span></span>
+<span id="cb29-32"><a href="#cb29-32" aria-hidden="true" tabindex="-1"></a>    plt.legend()</span>
+<span id="cb29-33"><a href="#cb29-33" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="13">
+<pre><code>{'ENSG00000142949':          CAGE predicted  RNA predicted
+ NA20521       20.140625   30171.421875
+ NA18934       20.171875   31623.371094
+ HG00324       20.062500   31657.937500
+ HG00103       20.281250   32049.599609
+ NA20516       20.156250   31728.843750
+ ...                 ...            ...
+ HG00152       20.093750   30087.642578
+ HG00351       20.218750   31902.732422
+ HG00185       20.218750   31106.968750
+ NA06994       20.250000   32102.337891
+ NA12341       20.125000   31183.824219
+ 
+ [455 rows x 2 columns],
+ 'ENSG00000133247':          CAGE predicted  RNA predicted
+ NA20521       22.968750   61911.656250
+ NA18934       23.000000   62215.453125
+ HG00324       22.859375   60991.593750
+ HG00103       22.968750   61437.328125
+ NA20516       22.906250   61042.312500
+ ...                 ...            ...
+ HG00152       22.843750   60993.703125
+ HG00351       22.875000   61338.320312
+ HG00185       22.968750   61601.574219
+ NA06994       22.796875   61072.781250
+ NA12341       22.875000   61673.406250
+ 
+ [455 rows x 2 columns],
+ 'ENSG00000161011':          CAGE predicted  RNA predicted
+ NA20521        41.06250      6132596.0
+ NA18934        41.00000      5838809.0
+ HG00324        41.12500      5967448.0
+ HG00103        40.96875      5852593.0
+ NA20516        41.00000      5942520.0
+ ...                 ...            ...
+ HG00152        41.09375      6227792.5
+ HG00351        41.12500      6053156.0
+ HG00185        41.06250      6043781.0
+ NA06994        41.06250      5897614.0
+ NA12341        41.12500      6036931.0
+ 
+ [455 rows x 2 columns]}</code></pre>
 </div>
 </div>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->
