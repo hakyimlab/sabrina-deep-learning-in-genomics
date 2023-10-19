@@ -1,0 +1,21 @@
+#PBS -A AIHPC4EDU
+#PBS -q debug
+#PBS -l walltime=01:00:00
+#PBS -l filesystems=home:grand
+#PBS -N borzoi_across_geuvadis_one_gene
+
+module load conda
+conda activate borzoi
+cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-10-17-updated-personalized-borzoi-ENSG00000161011
+
+export LD_LIBRARY_PATH=/soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:$LD_LIBRARY_PATH
+
+echo $LD_LIBRARY_PATH
+
+python3 personalized_prediction.py \
+--intervals_file intervals.txt \
+--fasta_file /home/s1mi/borzoi_tutorial/hg38.fa \
+--vcf_dir /grand/TFXcan/imlab/data/1000G/vcf_snps_only \
+--individuals_file individuals.txt \
+--model_dir /home/s1mi/borzoi_tutorial \
+--output_dir /grand/TFXcan/imlab/users/sabrina/redo-borzoi-personalized-test

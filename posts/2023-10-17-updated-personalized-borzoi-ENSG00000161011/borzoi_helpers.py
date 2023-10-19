@@ -78,42 +78,55 @@ def find_variants_in_vcf_file(cyvcf2_object, interval_object, samples, mode="pha
             variants_dictionary[sample] = tuple([variant.genotypes[i][0:2], variant.gt_bases[i].split(delim)] for variant in cyvcf2_object(query))
     return variants_dictionary
 
-
-def create_mapping_dictionary(variants_array, samples, interval_start):
-    import numpy as np
-    A = np.array([1,0,0,0], dtype=np.float32)
-    C = np.array([0,1,0,0], dtype=np.float32)
-    G = np.array([0,0,1,0], dtype=np.float32)
-    T = np.array([0,0,0,1], dtype=np.float32)
-    seq_dict = {'A': A, 'C': C, 'G': G, 'T': T}
-
-    # collect common information
-    samples_haplotype_map = {}
-    samples_haplotype_map['positions'] = tuple((variants_array['positions'][i]) - interval_start for i in range(len(variants_array['positions'])))
-    for sample in samples:
-        samples_haplotype_map[sample] = {}
-        samples_haplotype_map[sample]['haplotype1'] = tuple(seq_dict[variants_array[sample][i][1][0]] for i in range(0, len(variants_array[sample])))
-        samples_haplotype_map[sample]['haplotype2'] = tuple(seq_dict[variants_array[sample][i][1][1]] for i in range(0, len(variants_array[sample])))
-    return samples_haplotype_map
-
 def resize(region, seq_len=524288):
     center_bp = (region['end'] + region['start']) // 2
     start = center_bp - seq_len // 2
     end = center_bp + seq_len // 2
     return {"chr": region['chr'], "start": start, "end": end}
 
-def replace_variants_in_reference_sequence(query_sequences_encoded, mapping_dict, samples):
-    import copy
-    import numpy as np
-    positions = mapping_dict['positions']
+# def replace_variants_in_reference_sequence(query_sequences_encoded, mapping_dict, samples):
+#     import copy
+#     import numpy as np
+#     positions = mapping_dict['positions']
+#     variant_encoded = {}
+#     for sample in samples:
+#         haplotype1_encoded = np.copy(query_sequences_encoded)
+#         haplotype2_encoded = np.copy(query_sequences_encoded)
+#         for i, position in enumerate(positions):
+#             haplotype1_encoded[position] = mapping_dict[sample]["haplotype1"][i]
+#             haplotype2_encoded[position] = mapping_dict[sample]["haplotype2"][i]
+#         variant_encoded[sample] = {"haplotype1": haplotype1_encoded, "haplotype2": haplotype2_encoded}
+#     return variant_encoded
+
+def mutate_sequence(sequence_one_hot, start, poses, alts):
+    
+    #Induce mutation(s)
+    sequence_one_hot_mut = np.copy(sequence_one_hot)
+
+    for pos, alt in zip(poses, alts) :
+        alt_ix = -1
+        if alt == 'A' :
+            alt_ix = 0
+        elif alt == 'C' :
+            alt_ix = 1
+        elif alt == 'G' :
+            alt_ix = 2
+        elif alt == 'T' :
+            alt_ix = 3
+
+        sequence_one_hot_mut[pos-start-1] = 0.
+        sequence_one_hot_mut[pos-start-1, alt_ix] = 1.
+    return sequence_one_hot_mut
+
+def replace_variants_in_reference_sequence(sequence_one_hot_ref, variants_array, interval_start, samples):
+    poses = variants_array['positions']
     variant_encoded = {}
     for sample in samples:
-        haplotype1_encoded = np.copy(query_sequences_encoded)
-        haplotype2_encoded = np.copy(query_sequences_encoded)
-        for i, position in enumerate(positions):
-            haplotype1_encoded[position] = mapping_dict[sample]["haplotype1"][i]
-            haplotype2_encoded[position] = mapping_dict[sample]["haplotype2"][i]
-        variant_encoded[sample] = {"haplotype1": haplotype1_encoded, "haplotype2": haplotype2_encoded}
+        alts_1 = [variants_array[sample][i][1][0] for i in range(len(poses))]
+        alts_2 = [variants_array[sample][i][1][1] for i in range(len(poses))]
+        haplotype1_encoded = mutate_sequence(sequence_one_hot_ref, interval_start, poses, alts_1)
+        haplotype2_encoded = mutate_sequence(sequence_one_hot_ref, interval_start, poses, alts_2)
+        variant_encoded[sample] = {'haplotype1': haplotype1_encoded, 'haplotype2': haplotype2_encoded}
     return variant_encoded
 
 def get_model(model_dir):
@@ -134,7 +147,7 @@ def get_model(model_dir):
     params_file = os.path.join(model_dir, 'params_pred.json') 
     targets_file = os.path.join(model_dir, 'targets_human.txt') 
 
-    n_folds = 4       #To use only one model fold, change to 'n_folds = 1'
+    n_folds = 1       #To use only one model fold, change to 'n_folds = 1'
     rc = True         #Average across reverse-complement prediction
     #Read model parameters
 
@@ -175,13 +188,13 @@ def get_model(model_dir):
         models.append(seqnn_model)
     return models
 
+
 def predict_on_sequence(models, sample_input):
     prediction_output = {}
     for haplotype, sequence_encoding in sample_input.items():
         prediction = predict_tracks(models, sequence_encoding)
         prediction_output[haplotype] = prediction
     return prediction_output
-
 
 def batch(iterable, n=1):
     l = len(iterable)
