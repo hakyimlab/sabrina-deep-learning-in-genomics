@@ -1,0 +1,31 @@
+## Genome-wide Performance
+
+We feel confident enough in Borzoi's performance across the reference genome, both in CAGE:Brain and RNA-Seq:Brain tracks, to say it performs as well, if not better, than Enformer.
+
+[Test on ~1000 Genes](https://sabrina-dl.hakyimlab.org/posts/2023-09-25-borzoi-cage-test/)
+
+
+## Cross-Population Performance
+
+I have a lot of debugging to do, but I feel like we learned something new with each iteration of the cross-population tests.
+
+
+
+[First test on 3 genes](https://sabrina-dl.hakyimlab.org/posts/2023-10-04-personalized-test-on-a-few-genes/)
+* I used *human* GEUVADIS data to compare predicted and observed expression. Based off my (growing) understanding of the Borzoi tracks, I decided tracks 870 and 871 (CAGE:B lymphoblastoid cell line, + and - stranded) for CAGE predictions and track 7531 (RNA-Seq:Blood, GTEX-1I4MK-0002-SM-EZ6M9) 
+* All 3 genes had very low correlations <0.1 (CAGE and RNA-Seq), but I noticed RNA-Seq had higher correlation than CAGE for all genes
+
+[2023-10-16-debugging-personalized-borzoi-gene-expression-predictions/]
+
+[Indexing Test](https://sabrina-dl.hakyimlab.org/posts/2023-10-16-debugging-personalized-borzoi-gene-expression-predictions/):
+* I copied exact Borzoi code replacing SNPs in reference sequence, it shifted SNPs down 1 position. It seems like their fasta extractor is 0-based indexing, but Enformer's is 1-based
+* I tested for two individuals and could not decide which one is better, but I think using the updated code is the correct move
+
+
+[Focusing on ENSG00000161011](https://sabrina-dl.hakyimlab.org/posts/2023-10-17-updated-personalized-borzoi-ENSG00000161011/)
+* I checked the two CAGE tracks for peaks, + strand has a peak and - does not
+* Using only + strand did not improve prediction by much
+
+[Focusing on SLFN5](https://sabrina-dl.hakyimlab.org/posts/2023-10-18-borzoi-personalized-on-Huang-et-al-high-performance-gene/), Enformer performed well for this gene in Huang et al's paper
+* Best correlation so far: Spearman R=0.160 using only + strand
+
