@@ -308,22 +308,43 @@ Br Rats: Spearman P-values"): thresholding p to 1e-30</code></pre>
 </div>
 </div>
 </section>
+<section id="comparison-of-human-and-mouse-head" class="level3">
+<h3 class="anchored" data-anchor-id="comparison-of-human-and-mouse-head">Comparison of Human and Mouse Head</h3>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_6c631e0af402503aab007280362227a4">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qqplot</span>(pearson_corr_human<span class="sc">$</span>pearson.r <span class="sc">**</span> <span class="dv">2</span>, pearson_corr_mouse<span class="sc">$</span>pearson.r <span class="sc">**</span> <span class="dv">2</span>); <span class="fu">abline</span>(<span class="dv">0</span>,<span class="dv">1</span>); <span class="fu">grid</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-7_ebd4ff50d1abbee71a2c0ddb12d3af03">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">qqplot</span>(spearman_corr_human<span class="sc">$</span>spearman.r <span class="sc">**</span> <span class="dv">2</span>, spearman_corr_mouse<span class="sc">$</span>spearman.r <span class="sc">**</span> <span class="dv">2</span>); <span class="fu">abline</span>(<span class="dv">0</span>,<span class="dv">1</span>); <span class="fu">grid</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
 </section>
 <section id="scatter-plot-with-predixcan-elastic-net-performance" class="level2">
 <h2 class="anchored" data-anchor-id="scatter-plot-with-predixcan-elastic-net-performance">Scatter Plot with PrediXcan Elastic Net Performance</h2>
 <p>399 genes out of the 867 genes used in the Enformer runs have prediction performance results in the Br elastic net PrediXcan model. The missing genes were likely filtered out during training because there were no snps found to have effect on their expression.</p>
-<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_6c26415b73fe5c83e6e9eb71c16aec2f">
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-8_6a10085471868426283655062b27ccc6">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>enet_Br_perf <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/Within-Lab-Sharing/Sabrina-Data/rat_data/misc/highestR2genes.csv"</span>)[,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">6</span>)]</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>enet_Br_merged <span class="ot">&lt;-</span> <span class="fu">merge</span>(enet_Br_perf, spearman_corr_human, <span class="at">by.x =</span><span class="st">"gene"</span>, <span class="at">by.y =</span> <span class="st">"row.names"</span>)</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(enet_Br_merged<span class="sc">$</span>cor, enet_Br_merged<span class="sc">$</span>spearman.r, <span class="at">main =</span> <span class="st">"Cross-Individual Correlations for 399 Genes"</span>, <span class="at">type =</span> <span class="st">"n"</span>, <span class="at">xlab =</span> <span class="st">"PrediXcan"</span>, <span class="at">ylab =</span> <span class="st">"Enformer Human Head"</span>)</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(enet_Br_merged<span class="sc">$</span>cor, enet_Br_merged<span class="sc">$</span>spearman.r)</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a=</span><span class="dv">0</span>,<span class="at">b=</span><span class="dv">0</span>)</span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>enet_Br_perf <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"/Users/sabrinami/Library/CloudStorage/Box-Box/imlab-data/Within-Lab-Sharing/Sabrina-Data/rat_data/misc/highestR2genes.csv"</span>)[,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">6</span>)]</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>enet_Br_merged <span class="ot">&lt;-</span> <span class="fu">merge</span>(enet_Br_perf, spearman_corr_human, <span class="at">by.x =</span><span class="st">"gene"</span>, <span class="at">by.y =</span> <span class="st">"row.names"</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(enet_Br_merged<span class="sc">$</span>cor, enet_Br_merged<span class="sc">$</span>spearman.r, <span class="at">main =</span> <span class="st">"Cross-Individual Correlations for 399 Genes"</span>, <span class="at">type =</span> <span class="st">"n"</span>, <span class="at">xlab =</span> <span class="st">"PrediXcan"</span>, <span class="at">ylab =</span> <span class="st">"Enformer Human Head"</span>)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(enet_Br_merged<span class="sc">$</span>cor, enet_Br_merged<span class="sc">$</span>spearman.r)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">a=</span><span class="dv">0</span>,<span class="at">b=</span><span class="dv">0</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="at">v=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 

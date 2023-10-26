@@ -12669,14 +12669,79 @@ Br Rats: Spearman P-values"): thresholding p to 1e-30</code></pre>
 </div>
 </div>
 </section>
+<section id="comparison-of-human-and-mouse-head" class="level3">
+<h3 class="anchored" data-anchor-id="comparison-of-human-and-mouse-head">Comparison of Human and Mouse Head</h3>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_6c631e0af402503aab007280362227a4">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">qqplot</span>(pearson_corr_human<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pearson.r <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">**</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, pearson_corr_mouse<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pearson.r <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">**</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>); <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">abline</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>,<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>); <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">grid</span>()</span></code></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-15-PrediXcan-and-Enformer-plots/index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-7_ebd4ff50d1abbee71a2c0ddb12d3af03">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">qqplot</span>(spearman_corr_human<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>spearman.r <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">**</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, spearman_corr_mouse<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>spearman.r <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">**</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>); <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">abline</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>,<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>); <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">grid</span>()</span></code></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-15-PrediXcan-and-Enformer-plots/index_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
 </section>
 <section id="scatter-plot-with-predixcan-elastic-net-performance" class="level2">
 <h2 class="anchored" data-anchor-id="scatter-plot-with-predixcan-elastic-net-performance">Scatter Plot with PrediXcan Elastic Net Performance</h2>
 <p>399 genes out of the 867 genes used in the Enformer runs have prediction performance results in the Br elastic net PrediXcan model. The missing genes were likely filtered out during training because there were no snps found to have effect on their expression.</p>
-<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_6c26415b73fe5c83e6e9eb71c16aec2f">
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-8_6a10085471868426283655062b27ccc6">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1">enet_Br_perf <span class="ot" style="color: #003B4F;
+<div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1">enet_Br_perf <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -12689,7 +12754,7 @@ background-color: null;
 font-style: inherit;">1</span>,<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">6</span>)]</span>
-<span id="cb18-2">enet_Br_merged <span class="ot" style="color: #003B4F;
+<span id="cb20-2">enet_Br_merged <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -12702,7 +12767,7 @@ background-color: null;
 font-style: inherit;">by.y =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"row.names"</span>)</span>
-<span id="cb18-3"><span class="fu" style="color: #4758AB;
+<span id="cb20-3"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">plot</span>(enet_Br_merged<span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -12725,14 +12790,14 @@ background-color: null;
 font-style: inherit;">ylab =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"Enformer Human Head"</span>)</span>
-<span id="cb18-4"><span class="fu" style="color: #4758AB;
+<span id="cb20-4"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">points</span>(enet_Br_merged<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>cor, enet_Br_merged<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>spearman.r)</span>
-<span id="cb18-5"><span class="fu" style="color: #4758AB;
+<span id="cb20-5"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">abline</span>(<span class="at" style="color: #657422;
 background-color: null;
@@ -12743,7 +12808,7 @@ background-color: null;
 font-style: inherit;">b=</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>)</span>
-<span id="cb18-6"><span class="fu" style="color: #4758AB;
+<span id="cb20-6"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">abline</span>(<span class="at" style="color: #657422;
 background-color: null;
@@ -12752,7 +12817,7 @@ background-color: null;
 font-style: inherit;">0</span>)</span></code></pre></div>
 </details>
 <div class="cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-15-PrediXcan-and-Enformer-plots/index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-15-PrediXcan-and-Enformer-plots/index_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 

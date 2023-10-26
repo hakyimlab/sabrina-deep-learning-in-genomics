@@ -54,6 +54,17 @@ qqR2(spearman_corr_mouse$spearman.r ** 2, 340, main="Mouse Head Prediction for B
 qqunif(spearman_corr_mouse$pvalue, main="Mouse Head Prediction for Br Rats: Spearman P-values")
 ```
 
+### Comparison of Human and Mouse Head
+
+```{r}
+qqplot(pearson_corr_human$pearson.r ** 2, pearson_corr_mouse$pearson.r ** 2); abline(0,1); grid()
+
+```
+
+```{r}
+qqplot(spearman_corr_human$spearman.r ** 2, spearman_corr_mouse$spearman.r ** 2); abline(0,1); grid()
+```
+
 ## Scatter Plot with PrediXcan Elastic Net Performance
 
 399 genes out of the 867 genes used in the Enformer runs have prediction performance results in the Br elastic net PrediXcan model. The missing genes were likely filtered out during training because there were no snps found to have effect on their expression.
