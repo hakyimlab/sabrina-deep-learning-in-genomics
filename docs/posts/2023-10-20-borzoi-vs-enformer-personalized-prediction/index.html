@@ -220,7 +220,7 @@ python3 personalized_prediction.py \
 --individuals_file individuals.txt \
 --model_dir /home/s1mi/borzoi_tutorial \
 --output_dir /eagle/AIHPC4Edu/sabrina/borzoi-personalized-predictions</code></pre>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="41">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
@@ -235,10 +235,12 @@ python3 personalized_prediction.py \
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/borzoi-personalized-predictions"</span></span>
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"individuals.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
 <span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    individuals <span class="op">=</span> f.read().splitlines()</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"intervals.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    intervals <span class="op">=</span> f.read().splitlines()[:<span class="dv">20</span>] <span class="co"># test on first few genes</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"completed_intervals.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    intervals <span class="op">=</span> f.read().splitlines()</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"intervals.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    intervals.extend(f.read().splitlines()[:<span class="dv">5</span>]) <span class="co"># test on first few genes</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="43">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> []</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> interval <span class="kw">in</span> intervals:</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    split_interval <span class="op">=</span> interval.split(<span class="st">"_"</span>)</span>
@@ -247,7 +249,7 @@ python3 personalized_prediction.py \
 <span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    gene <span class="op">=</span> hg38_annot.index[(hg38_annot[<span class="st">'chromosome_name'</span>] <span class="op">==</span> <span class="bu">chr</span>) <span class="op">&amp;</span> (hg38_annot[<span class="st">'transcription_start_site'</span>] <span class="op">==</span> tss)]</span>
 <span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    gene_list.append(gene.item())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="3">
+<div class="cell" data-execution_count="44">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>CAGE_dict <span class="op">=</span> {gene: [] <span class="cf">for</span> gene <span class="kw">in</span> gene_list}</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, gene <span class="kw">in</span> <span class="bu">enumerate</span>(gene_list):</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    interval <span class="op">=</span> intervals[index]</span>
@@ -262,31 +264,31 @@ python3 personalized_prediction.py \
 <span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
 <span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            CAGE_dict[gene].append(np.nan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="4">
+<div class="cell" data-execution_count="45">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>geuvadis_gex <span class="op">=</span> pd.read_csv(<span class="st">"/lus/grand/projects/TFXcan/imlab/data/1000G/expression/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt.gz"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>geuvadis_gex[<span class="st">'TargetID'</span>] <span class="op">=</span> geuvadis_gex[<span class="st">'TargetID'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> gene: gene.split(<span class="st">'.'</span>)[<span class="dv">0</span>])</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>geuvadis_gex.set_index(<span class="st">'TargetID'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="5">
+<div class="cell" data-execution_count="46">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>expr_dict <span class="op">=</span> {}</span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    observed <span class="op">=</span> pd.to_numeric(geuvadis_gex.loc[gene][individuals])</span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    expr_df <span class="op">=</span> pd.DataFrame({<span class="st">'Observed'</span>: observed, <span class="st">"Predicted"</span>: CAGE_dict[gene]}, index <span class="op">=</span> individuals)</span>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    expr_dict[gene] <span class="op">=</span> expr_df.dropna()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="6">
+<div class="cell" data-execution_count="47">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>pearson_corr_by_gene <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>[<span class="st">"Pearson R"</span>, <span class="st">"P-value"</span>], index <span class="op">=</span> gene_list)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    corr, pval <span class="op">=</span> stats.pearsonr(expr_dict[gene][<span class="st">"Observed"</span>], expr_dict[gene][<span class="st">"Predicted"</span>])</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    pearson_corr_by_gene.loc[gene] <span class="op">=</span> [corr, pval]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="70">
+<div class="cell" data-execution_count="48">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_gene <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>[<span class="st">"Spearman R"</span>, <span class="st">"P-value"</span>], index <span class="op">=</span> gene_list)</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    corr, pval <span class="op">=</span> stats.spearmanr(expr_dict[gene][<span class="st">"Observed"</span>], expr_dict[gene][<span class="st">"Predicted"</span>])</span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    spearman_corr_by_gene.loc[gene] <span class="op">=</span> [corr, pval]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="71">
+<div class="cell" data-execution_count="60">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> sns.color_palette(<span class="st">"pastel"</span>)</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>gex_df <span class="op">=</span> expr_dict[<span class="st">'ENSG00000137265'</span>]</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>corr, pval <span class="op">=</span> stats.pearsonr(gex_df[<span class="st">'Observed'</span>], gex_df[<span class="st">'Predicted'</span>])</span>
@@ -309,7 +311,7 @@ python3 personalized_prediction.py \
 </section>
 <section id="compare-correlations-to-enformer" class="level2">
 <h2 class="anchored" data-anchor-id="compare-correlations-to-enformer">Compare Correlations to Enformer</h2>
-<div class="cell" data-execution_count="32">
+<div class="cell" data-execution_count="61">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>enformer_corr_df <span class="op">=</span> pd.read_csv(<span class="st">"enformer_geuvadis_correlations.csv"</span>).dropna()</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>enformer_corr <span class="op">=</span> []</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
@@ -317,13 +319,13 @@ python3 personalized_prediction.py \
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    corr <span class="op">=</span> enformer_corr_df[<span class="st">'ge'</span>][enformer_corr_df[<span class="st">'gene_names'</span>] <span class="op">==</span> gene_name]</span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    enformer_corr.append(corr.item())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="72">
+<div class="cell" data-execution_count="62">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_gene[<span class="st">"Enformer"</span>] <span class="op">=</span> enformer_corr</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_model <span class="op">=</span> spearman_corr_by_gene.rename(columns<span class="op">=</span>{<span class="st">"Spearman R"</span>: <span class="st">"Borzoi"</span>}).drop(columns<span class="op">=</span>[<span class="st">"P-value"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="73">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_model</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="73">
+<div class="cell" data-execution_count="63">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_model.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="63">
 <div>
 
 
@@ -361,88 +363,13 @@ python3 personalized_prediction.py \
 <td>-0.027883</td>
 <td>0.062367</td>
 </tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000125730</td>
-<td>0.01161</td>
-<td>0.071894</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000166562</td>
-<td>-0.078023</td>
-<td>0.095746</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000007171</td>
-<td>0.026967</td>
-<td>0.069849</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000048544</td>
-<td>-0.034453</td>
-<td>0.279909</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000114670</td>
-<td>0.027222</td>
-<td>0.095964</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000143322</td>
-<td>0.022585</td>
-<td>0.024750</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000137265</td>
-<td>0.109473</td>
-<td>0.067878</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000161265</td>
-<td>0.019875</td>
-<td>0.087932</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000170482</td>
-<td>-0.048753</td>
-<td>0.081875</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000182700</td>
-<td>0.055881</td>
-<td>0.114932</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000253710</td>
-<td>-0.0004</td>
-<td>-0.019796</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000087008</td>
-<td>0.016689</td>
-<td>-0.107988</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000198951</td>
-<td>0.034848</td>
-<td>-0.076728</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000102763</td>
-<td>-0.018858</td>
-<td>0.015898</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000205571</td>
-<td>-0.041836</td>
-<td>-0.018890</td>
-</tr>
 </tbody>
 </table>
 
 </div>
 </div>
 </div>
-<div class="cell" data-execution_count="76">
+<div class="cell" data-execution_count="64">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> sns.color_palette(<span class="st">"pastel"</span>)</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(spearman_corr_by_model[<span class="st">'Enformer'</span>], spearman_corr_by_model[<span class="st">'Borzoi'</span>], marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>line <span class="op">=</span> np.linspace(<span class="op">-</span><span class="fl">0.3</span>, <span class="fl">0.3</span>)</span>
@@ -460,7 +387,7 @@ python3 personalized_prediction.py \
 <section id="bin-sizing" class="level3">
 <h3 class="anchored" data-anchor-id="bin-sizing">Bin Sizing</h3>
 <p>We used a 4 bin window centered at the TSS for each CAGE computation, we want to see which bin width gives the best estimate.</p>
-<div class="cell" data-execution_count="37">
+<div class="cell" data-execution_count="65">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>CAGE_dicts <span class="op">=</span> [{gene: [] <span class="cf">for</span> gene <span class="kw">in</span> gene_list} <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>)]</span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, gene <span class="kw">in</span> <span class="bu">enumerate</span>(gene_list):</span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>    interval <span class="op">=</span> intervals[index]</span>
@@ -478,7 +405,7 @@ python3 personalized_prediction.py \
 <span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a>                CAGE_dicts[i][gene].append(np.nan)</span>
 <span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>    </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell">
+<div class="cell" data-execution_count="66">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_bin_size <span class="op">=</span> pd.DataFrame({<span class="st">"Enformer"</span>: enformer_corr}, index<span class="op">=</span>gene_list)</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    results <span class="op">=</span>[]</span>
@@ -489,7 +416,7 @@ python3 personalized_prediction.py \
 <span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>        results.append(corr)</span>
 <span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    spearman_corr_by_bin_size[<span class="ss">f'Borzoi, </span><span class="sc">{</span><span class="dv">2</span><span class="op">*</span>(i<span class="op">+</span><span class="dv">1</span>)<span class="sc">}</span><span class="ss"> bins'</span>] <span class="op">=</span> results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="49">
+<div class="cell" data-execution_count="58">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> histogram(x, title):</span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>    plt.hist(x, bins<span class="op">=</span><span class="dv">10</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])  <span class="co"># 'bins' determines the number of bins or bars</span></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>    plt.title(title)</span>
@@ -502,9 +429,9 @@ python3 personalized_prediction.py \
 <span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Display the plot</span></span>
 <span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="52">
+<div class="cell" data-execution_count="67">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> column <span class="kw">in</span> spearman_corr_by_bin_size:</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="dv">20</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(gene_list)</span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> spearman_corr_by_bin_size[column]</span>
 <span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    histogram(x, title<span class="op">=</span><span class="ss">f'Personalized Prediction Performance for </span><span class="sc">{</span>column<span class="sc">}</span><span class="ss"> on N=</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss"> genes'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
@@ -526,7 +453,7 @@ python3 personalized_prediction.py \
 <p><img src="index_files/figure-html/cell-20-output-6.png" class="img-fluid"></p>
 </div>
 </div>
-<div class="cell" data-execution_count="63">
+<div class="cell" data-execution_count="39">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>model_perf_dict <span class="op">=</span> {column: <span class="dv">0</span> <span class="cf">for</span> column <span class="kw">in</span> spearman_corr_by_bin_size}</span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, row <span class="kw">in</span> spearman_corr_by_bin_size.iterrows():</span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    best_model <span class="op">=</span> spearman_corr_by_bin_size.loc[index].idxmax()</span>
@@ -536,16 +463,32 @@ python3 personalized_prediction.py \
 <span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    best_model <span class="op">=</span> spearman_corr_by_bin_size.<span class="bu">abs</span>().loc[index].idxmax()</span>
 <span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    model_abs_perf_dict[best_model] <span class="op">+=</span> <span class="dv">1</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="64">
+<div class="cell" data-execution_count="40">
 <div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Highest Correlation Model:"</span>)</span>
 <span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model_perf_dict)</span>
 <span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Highest Absolute Valued Correlation Model:"</span>)</span>
 <span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model_abs_perf_dict)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Highest Correlation Model:
-{'Enformer': 13, 'Borzoi, 2 bins': 3, 'Borzoi, 4 bins': 1, 'Borzoi, 6 bins': 2, 'Borzoi, 8 bins': 1, 'Borzoi, 10 bins': 0}
+{'Enformer': 18, 'Borzoi, 2 bins': 4, 'Borzoi, 4 bins': 1, 'Borzoi, 6 bins': 2, 'Borzoi, 8 bins': 2, 'Borzoi, 10 bins': 1}
 Highest Absolute Valued Correlation Model:
-{'Enformer': 13, 'Borzoi, 2 bins': 2, 'Borzoi, 4 bins': 1, 'Borzoi, 6 bins': 1, 'Borzoi, 8 bins': 2, 'Borzoi, 10 bins': 1}</code></pre>
+{'Enformer': 18, 'Borzoi, 2 bins': 3, 'Borzoi, 4 bins': 2, 'Borzoi, 6 bins': 1, 'Borzoi, 8 bins': 3, 'Borzoi, 10 bins': 1}</code></pre>
+</div>
+</div>
+<p>These plots suggest that averaging an 8-bin window (equivalent to 2 Enformer bins) might be the best method to estimate gene expression, but not by much:</p>
+<div class="cell" data-execution_count="68">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> sns.color_palette(<span class="st">"pastel"</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(spearman_corr_by_bin_size[<span class="st">'Enformer'</span>], spearman_corr_by_bin_size[<span class="st">'Borzoi, 8 bins'</span>], marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>line <span class="op">=</span> np.linspace(<span class="op">-</span><span class="fl">0.3</span>, <span class="fl">0.3</span>)</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>plt.plot(line, line, label<span class="op">=</span><span class="st">'y = x'</span>, color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels and title</span></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Enformer"</span>)</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Borzoi"</span>)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Comparing Spearman R Correlations for Personalized Prediction"</span>)</span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-23-output-1.png" class="img-fluid"></p>
 </div>
 </div>
 
