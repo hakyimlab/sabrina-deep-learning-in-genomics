@@ -6,8 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Sabrina Mi">
 
-<title>deep-learning-in-genomics – index</title>
+<title>deep-learning-in-genomics - Borzoi vs Enformer Comparisons</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -103,12 +104,35 @@ ul.task-list li input[type="checkbox"] {
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Borzoi vs Enformer Comparisons</h1>
+                      </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Sabrina Mi </p>
+            </div>
+    </div>
+      
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     
 <!-- main -->
 <main class="content quarto-banner-title-block" id="quarto-document-content">
+
 
 
 
@@ -119,27 +143,26 @@ ul.task-list li input[type="checkbox"] {
 </section>
 <section id="cross-population-performance" class="level2">
 <h2 class="anchored" data-anchor-id="cross-population-performance">Cross-Population Performance</h2>
-<p>I have a lot of debugging to do, but I feel like we learned something new with each iteration of the cross-population tests.</p>
+<p>I double-checked the borzoi code and tested various adjustments thoroughly enough to rule out that the low correlations are from errors on my end. For each of the gene tests, I used GEUVADIS genotypes (N=455) and LCL gene expression data.</p>
 <p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-10-04-personalized-test-on-a-few-genes/">First test on 3 genes</a></p>
 <ul>
 <li>I used <em>human</em> GEUVADIS data to compare predicted and observed expression. Based off my (growing) understanding of the Borzoi tracks, I decided tracks 870 and 871 (CAGE:B lymphoblastoid cell line, + and - stranded) for CAGE predictions and track 7531 (RNA-Seq:Blood, GTEX-1I4MK-0002-SM-EZ6M9)</li>
 <li>All 3 genes had very low correlations &lt;0.1 (CAGE and RNA-Seq), but I noticed RNA-Seq had higher correlation than CAGE for all genes</li>
 </ul>
-<p>[2023-10-16-debugging-personalized-borzoi-gene-expression-predictions/]</p>
-<p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-10-16-debugging-personalized-borzoi-gene-expression-predictions/">Indexing Test</a>:</p>
-<ul>
-<li>I copied exact Borzoi code replacing SNPs in reference sequence, it shifted SNPs down 1 position. It seems like their fasta extractor is 0-based indexing, but Enformer’s is 1-based</li>
-<li>I tested for two individuals and could not decide which one is better, but I think using the updated code is the correct move</li>
-</ul>
-<p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-10-17-updated-personalized-borzoi-ENSG00000161011/">Focusing on ENSG00000161011</a></p>
-<ul>
-<li>I checked the two CAGE tracks for peaks, + strand has a peak and - does not</li>
-<li>Using only + strand did not improve prediction by much</li>
-</ul>
 <p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-10-18-borzoi-personalized-on-Huang-et-al-high-performance-gene/">Focusing on SLFN5</a>, Enformer performed well for this gene in Huang et al’s paper</p>
 <ul>
 <li>Best correlation so far: Spearman R=0.160 using only + strand</li>
 </ul>
+<p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction">Compare to Enformer</a></p>
+<ul>
+<li>Borzoi’s CAGE tracks for LCL are worse than Enformer’s at predicting expression</li>
+</ul>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="borzoi_enformer_scatter.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">borzoi vs enformer</figcaption>
+</figure>
+</div>
 
 
 </section>
