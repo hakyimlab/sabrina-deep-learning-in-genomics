@@ -27,7 +27,7 @@ There are extra annotations than needed, later on we will filter to chromosomes 
 3. Annotate VCF
 
 ```
-cd /Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data
+cd /Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
 bcftools annotate \
   --rename-chrs /Users/sabrinami/Downloads/mRatBN7.2_chromosome_names.txt \
   --threads 10 \
