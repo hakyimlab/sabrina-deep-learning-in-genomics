@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.361">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Sofia Salazar, Sabrina Mi">
+<meta name="dcterms.date" content="2023-10-25">
+<meta name="description" content="Full report on the assesment of borzoi performance against Enformer">
+
+<title>deep-learning-in-genomics - Full report on Borzoi performance analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed fullcontent">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container">
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">deep-learning-in-genomics</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html" rel="" target="">
+ <span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/" rel="" target=""><i class="bi bi-github" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com" rel="" target=""><i class="bi bi-twitter" role="img">
+</i> 
+ <span class="menu-text"></span></a>
+  </li>  
+</ul>
+            <div class="quarto-navbar-tools">
+</div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <div class="quarto-title-block"><div><h1 class="title">Full report on Borzoi performance analysis</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li></ul></div></div>
+                  <div>
+        <div class="description">
+          Full report on the assesment of borzoi performance against Enformer
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">analysis</div>
+                <div class="quarto-category">report</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Sofia Salazar, Sabrina Mi </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">October 25, 2023</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>In this notebook, we explored the question: <strong>Does borzoi predictions have a better performance compared to Enformer, at predicting cross-population expression for the CAGE LCL tracks?</strong></p>
+<p><strong>Sofia’s Analysis</strong> involved comparisons between observed and predicted expression 136 of the top-performing genes for enformer and 140 of the worst-performing genes for enformer (total 276 genes). She sampled 100 individuals from the Geuvadis dataset for both borzoi and enformer predictions</p>
+<p><strong>Sabrina’s Analysis</strong> predicted gene expression for 100 randomly-sampled genes across all 455 Geuvadis samples.</p>
+<p>For both experiments, we compared the correlation between the predictions using both tools, and the ground truth measurements of the Geuvadis gene expression for the same individuals as the prediction. We examined correlations with the ground truth as a measure of performance.</p>
+</section>
+<section id="sofias-analysis" class="level1">
+<h1>Sofia’s Analysis</h1>
+<section id="libraries" class="level2">
+<h2 class="anchored" data-anchor-id="libraries">Libraries</h2>
+<div class="cell" data-execution_count="1">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> kipoiseq</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="data" class="level2">
+<h2 class="anchored" data-anchor-id="data">Data</h2>
+<div class="cell" data-execution_count="2">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>DATA <span class="op">=</span> <span class="st">'/home/t-9ssal0/data/'</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>PROJECT <span class="op">=</span> <span class="st">'/project2/haky/sofia/borzoiRun/'</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>geuvadis_file <span class="op">=</span> DATA <span class="op">+</span> <span class="st">'geuvadis_expression.gz'</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>geuvadis_gene_expression <span class="op">=</span> pd.read_table(geuvadis_file, sep<span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                                         dtype<span class="op">=</span>{<span class="st">'gene_id'</span>: <span class="bu">str</span>, <span class="st">'gene_name'</span>:<span class="bu">str</span>, <span class="st">'TargetID'</span>:<span class="bu">str</span>, <span class="st">'Chr'</span>:<span class="bu">str</span>})</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>individuals_file <span class="op">=</span> pd.read_csv(PROJECT <span class="op">+</span> <span class="st">'my_individuals.tsv'</span>, sep <span class="op">=</span> <span class="st">'</span><span class="ch">\t</span><span class="st">'</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> individuals_file[<span class="st">'Individuals'</span>].to_list()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Loading gene lists for both analysis</p>
+<div class="cell" data-execution_count="3">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>best_predicted_genes_df <span class="op">=</span> pd.read_csv(<span class="st">'/project2/haky/sofia/borzoiRun/predicted_genes_20oct.csv'</span>, header<span class="op">=</span><span class="va">None</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>best_my_genes <span class="op">=</span> best_predicted_genes_df[<span class="dv">0</span>].to_list() <span class="co"># 136 best performing genes</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> []</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">8</span>):</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    genes_file <span class="op">=</span> pd.read_csv(<span class="ss">f'</span><span class="sc">{</span>PROJECT<span class="sc">}</span><span class="ss">gene_lists/worst_list</span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">.csv'</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    gene_list.append(genes_file[<span class="st">'x'</span>].to_list())</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>worst_my_genes <span class="op">=</span> [item <span class="cf">for</span> sublist <span class="kw">in</span> gene_list <span class="cf">for</span> item <span class="kw">in</span> sublist] <span class="co"># 140 worst performing genes</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="functions" class="level2">
+<h2 class="anchored" data-anchor-id="functions">Functions</h2>
+<div class="cell" data-execution_count="4">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_genes_per_file(num_files, <span class="bu">type</span>):</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    file_type <span class="op">=</span> <span class="st">""</span> <span class="cf">if</span> <span class="bu">type</span>.lower() <span class="op">==</span> <span class="st">"best"</span> <span class="cf">else</span> <span class="st">"fast_"</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    predicted_genes <span class="op">=</span> []</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    all_genes <span class="op">=</span> []</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> s <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, num_files <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>        <span class="co"># assuming both files have the same genes</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> h5py.File(<span class="st">'/scratch/midway3/t-9ssal0/h5_files/'</span><span class="op">+</span>file_type<span class="op">+</span><span class="st">'enformer_predictions'</span> <span class="op">+</span><span class="bu">str</span>(s)<span class="op">+</span> <span class="st">'.h5'</span>, <span class="st">'r'</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>            group <span class="op">=</span> <span class="bu">file</span>[individuals[<span class="dv">0</span>]]</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>            predicted_genes.append(<span class="bu">list</span>(group.keys()))</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> l <span class="kw">in</span> predicted_genes:</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        all_genes.append(<span class="bu">list</span>((<span class="bu">set</span>([re.sub(<span class="vs">r"_haplo\d+"</span>, <span class="st">""</span>, s) <span class="cf">for</span> s <span class="kw">in</span> l]))))</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span>(all_genes)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>best_genes_per_file <span class="op">=</span> get_genes_per_file(<span class="dv">7</span>, <span class="st">"best"</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>worst_genes_per_file <span class="op">=</span> get_genes_per_file(<span class="dv">7</span>, <span class="st">"worst"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Note: moved all h5 files to /cds/haky/sofia/h5_files/</p>
+<div class="cell" data-execution_count="5">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_expression_dic(number_files, software, <span class="bu">type</span>, genes_per_file):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    file_type <span class="op">=</span> <span class="st">""</span> <span class="cf">if</span> <span class="bu">type</span>.lower() <span class="op">==</span> <span class="st">"best"</span> <span class="cf">else</span> <span class="st">"fast_"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    expression_dic <span class="op">=</span> {k:{} <span class="cf">for</span> k <span class="kw">in</span> individuals}</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    start_bin <span class="op">=</span> <span class="dv">0</span> <span class="cf">if</span> software.lower() <span class="op">==</span> <span class="st">'borzoi'</span> <span class="cf">else</span> <span class="dv">3</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    end_bin <span class="op">=</span> <span class="dv">17</span> <span class="cf">if</span> software.lower() <span class="op">==</span> <span class="st">'borzoi'</span> <span class="cf">else</span> <span class="dv">7</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    index <span class="op">=</span> [<span class="dv">870</span>, <span class="dv">871</span>] <span class="cf">if</span> software.lower()<span class="op">==</span> <span class="st">'borzoi'</span> <span class="cf">else</span> <span class="dv">5110</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        gene_expr <span class="op">=</span> {}</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> file_num <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, number_files <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(<span class="st">'/scratch/midway3/t-9ssal0/h5_files/'</span><span class="op">+</span>file_type <span class="op">+</span> software.lower() <span class="op">+</span> <span class="st">'_predictions'</span><span class="op">+</span> <span class="bu">str</span>(file_num)<span class="op">+</span> <span class="st">'.h5'</span>, <span class="st">'r'</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                <span class="cf">for</span> gene <span class="kw">in</span> genes_per_file[file_num <span class="op">-</span> <span class="dv">1</span>]: <span class="co">#iterate through genes in file</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>                    group <span class="op">=</span> <span class="bu">file</span>[individual]</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>                    expression <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">for</span> h <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>,<span class="dv">2</span>): <span class="co"># iterate through haplotypes</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>                        prediction <span class="op">=</span> group[<span class="ss">f'</span><span class="sc">{</span>gene<span class="sc">}</span><span class="ss">_haplo</span><span class="sc">{</span>h<span class="sc">}</span><span class="ss">'</span>][:, index]</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>                        <span class="cf">if</span> software.lower() <span class="op">==</span> <span class="st">'borzoi'</span>:</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>                            prediction <span class="op">=</span> np.mean(prediction, axis <span class="op">=</span> (<span class="dv">1</span>)) <span class="co"># mean over track replicates</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>                        expression <span class="op">+=</span> np.mean(prediction[start_bin: end_bin])</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>                    gene_expr[gene] <span class="op">=</span> expression</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>                    <span class="kw">del</span> prediction</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        expression_dic[individual] <span class="op">=</span> gene_expr</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> expression_dic</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_predictions_across_indiv(expression_dic, genes):</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    predictions_across_ind <span class="op">=</span> {gene:[] <span class="cf">for</span> gene <span class="kw">in</span> genes}</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> expression_dic:</span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> gene <span class="kw">in</span> genes:</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>            predictions_across_ind[gene].append(expression_dic[individual][gene])</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> predictions_across_ind</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_correlations(dic1, dic2):</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    corr <span class="op">=</span> {gene: np.empty(<span class="bu">len</span>(individuals)) <span class="cf">for</span> gene <span class="kw">in</span> dic1.keys()}</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> gene <span class="kw">in</span> dic1.keys():</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>        col_corr <span class="op">=</span> np.corrcoef(dic1[gene], dic2[gene])[<span class="dv">0</span>,<span class="dv">1</span>]</span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>        corr[gene] <span class="op">=</span> col_corr</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span>(corr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="first-analysis-performance-comparison-in-best-performing-genes-with-enformer" class="level2">
+<h2 class="anchored" data-anchor-id="first-analysis-performance-comparison-in-best-performing-genes-with-enformer">First analysis: performance comparison in best-performing genes with Enformer</h2>
+<section id="get-expression-across-individuals-for-each-gene" class="level4">
+<h4 class="anchored" data-anchor-id="get-expression-across-individuals-for-each-gene">Get expression across individuals for each gene</h4>
+<div class="cell" data-execution_count="7">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>best_expression_borzoi_dic <span class="op">=</span> get_expression_dic(<span class="dv">7</span>, <span class="st">'borzoi'</span>, <span class="st">'best'</span>, best_genes_per_file)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>best_expression_enformer_dic <span class="op">=</span> get_expression_dic(<span class="dv">7</span>, <span class="st">'enformer'</span>, <span class="st">'best'</span>, best_genes_per_file)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>best_borzoi_across_individuals <span class="op">=</span> get_predictions_across_indiv(best_expression_borzoi_dic, best_my_genes)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>best_enformer_across_individuals <span class="op">=</span> get_predictions_across_indiv(best_expression_enformer_dic, best_my_genes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Geuvadis data</p>
+<div class="cell" data-execution_count="10">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>geuvadis <span class="op">=</span> geuvadis_gene_expression.loc[geuvadis_gene_expression[<span class="st">'gene_name'</span>].isin(best_my_genes)]</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>geuvadis.index <span class="op">=</span> geuvadis[<span class="st">'gene_name'</span>]</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>geuvadis <span class="op">=</span> geuvadis.loc[:, individuals]</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>geuvadis <span class="op">=</span> geuvadis.loc[best_my_genes]</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>best_GT_across <span class="op">=</span> {gene:val <span class="cf">for</span> gene, val <span class="kw">in</span> <span class="bu">zip</span>(best_my_genes, geuvadis.values.tolist())}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="correlations" class="level4">
+<h4 class="anchored" data-anchor-id="correlations">Correlations</h4>
+<div class="cell" data-execution_count="11">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>best_corr_borzoi_enf <span class="op">=</span> get_correlations(best_borzoi_across_individuals, best_enformer_across_individuals)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>best_corr_enf_GT <span class="op">=</span> get_correlations(best_enformer_across_individuals, best_GT_across)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>best_corr_bor_GT <span class="op">=</span> get_correlations(best_borzoi_across_individuals, best_GT_across)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="correlations-between-enformer-and-borzoi-predictions" class="level4">
+<h4 class="anchored" data-anchor-id="correlations-between-enformer-and-borzoi-predictions">Correlations between enformer and borzoi predictions</h4>
+<div class="cell" data-execution_count="12">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>best_df_enf_bor <span class="op">=</span> pd.DataFrame({<span class="st">'Correlations'</span>: best_corr_borzoi_enf,</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                           <span class="st">'abs_Correlations'</span>:best_corr_borzoi_enf})</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>best_df_enf_bor[<span class="st">'abs_Correlations'</span>] <span class="op">=</span> <span class="bu">abs</span>(best_df_enf_bor[<span class="st">'abs_Correlations'</span>])</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>best_df_enf_bor.head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="12">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Correlations</th>
+<th data-quarto-table-cell-role="th">abs_Correlations</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CDC16</td>
+<td>0.824303</td>
+<td>0.824303</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">DPYSL4</td>
+<td>0.725614</td>
+<td>0.725614</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ZFAND2A</td>
+<td>-0.945341</td>
+<td>0.945341</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">DCAF4</td>
+<td>0.221603</td>
+<td>0.221603</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ZFYVE19</td>
+<td>0.560699</td>
+<td>0.560699</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">MCOLN2</td>
+<td>0.664648</td>
+<td>0.664648</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">XRRA1</td>
+<td>0.864334</td>
+<td>0.864334</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">TTLL12</td>
+<td>0.821124</td>
+<td>0.821124</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">USP40</td>
+<td>0.959084</td>
+<td>0.959084</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">UGT2B17</td>
+<td>0.989967</td>
+<td>0.989967</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="13">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].hist(best_df_enf_bor[<span class="st">'Correlations'</span>], bins<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">'skyblue'</span>, edgecolor<span class="op">=</span><span class="st">'white'</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Value'</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Correlations Enformer - Borzoi'</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the second histogram in the second subplot</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].hist(best_df_enf_bor[<span class="st">'abs_Correlations'</span>], bins<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">'salmon'</span>, edgecolor<span class="op">=</span><span class="st">'white'</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Value'</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'Absolute correlations Enformer - Borzoi'</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Adjust layout and display the subplots</span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="correlations-against-ground-truth" class="level4">
+<h4 class="anchored" data-anchor-id="correlations-against-ground-truth">Correlations against Ground truth</h4>
+<div class="cell" data-execution_count="14">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>best_df_against_GT <span class="op">=</span> pd.DataFrame({<span class="st">'Enformer'</span>: best_corr_enf_GT,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                             <span class="st">'Borzoi'</span>: best_corr_bor_GT,</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                             <span class="st">'abs_Enformer'</span>: best_corr_enf_GT,</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>                             <span class="st">'abs_Borzoi'</span>: best_corr_bor_GT})</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>best_df_against_GT[<span class="st">'abs_Enformer'</span>] <span class="op">=</span> <span class="bu">abs</span>(best_df_against_GT[<span class="st">'abs_Enformer'</span>])</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>best_df_against_GT[<span class="st">'abs_Borzoi'</span>] <span class="op">=</span> <span class="bu">abs</span>(best_df_against_GT[<span class="st">'abs_Borzoi'</span>])</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>best_df_against_GT.head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="14">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Enformer</th>
+<th data-quarto-table-cell-role="th">Borzoi</th>
+<th data-quarto-table-cell-role="th">abs_Enformer</th>
+<th data-quarto-table-cell-role="th">abs_Borzoi</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CDC16</td>
+<td>-0.242646</td>
+<td>-0.308183</td>
+<td>0.242646</td>
+<td>0.308183</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">DPYSL4</td>
+<td>0.318979</td>
+<td>0.439701</td>
+<td>0.318979</td>
+<td>0.439701</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ZFAND2A</td>
+<td>-0.444695</td>
+<td>0.386350</td>
+<td>0.444695</td>
+<td>0.386350</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">DCAF4</td>
+<td>-0.478554</td>
+<td>0.248134</td>
+<td>0.478554</td>
+<td>0.248134</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ZFYVE19</td>
+<td>-0.017018</td>
+<td>0.119285</td>
+<td>0.017018</td>
+<td>0.119285</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">MCOLN2</td>
+<td>0.440237</td>
+<td>0.086427</td>
+<td>0.440237</td>
+<td>0.086427</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">XRRA1</td>
+<td>0.367341</td>
+<td>0.476587</td>
+<td>0.367341</td>
+<td>0.476587</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">TTLL12</td>
+<td>0.284871</td>
+<td>0.278919</td>
+<td>0.284871</td>
+<td>0.278919</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">USP40</td>
+<td>-0.452123</td>
+<td>-0.500160</td>
+<td>0.452123</td>
+<td>0.500160</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">UGT2B17</td>
+<td>0.399678</td>
+<td>0.409415</td>
+<td>0.399678</td>
+<td>0.409415</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="51">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plt.figure(figsize <span class="op">=</span> (<span class="dv">10</span>, <span class="dv">5</span>))</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> fig.add_subplot(<span class="dv">121</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>ax1.scatter(best_df_against_GT[<span class="st">'Borzoi'</span>], best_df_against_GT[<span class="st">'Enformer'</span>], color<span class="op">=</span><span class="st">'skyblue'</span>, label<span class="op">=</span><span class="st">'Correlations with GT'</span>)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>ax1.plot([<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>],[<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>], color <span class="op">=</span> <span class="st">'black'</span>, linestyle <span class="op">=</span> <span class="st">'--'</span>, label <span class="op">=</span> <span class="st">'Identity line'</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>ax1.set_xlabel(<span class="st">'Borzoi'</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>ax1.set_ylabel(<span class="st">'Enformer'</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>ax1.legend()</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> fig.add_subplot(<span class="dv">122</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>ax2.scatter(best_df_against_GT[<span class="st">'abs_Borzoi'</span>], best_df_against_GT[<span class="st">'abs_Enformer'</span>], color<span class="op">=</span><span class="st">'salmon'</span>, label<span class="op">=</span><span class="st">'Absolute correlations with GT'</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>ax2.plot([<span class="dv">0</span>, <span class="dv">1</span>],[<span class="dv">0</span>, <span class="dv">1</span>], color <span class="op">=</span> <span class="st">'black'</span>, linestyle <span class="op">=</span> <span class="st">'--'</span>, label <span class="op">=</span> <span class="st">'Identity line'</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>ax2.set_xlabel(<span class="st">'Borzoi'</span>)</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>ax2.set_ylabel(<span class="st">'Enformer'</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>ax2.legend()</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-13-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="qq-plots-of-correlations-against-ground-truth" class="level4">
+<h4 class="anchored" data-anchor-id="qq-plots-of-correlations-against-ground-truth">QQ plots of correlations against Ground truth</h4>
+<div class="cell" data-execution_count="62">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plt.figure(figsize <span class="op">=</span> (<span class="dv">10</span>, <span class="dv">5</span>))</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> fig.add_subplot(<span class="dv">121</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>ax1.scatter(<span class="bu">sorted</span>(best_df_against_GT[<span class="st">'Borzoi'</span>]), <span class="bu">sorted</span>(best_df_against_GT[<span class="st">'Enformer'</span>]), color<span class="op">=</span><span class="st">'skyblue'</span>, label<span class="op">=</span><span class="st">'Correlations with GT'</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>ax1.plot([<span class="op">-</span><span class="fl">0.8</span>, <span class="fl">0.80</span>],[<span class="op">-</span><span class="fl">0.8</span>, <span class="fl">0.80</span>], color <span class="op">=</span> <span class="st">'black'</span>, linestyle <span class="op">=</span> <span class="st">'--'</span>, label <span class="op">=</span> <span class="st">'Identity line'</span>)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>ax1.set_xlabel(<span class="st">'Borzoi'</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>ax1.set_ylabel(<span class="st">'Enformer'</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>ax1.legend()</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> fig.add_subplot(<span class="dv">122</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>ax2.scatter(<span class="bu">sorted</span>(best_df_against_GT[<span class="st">'abs_Borzoi'</span>]), <span class="bu">sorted</span>(best_df_against_GT[<span class="st">'abs_Enformer'</span>]), color<span class="op">=</span><span class="st">'salmon'</span>, label<span class="op">=</span><span class="st">'Absolute correlations with GT'</span>)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>ax2.plot([<span class="dv">0</span>, <span class="fl">0.6</span>],[<span class="dv">0</span>, <span class="fl">0.6</span>], color <span class="op">=</span> <span class="st">'black'</span>, linestyle <span class="op">=</span> <span class="st">'--'</span>, label <span class="op">=</span> <span class="st">'Identity line'</span>)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>ax2.set_xlabel(<span class="st">'Borzoi'</span>)</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>ax2.set_ylabel(<span class="st">'Enformer'</span>)</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>ax2.legend()</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-14-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="comparing-different-bin-ranges-in-borzoi-performances" class="level2">
+<h2 class="anchored" data-anchor-id="comparing-different-bin-ranges-in-borzoi-performances">Comparing different bin ranges in borzoi performances</h2>
+<div class="cell" data-execution_count="52">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_expression_dic2(number_files, software, bins_around):</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    expression_dic <span class="op">=</span> {k:{} <span class="cf">for</span> k <span class="kw">in</span> individuals}</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    start_bin <span class="op">=</span> (<span class="dv">9</span> <span class="op">-</span> bins_around) <span class="cf">if</span> software.lower() <span class="op">==</span> <span class="st">'borzoi'</span> <span class="cf">else</span> <span class="dv">3</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    end_bin <span class="op">=</span> (<span class="dv">9</span> <span class="op">+</span> bins_around) <span class="cf">if</span> software.lower() <span class="op">==</span> <span class="st">'borzoi'</span> <span class="cf">else</span> <span class="dv">7</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    index <span class="op">=</span> [<span class="dv">870</span>, <span class="dv">871</span>] <span class="cf">if</span> software.lower()<span class="op">==</span> <span class="st">'borzoi'</span> <span class="cf">else</span> <span class="dv">5110</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>        gene_expr <span class="op">=</span> {}</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> file_num <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, number_files <span class="op">+</span> <span class="dv">1</span>):</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(<span class="st">'/scratch/midway3/t-9ssal0/h5_files/'</span> <span class="op">+</span> software.lower() <span class="op">+</span> <span class="st">'_predictions'</span><span class="op">+</span> <span class="bu">str</span>(file_num)<span class="op">+</span> <span class="st">'.h5'</span>, <span class="st">'r'</span>) <span class="im">as</span> <span class="bu">file</span>:</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>                <span class="cf">for</span> gene <span class="kw">in</span> best_genes_per_file[file_num <span class="op">-</span> <span class="dv">1</span>]: <span class="co">#iterate through genes in file</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>                    group <span class="op">=</span> <span class="bu">file</span>[individual]</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>                    expression <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">for</span> h <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>,<span class="dv">2</span>): <span class="co"># iterate through haplotypes</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>                        prediction <span class="op">=</span> group[<span class="ss">f'</span><span class="sc">{</span>gene<span class="sc">}</span><span class="ss">_haplo</span><span class="sc">{</span>h<span class="sc">}</span><span class="ss">'</span>][:, index]</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>                        <span class="cf">if</span> software.lower() <span class="op">==</span> <span class="st">'borzoi'</span>:</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>                            prediction <span class="op">=</span> np.mean(prediction, axis <span class="op">=</span> (<span class="dv">1</span>)) <span class="co"># mean over track replicates</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>                        expression <span class="op">+=</span> np.mean(prediction[start_bin: end_bin])</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>                    gene_expr[gene] <span class="op">=</span> expression</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>                    <span class="kw">del</span> prediction</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>        expression_dic[individual] <span class="op">=</span> gene_expr</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> expression_dic</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="53">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>expression_borzoi_8 <span class="op">=</span> get_expression_dic2(<span class="dv">7</span>,<span class="st">'borzoi'</span>, <span class="dv">4</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>borzoi_across_individuals_8 <span class="op">=</span> get_predictions_across_indiv(expression_borzoi_8, best_my_genes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="56">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>expression_borzoi_4 <span class="op">=</span> get_expression_dic2(<span class="dv">7</span>, <span class="st">'borzoi'</span>, <span class="dv">2</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>borzoi_across_individuals_4 <span class="op">=</span> get_predictions_across_indiv(expression_borzoi_4, best_my_genes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="57">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>expression_borzoi_2 <span class="op">=</span> get_expression_dic2(<span class="dv">7</span>, <span class="st">'borzoi'</span>, <span class="dv">1</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>borzoi_across_individuals_2 <span class="op">=</span> get_predictions_across_indiv(expression_borzoi_2, best_my_genes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="58">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>corr_borzoi_8 <span class="op">=</span> get_correlations(borzoi_across_individuals_8, best_GT_across)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>corr_borzoi_4 <span class="op">=</span> get_correlations(borzoi_across_individuals_4, best_GT_across)</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>corr_borzoi_2 <span class="op">=</span> get_correlations(borzoi_across_individuals_2, best_GT_across)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="59">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>bin_ranges_df <span class="op">=</span> pd.DataFrame({<span class="st">'Borzoi 16 bins'</span>: best_corr_bor_GT,</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>                              <span class="st">'Borzoi 8 bins'</span>: corr_borzoi_8,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>                              <span class="st">'Borzoi 4 bins'</span>: corr_borzoi_4,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>                              <span class="st">'Borzoi 2 bins'</span>: corr_borzoi_2})</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>bin_ranges_df.head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="59">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Borzoi 16 bins</th>
+<th data-quarto-table-cell-role="th">Borzoi 8 bins</th>
+<th data-quarto-table-cell-role="th">Borzoi 4 bins</th>
+<th data-quarto-table-cell-role="th">Borzoi 2 bins</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CDC16</td>
+<td>-0.308183</td>
+<td>-0.173212</td>
+<td>-0.097312</td>
+<td>0.064835</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">DPYSL4</td>
+<td>0.439701</td>
+<td>0.442904</td>
+<td>0.438260</td>
+<td>0.057265</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ZFAND2A</td>
+<td>0.386350</td>
+<td>0.386898</td>
+<td>0.043857</td>
+<td>0.544630</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">DCAF4</td>
+<td>0.248134</td>
+<td>0.519006</td>
+<td>0.557798</td>
+<td>0.529078</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ZFYVE19</td>
+<td>0.119285</td>
+<td>0.125048</td>
+<td>0.367074</td>
+<td>-0.365466</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">MCOLN2</td>
+<td>0.086427</td>
+<td>-0.420791</td>
+<td>-0.507746</td>
+<td>-0.510637</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">XRRA1</td>
+<td>0.476587</td>
+<td>0.488511</td>
+<td>0.541467</td>
+<td>0.566548</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">TTLL12</td>
+<td>0.278919</td>
+<td>0.278045</td>
+<td>0.274921</td>
+<td>0.302587</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">USP40</td>
+<td>-0.500160</td>
+<td>-0.493973</td>
+<td>-0.475467</td>
+<td>-0.469835</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">UGT2B17</td>
+<td>0.409415</td>
+<td>0.402573</td>
+<td>0.391174</td>
+<td>0.389104</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="60">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> itertools</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>column_combinations <span class="op">=</span> <span class="bu">list</span>(itertools.combinations(bin_ranges_df.columns, <span class="dv">2</span>))</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">10</span>))</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, (col1, col2) <span class="kw">in</span> <span class="bu">enumerate</span>(column_combinations):</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    row, col <span class="op">=</span> <span class="bu">divmod</span>(i, <span class="dv">2</span>)  <span class="co"># Calculate the row and column for the current subplot</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    ax <span class="op">=</span> axes[row, col]  <span class="co"># Select the current subplot</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Plot the data (customize this part as needed)</span></span>
+<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>    ax.scatter(bin_ranges_df[col1], bin_ranges_df[col2], color<span class="op">=</span><span class="st">'darkorange'</span>, label<span class="op">=</span><span class="st">'Correlations against GT'</span>)</span>
+<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>    ax.plot([<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>], [<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>], color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, label<span class="op">=</span><span class="st">'Identity Line'</span>)</span>
+<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>    ax.set_xlabel(col1)</span>
+<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    ax.set_ylabel(col2)</span>
+<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    ax.legend()</span>
+<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Adjust layout and display the plot</span></span>
+<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-21-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="second-analysis-performance-comparison-in-worst-performing-genes-with-enformer" class="level2">
+<h2 class="anchored" data-anchor-id="second-analysis-performance-comparison-in-worst-performing-genes-with-enformer">Second analysis: performance comparison in worst-performing genes with Enformer</h2>
+<section id="get-expression-across-individuals-for-each-gene-1" class="level4">
+<h4 class="anchored" data-anchor-id="get-expression-across-individuals-for-each-gene-1">Get expression across individuals for each gene</h4>
+<div class="cell" data-execution_count="16">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>worst_expression_borzoi_dic <span class="op">=</span> get_expression_dic(<span class="dv">7</span>, <span class="st">'borzoi'</span>, <span class="st">'worst'</span>, worst_genes_per_file)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>worst_expression_enformer_dic <span class="op">=</span> get_expression_dic(<span class="dv">7</span>, <span class="st">'enformer'</span>, <span class="st">'worst'</span>, worst_genes_per_file)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>worst_borzoi_across_individuals <span class="op">=</span> get_predictions_across_indiv(worst_expression_borzoi_dic, worst_my_genes)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>worst_enformer_across_individuals <span class="op">=</span> get_predictions_across_indiv(worst_expression_enformer_dic, worst_my_genes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="19">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>geuvadis <span class="op">=</span> geuvadis_gene_expression.loc[geuvadis_gene_expression[<span class="st">'gene_name'</span>].isin(worst_my_genes)]</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>geuvadis.index <span class="op">=</span> geuvadis[<span class="st">'gene_name'</span>]</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>geuvadis <span class="op">=</span> geuvadis.loc[:, individuals]</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>geuvadis <span class="op">=</span> geuvadis.loc[worst_my_genes]</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>worst_GT_across <span class="op">=</span> {gene:val <span class="cf">for</span> gene, val <span class="kw">in</span> <span class="bu">zip</span>(worst_my_genes, geuvadis.values.tolist())}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="correlations-1" class="level3">
+<h3 class="anchored" data-anchor-id="correlations-1">Correlations</h3>
+<div class="cell" data-execution_count="20">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>worst_corr_borzoi_enf <span class="op">=</span> get_correlations(worst_borzoi_across_individuals, worst_enformer_across_individuals)</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>worst_corr_enf_GT <span class="op">=</span> get_correlations(worst_enformer_across_individuals, worst_GT_across)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>worst_corr_bor_GT <span class="op">=</span> get_correlations(worst_borzoi_across_individuals, worst_GT_across)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="correlations-between-enformer-and-borzoi-predictions-1" class="level4">
+<h4 class="anchored" data-anchor-id="correlations-between-enformer-and-borzoi-predictions-1">Correlations between enformer and borzoi predictions</h4>
+<div class="cell" data-execution_count="21">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>worst_df_enf_bor <span class="op">=</span> pd.DataFrame({<span class="st">'Correlations'</span>: worst_corr_borzoi_enf,</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>                           <span class="st">'abs_Correlations'</span>:worst_corr_borzoi_enf})</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>worst_df_enf_bor[<span class="st">'abs_Correlations'</span>] <span class="op">=</span> <span class="bu">abs</span>(worst_df_enf_bor[<span class="st">'abs_Correlations'</span>])</span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>worst_df_enf_bor.head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="21">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Correlations</th>
+<th data-quarto-table-cell-role="th">abs_Correlations</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ATP6V1E2</td>
+<td>0.052960</td>
+<td>0.052960</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ZNF384</td>
+<td>0.672741</td>
+<td>0.672741</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">SART3</td>
+<td>0.732671</td>
+<td>0.732671</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">SLC15A2</td>
+<td>-0.523820</td>
+<td>0.523820</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">AKR7A2</td>
+<td>0.075323</td>
+<td>0.075323</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">GBP1</td>
+<td>0.513649</td>
+<td>0.513649</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ZNF624</td>
+<td>-0.668723</td>
+<td>0.668723</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">MRTO4</td>
+<td>-0.090715</td>
+<td>0.090715</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CD84</td>
+<td>0.076973</td>
+<td>0.076973</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">RAB40B</td>
+<td>-0.690359</td>
+<td>0.690359</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="22">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].hist(worst_df_enf_bor[<span class="st">'Correlations'</span>], bins<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">'skyblue'</span>, edgecolor<span class="op">=</span><span class="st">'white'</span>)</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Value'</span>)</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Correlations Enformer - Borzoi'</span>)</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the second histogram in the second subplot</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].hist(worst_df_enf_bor[<span class="st">'abs_Correlations'</span>], bins<span class="op">=</span><span class="dv">10</span>, color<span class="op">=</span><span class="st">'salmon'</span>, edgecolor<span class="op">=</span><span class="st">'white'</span>)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Value'</span>)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'Absolute correlations Enformer - Borzoi'</span>)</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Adjust layout and display the subplots</span></span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-26-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="correlations-against-ground-truth-1" class="level4">
+<h4 class="anchored" data-anchor-id="correlations-against-ground-truth-1">Correlations against Ground truth</h4>
+<div class="cell" data-execution_count="23">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>worst_df_against_GT <span class="op">=</span> pd.DataFrame({<span class="st">'Enformer'</span>: worst_corr_enf_GT,</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>                             <span class="st">'Borzoi'</span>: worst_corr_bor_GT,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>                             <span class="st">'abs_Enformer'</span>: worst_corr_enf_GT,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>                             <span class="st">'abs_Borzoi'</span>: worst_corr_bor_GT})</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>worst_df_against_GT[<span class="st">'abs_Enformer'</span>] <span class="op">=</span> <span class="bu">abs</span>(worst_df_against_GT[<span class="st">'abs_Enformer'</span>])</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>worst_df_against_GT[<span class="st">'abs_Borzoi'</span>] <span class="op">=</span> <span class="bu">abs</span>(worst_df_against_GT[<span class="st">'abs_Borzoi'</span>])</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>worst_df_against_GT.head(<span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="23">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Enformer</th>
+<th data-quarto-table-cell-role="th">Borzoi</th>
+<th data-quarto-table-cell-role="th">abs_Enformer</th>
+<th data-quarto-table-cell-role="th">abs_Borzoi</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ATP6V1E2</td>
+<td>0.164837</td>
+<td>0.322586</td>
+<td>0.164837</td>
+<td>0.322586</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ZNF384</td>
+<td>0.079999</td>
+<td>0.129734</td>
+<td>0.079999</td>
+<td>0.129734</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">SART3</td>
+<td>-0.031612</td>
+<td>-0.124788</td>
+<td>0.031612</td>
+<td>0.124788</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">SLC15A2</td>
+<td>-0.078513</td>
+<td>0.076483</td>
+<td>0.078513</td>
+<td>0.076483</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">AKR7A2</td>
+<td>-0.107319</td>
+<td>0.280086</td>
+<td>0.107319</td>
+<td>0.280086</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">GBP1</td>
+<td>-0.167450</td>
+<td>-0.006239</td>
+<td>0.167450</td>
+<td>0.006239</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ZNF624</td>
+<td>0.037769</td>
+<td>0.005369</td>
+<td>0.037769</td>
+<td>0.005369</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">MRTO4</td>
+<td>-0.255579</td>
+<td>0.036356</td>
+<td>0.255579</td>
+<td>0.036356</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">CD84</td>
+<td>0.096425</td>
+<td>0.063115</td>
+<td>0.096425</td>
+<td>0.063115</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">RAB40B</td>
+<td>-0.045073</td>
+<td>0.052897</td>
+<td>0.045073</td>
+<td>0.052897</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="47">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plt.figure(figsize <span class="op">=</span> (<span class="dv">10</span>, <span class="dv">5</span>))</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> fig.add_subplot(<span class="dv">121</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>ax1.scatter(worst_df_against_GT[<span class="st">'Borzoi'</span>], worst_df_against_GT[<span class="st">'Enformer'</span>], color<span class="op">=</span><span class="st">'skyblue'</span>, label<span class="op">=</span><span class="st">'Correlations with GT'</span>)</span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>ax1.plot([<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>],[<span class="op">-</span><span class="dv">1</span>, <span class="dv">1</span>], color <span class="op">=</span> <span class="st">'black'</span>, linestyle <span class="op">=</span> <span class="st">'--'</span>, label <span class="op">=</span> <span class="st">'Identity line'</span>)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>ax1.set_xlabel(<span class="st">'Borzoi'</span>)</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>ax1.set_ylabel(<span class="st">'Enformer'</span>)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>ax1.legend()</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> fig.add_subplot(<span class="dv">122</span>)</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>ax2.scatter(worst_df_against_GT[<span class="st">'abs_Borzoi'</span>], worst_df_against_GT[<span class="st">'abs_Enformer'</span>], color<span class="op">=</span><span class="st">'salmon'</span>, label<span class="op">=</span><span class="st">'Absolute correlations with GT'</span>)</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>ax2.plot([<span class="dv">0</span>, <span class="dv">1</span>],[<span class="dv">0</span>, <span class="dv">1</span>], color <span class="op">=</span> <span class="st">'black'</span>, linestyle <span class="op">=</span> <span class="st">'--'</span>, label <span class="op">=</span> <span class="st">'Identity line'</span>)</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>ax2.set_xlabel(<span class="st">'Borzoi'</span>)</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>ax2.set_ylabel(<span class="st">'Enformer'</span>)</span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>ax2.legend()</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-28-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="qq-plots-of-correlations-against-ground-truth-1" class="level4">
+<h4 class="anchored" data-anchor-id="qq-plots-of-correlations-against-ground-truth-1">QQ plots of correlations against ground truth</h4>
+<div class="cell" data-execution_count="49">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>fig <span class="op">=</span> plt.figure(figsize <span class="op">=</span> (<span class="dv">10</span>, <span class="dv">5</span>))</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>ax1 <span class="op">=</span> fig.add_subplot(<span class="dv">121</span>)</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>ax1.scatter(<span class="bu">sorted</span>(worst_df_against_GT[<span class="st">'Borzoi'</span>]), <span class="bu">sorted</span>(worst_df_against_GT[<span class="st">'Enformer'</span>]), color<span class="op">=</span><span class="st">'skyblue'</span>, label<span class="op">=</span><span class="st">'Correlations with GT'</span>)</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>ax1.plot([<span class="op">-</span><span class="fl">0.4</span>, <span class="fl">0.70</span>],[<span class="op">-</span><span class="fl">0.4</span>, <span class="fl">0.70</span>], color <span class="op">=</span> <span class="st">'black'</span>, linestyle <span class="op">=</span> <span class="st">'--'</span>, label <span class="op">=</span> <span class="st">'Identity line'</span>)</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>ax1.set_xlabel(<span class="st">'Borzoi'</span>)</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>ax1.set_ylabel(<span class="st">'Enformer'</span>)</span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>ax1.legend()</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>ax2 <span class="op">=</span> fig.add_subplot(<span class="dv">122</span>)</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>ax2.scatter(<span class="bu">sorted</span>(worst_df_against_GT[<span class="st">'abs_Borzoi'</span>]), <span class="bu">sorted</span>(worst_df_against_GT[<span class="st">'abs_Enformer'</span>]), color<span class="op">=</span><span class="st">'salmon'</span>, label<span class="op">=</span><span class="st">'Absolute correlations with GT'</span>)</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>ax2.plot([<span class="dv">0</span>, <span class="fl">0.6</span>],[<span class="dv">0</span>, <span class="fl">0.6</span>], color <span class="op">=</span> <span class="st">'black'</span>, linestyle <span class="op">=</span> <span class="st">'--'</span>, label <span class="op">=</span> <span class="st">'Identity line'</span>)</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>ax2.set_xlabel(<span class="st">'Borzoi'</span>)</span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>ax2.set_ylabel(<span class="st">'Enformer'</span>)</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>ax2.legend()</span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-29-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+</section>
+</section>
+</section>
+<section id="sabrinas-analysis" class="level1">
+<h1>Sabrina’s Analysis</h1>
+<section id="collecting-results" class="level2">
+<h2 class="anchored" data-anchor-id="collecting-results">Collecting Results</h2>
+<div class="cell" data-execution_count="18">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>hg38_annot <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/annotation/hg38.gene.txt"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, index_col<span class="op">=</span><span class="st">"ensembl_gene_id"</span>)</span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>seq_len <span class="op">=</span> <span class="dv">524288</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>seq_out_len <span class="op">=</span> <span class="dv">523264</span></span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>prefix <span class="op">=</span> <span class="st">"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction"</span></span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/borzoi-personalized-predictions"</span></span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="ss">f"</span><span class="sc">{</span>prefix<span class="sc">}</span><span class="ss">/individuals.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    individuals <span class="op">=</span> f.read().splitlines()</span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="ss">f"</span><span class="sc">{</span>prefix<span class="sc">}</span><span class="ss">/completed_intervals.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>    intervals <span class="op">=</span> f.read().splitlines()</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a><span class="co"># with open("intervals.txt", "r") as f:</span></span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a><span class="co">#     intervals.extend(f.read().splitlines()[:5]) # test on first few genes</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="19">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> []</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> interval <span class="kw">in</span> intervals:</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    split_interval <span class="op">=</span> interval.split(<span class="st">"_"</span>)</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>    <span class="bu">chr</span> <span class="op">=</span> split_interval[<span class="dv">0</span>][<span class="dv">3</span>:]</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>    tss <span class="op">=</span> <span class="bu">int</span>(split_interval[<span class="dv">1</span>])</span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>    gene <span class="op">=</span> hg38_annot.index[(hg38_annot[<span class="st">'chromosome_name'</span>] <span class="op">==</span> <span class="bu">chr</span>) <span class="op">&amp;</span> (hg38_annot[<span class="st">'transcription_start_site'</span>] <span class="op">==</span> tss)]</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>    gene_list.append(gene.item())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="20">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>CAGE_dict <span class="op">=</span> {gene: [] <span class="cf">for</span> gene <span class="kw">in</span> gene_list}</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, gene <span class="kw">in</span> <span class="bu">enumerate</span>(gene_list):</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>    interval <span class="op">=</span> intervals[index]</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> individuals: </span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>        predictions_file <span class="op">=</span> os.path.join(predictions_dir, individual, <span class="ss">f'</span><span class="sc">{</span>interval<span class="sc">}</span><span class="ss">_predictions.h5'</span>)</span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> os.path.exists(predictions_file):</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(predictions_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>                haplo1 <span class="op">=</span> np.mean(hf[<span class="st">'haplotype1'</span>][:, <span class="dv">3</span>:<span class="dv">7</span>, :])</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>                haplo2 <span class="op">=</span> np.mean(hf[<span class="st">'haplotype2'</span>][:, <span class="dv">3</span>:<span class="dv">7</span>, :])</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>                prediction <span class="op">=</span> (haplo1 <span class="op">+</span> haplo2)<span class="op">/</span><span class="dv">2</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>            CAGE_dict[gene].append(prediction)</span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>            CAGE_dict[gene].append(np.nan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="21">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>geuvadis_gex <span class="op">=</span> pd.read_csv(<span class="st">"/lus/grand/projects/TFXcan/imlab/data/1000G/expression/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt.gz"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>geuvadis_gex[<span class="st">'TargetID'</span>] <span class="op">=</span> geuvadis_gex[<span class="st">'TargetID'</span>].<span class="bu">apply</span>(<span class="kw">lambda</span> gene: gene.split(<span class="st">'.'</span>)[<span class="dv">0</span>])</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>geuvadis_gex.set_index(<span class="st">'TargetID'</span>, inplace<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="23">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>expr_dict <span class="op">=</span> {}</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>    observed <span class="op">=</span> pd.to_numeric(geuvadis_gex.loc[gene][individuals])</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    expr_df <span class="op">=</span> pd.DataFrame({<span class="st">'Observed'</span>: observed, <span class="st">"Predicted"</span>: CAGE_dict[gene]}, index <span class="op">=</span> individuals)</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    expr_dict[gene] <span class="op">=</span> expr_df.dropna()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="24">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>pearson_corr_by_gene <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>[<span class="st">"Pearson R"</span>, <span class="st">"P-value"</span>], index <span class="op">=</span> gene_list)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    corr, pval <span class="op">=</span> stats.pearsonr(expr_dict[gene][<span class="st">"Observed"</span>], expr_dict[gene][<span class="st">"Predicted"</span>])</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>    pearson_corr_by_gene.loc[gene] <span class="op">=</span> [corr, pval]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="25">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_gene <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>[<span class="st">"Spearman R"</span>, <span class="st">"P-value"</span>], index <span class="op">=</span> gene_list)</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>    corr, pval <span class="op">=</span> stats.spearmanr(expr_dict[gene][<span class="st">"Observed"</span>], expr_dict[gene][<span class="st">"Predicted"</span>])</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    spearman_corr_by_gene.loc[gene] <span class="op">=</span> [corr, pval]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<section id="borzois-best-performing-gene" class="level3">
+<h3 class="anchored" data-anchor-id="borzois-best-performing-gene">Borzoi’s Best Performing Gene</h3>
+<p><strong>(out of the first 30 randomly-sampled genes)</strong> ENSG00000137265 was the best performing gene (both for Spearman and Pearson R) for Borzoi’s personalized prediction.</p>
+<div class="cell" data-execution_count="28">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> sns.color_palette(<span class="st">"pastel"</span>)</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>gex_df <span class="op">=</span> expr_dict[<span class="st">'ENSG00000137265'</span>]</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>corr, pval <span class="op">=</span> stats.pearsonr(gex_df[<span class="st">'Observed'</span>], gex_df[<span class="st">'Predicted'</span>])</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>plt.scatter(gex_df[<span class="st">'Observed'</span>], gex_df[<span class="st">'Predicted'</span>], marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>], label<span class="op">=</span><span class="ss">f"Correlation: </span><span class="sc">{</span>corr<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels and title</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Observed"</span>)</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Predicted"</span>)</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Borzoi CAGE predictions for ENSG00000137265"</span>)</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-37-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="compare-correlations-to-enformer" class="level2">
+<h2 class="anchored" data-anchor-id="compare-correlations-to-enformer">Compare Correlations to Enformer</h2>
+<div class="cell" data-execution_count="30">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>enformer_corr_df <span class="op">=</span> pd.read_csv(<span class="ss">f"</span><span class="sc">{</span>prefix<span class="sc">}</span><span class="ss">/enformer_geuvadis_correlations.csv"</span>).dropna()</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>enformer_corr <span class="op">=</span> []</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>    gene_name <span class="op">=</span> hg38_annot.loc[gene][<span class="st">'external_gene_name'</span>]</span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>    corr <span class="op">=</span> enformer_corr_df[<span class="st">'ge'</span>][enformer_corr_df[<span class="st">'gene_names'</span>] <span class="op">==</span> gene_name]</span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>    enformer_corr.append(corr.item())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="31">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_gene[<span class="st">"Enformer"</span>] <span class="op">=</span> enformer_corr</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_model <span class="op">=</span> spearman_corr_by_gene.rename(columns<span class="op">=</span>{<span class="st">"Spearman R"</span>: <span class="st">"Borzoi"</span>}).drop(columns<span class="op">=</span>[<span class="st">"P-value"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="36">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_model.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display" data-execution_count="36">
+<div>
+
+
+<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Borzoi</th>
+<th data-quarto-table-cell-role="th">Enformer</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000146386</td>
+<td>-0.095356</td>
+<td>-0.080603</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSG00000133422</td>
+<td>0.035114</td>
+<td>-0.013208</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000188573</td>
+<td>0.037473</td>
+<td>0.076608</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">ENSG00000234444</td>
+<td>-0.076919</td>
+<td>0.001128</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">ENSG00000176058</td>
+<td>-0.005758</td>
+<td>-0.027832</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div class="cell" data-execution_count="33">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> sns.color_palette(<span class="st">"pastel"</span>)</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(spearman_corr_by_model[<span class="st">'Enformer'</span>], spearman_corr_by_model[<span class="st">'Borzoi'</span>], marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>line <span class="op">=</span> np.linspace(<span class="op">-</span><span class="fl">0.3</span>, <span class="fl">0.3</span>)</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>plt.plot(line, line, label<span class="op">=</span><span class="st">'y = x'</span>, color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels and title</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Enformer"</span>)</span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Borzoi"</span>)</span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Comparing Spearman R Correlations for Personalized Prediction"</span>)</span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-41-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="37">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> sns.color_palette(<span class="st">"pastel"</span>)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>plt.scatter(spearman_corr_by_model[<span class="st">'Enformer'</span>].<span class="bu">abs</span>(), spearman_corr_by_model[<span class="st">'Borzoi'</span>].<span class="bu">abs</span>(), marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])</span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>line <span class="op">=</span> np.linspace(<span class="dv">0</span>, <span class="fl">0.3</span>)</span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>plt.plot(line, line, label<span class="op">=</span><span class="st">'y = x'</span>, color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels and title</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">"Enformer"</span>)</span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">"Borzoi"</span>)</span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Comparing Absolute Spearman R Correlations for Personalized Prediction"</span>)</span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-42-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<section id="bin-sizing" class="level3">
+<h3 class="anchored" data-anchor-id="bin-sizing">Bin Sizing</h3>
+<p>We used a 4 bin window centered at the TSS for each CAGE computation, we want to see which bin width gives the best estimate.</p>
+<div class="cell" data-execution_count="38">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>CAGE_dicts <span class="op">=</span> [{gene: [] <span class="cf">for</span> gene <span class="kw">in</span> gene_list} <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>)]</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, gene <span class="kw">in</span> <span class="bu">enumerate</span>(gene_list):</span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>    interval <span class="op">=</span> intervals[index]</span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> individuals: </span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>        predictions_file <span class="op">=</span> os.path.join(predictions_dir, individual, <span class="ss">f'</span><span class="sc">{</span>interval<span class="sc">}</span><span class="ss">_predictions.h5'</span>)</span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> os.path.exists(predictions_file):</span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(predictions_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb42-8"><a href="#cb42-8" aria-hidden="true" tabindex="-1"></a>                <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>): </span>
+<span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>                    haplo1 <span class="op">=</span> np.mean(hf[<span class="st">'haplotype1'</span>][:, <span class="dv">4</span><span class="op">-</span>i:<span class="dv">6</span><span class="op">+</span>i, :])</span>
+<span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a>                    haplo2 <span class="op">=</span> np.mean(hf[<span class="st">'haplotype2'</span>][:, <span class="dv">4</span><span class="op">-</span>i:<span class="dv">6</span><span class="op">+</span>i, :])</span>
+<span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>                    prediction <span class="op">=</span> (haplo1 <span class="op">+</span> haplo2)<span class="op">/</span><span class="dv">2</span></span>
+<span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>                    CAGE_dicts[i][gene].append(prediction)</span>
+<span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>                CAGE_dicts[i][gene].append(np.nan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="40">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_bin_size <span class="op">=</span> pd.DataFrame({<span class="st">"Enformer"</span>: enformer_corr}, index<span class="op">=</span>gene_list)</span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">5</span>):</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>    results <span class="op">=</span>[]</span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>        observed <span class="op">=</span> pd.to_numeric(geuvadis_gex.loc[gene][individuals])</span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>        predicted <span class="op">=</span> CAGE_dicts[i][gene]</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>        corr, _ <span class="op">=</span> stats.spearmanr(observed, predicted)</span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>        results.append(corr)</span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    spearman_corr_by_bin_size[<span class="ss">f'Borzoi, </span><span class="sc">{</span><span class="dv">2</span><span class="op">*</span>(i<span class="op">+</span><span class="dv">1</span>)<span class="sc">}</span><span class="ss"> bins'</span>] <span class="op">=</span> results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="41">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> histogram(x, title):</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>    plt.hist(x, bins<span class="op">=</span><span class="dv">10</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])  <span class="co"># 'bins' determines the number of bins or bars</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    plt.title(title)</span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>    plt.xlabel(<span class="st">'Spearman Correlations'</span>)</span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>    plt.ylabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb44-6"><a href="#cb44-6" aria-hidden="true" tabindex="-1"></a>    mean <span class="op">=</span> np.mean(x)</span>
+<span id="cb44-7"><a href="#cb44-7" aria-hidden="true" tabindex="-1"></a>    plt.axvline(mean, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'dashed'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean: </span><span class="sc">{</span>mean<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb44-8"><a href="#cb44-8" aria-hidden="true" tabindex="-1"></a>    plt.legend()</span>
+<span id="cb44-9"><a href="#cb44-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb44-10"><a href="#cb44-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Display the plot</span></span>
+<span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="44">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> column <span class="kw">in</span> spearman_corr_by_bin_size:</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(gene_list)</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> spearman_corr_by_bin_size[column]</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>    histogram(x, title<span class="op">=</span><span class="ss">f'Cross-Population Prediction Performance for </span><span class="sc">{</span>column<span class="sc">}</span><span class="ss"> on N=</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss"> genes'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-46-output-1.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-46-output-2.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-46-output-3.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-46-output-4.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-46-output-5.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-46-output-6.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="46">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> column <span class="kw">in</span> spearman_corr_by_bin_size:</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> <span class="bu">len</span>(gene_list)</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> spearman_corr_by_bin_size[column].<span class="bu">abs</span>()</span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>    histogram(x, title<span class="op">=</span><span class="ss">f'Absolute Cross-Population Prediction Correlation for </span><span class="sc">{</span>column<span class="sc">}</span><span class="ss"> on N=</span><span class="sc">{</span>n<span class="sc">}</span><span class="ss"> genes'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-47-output-1.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-47-output-2.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-47-output-3.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-47-output-4.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-47-output-5.png" class="img-fluid"></p>
+</div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-47-output-6.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="43">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>model_perf_dict <span class="op">=</span> {column: <span class="dv">0</span> <span class="cf">for</span> column <span class="kw">in</span> spearman_corr_by_bin_size}</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, row <span class="kw">in</span> spearman_corr_by_bin_size.iterrows():</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>    best_model <span class="op">=</span> spearman_corr_by_bin_size.loc[index].idxmax()</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>    model_perf_dict[best_model] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>model_abs_perf_dict <span class="op">=</span> {column: <span class="dv">0</span> <span class="cf">for</span> column <span class="kw">in</span> spearman_corr_by_bin_size}</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, row <span class="kw">in</span> spearman_corr_by_bin_size.iterrows():</span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a>    best_model <span class="op">=</span> spearman_corr_by_bin_size.<span class="bu">abs</span>().loc[index].idxmax()</span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>    model_abs_perf_dict[best_model] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Highest Correlation Model:"</span>)</span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model_perf_dict)</span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Highest Absolute Valued Correlation Model:"</span>)</span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(model_abs_perf_dict)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Highest Correlation Model:
+{'Enformer': 19, 'Borzoi, 2 bins': 4, 'Borzoi, 4 bins': 2, 'Borzoi, 6 bins': 2, 'Borzoi, 8 bins': 4, 'Borzoi, 10 bins': 2}
+Highest Absolute Valued Correlation Model:
+{'Enformer': 20, 'Borzoi, 2 bins': 4, 'Borzoi, 4 bins': 3, 'Borzoi, 6 bins': 1, 'Borzoi, 8 bins': 4, 'Borzoi, 10 bins': 1}</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<p>After these analysis, we can conclude that predictions with borzoi are not significantly different, in performance terms, than enformer. While it does seem that borzoi improves the performance for those genes that previously performed bad with enformer, the improvement is not significant. Additionally, borzoi doesn’t improve predictive performance for the genes that already performed well with enformer.</p>
+<p>It should be noted that these analysis are limited by the number of individuals and the small sample of genes that I considered. Also, they are based only on the CAGE LCL track(s), yet, it’s important to remember that borzoi does predict for RNA-seq tracks while enformer does not.</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

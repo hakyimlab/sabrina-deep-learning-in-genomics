@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-09-12">
+<meta name="dcterms.date" content="2023-11-02">
 
-<title>deep-learning-in-genomics - Preparing HS founder rat genotypes for Enformer pipeline</title>
+<title>deep-learning-in-genomics - Running personalized Enformer pipeline on Br (round 2)</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -142,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Preparing HS founder rat genotypes for Enformer pipeline</h1>
+      <h1 class="title">Running personalized Enformer pipeline on Br (round 2)</h1>
                       </div>
   </div>
     
@@ -159,7 +159,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">September 12, 2023</p>
+        <p class="date">November 2, 2023</p>
       </div>
     </div>
     
@@ -177,83 +177,96 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<p>I downloaded the original VCF from TSCC to <code>/home/s1mi/enformer_rat_data/genotypes/Palmer_HS_founders_mRatBN7_2.vcf.gz</code>.</p>
-<p>So far, I’ve filtered out indels and replaced samples with missing genotype info with reference alleles. The current issue preventing me from running the enformer pipeline are the bi-allelic variants with a missing an alternative allele:</p>
-<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_f883233be82250d53ab01f1babdde43d">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">zless</span> Palmer_HS_founders_mRatBN7_snps_only.vcf.gz <span class="kw">|</span> <span class="fu">grep</span> <span class="st">'\*'</span> <span class="kw">|</span> <span class="fu">head</span> <span class="at">-n</span> 5</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="selecting-genes" class="level2">
+<h2 class="anchored" data-anchor-id="selecting-genes">Selecting Genes</h2>
+<p>We selected 868 genes in the first round, we are aiming to double the gene set.</p>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span>, header <span class="op">=</span> <span class="dv">0</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>,  index_col<span class="op">=</span> <span class="st">'gene_id'</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tpm_var <span class="op">=</span> tpm.iloc[:, <span class="dv">3</span>:].var(axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>tpm_threshold <span class="op">=</span> tpm_var.quantile(<span class="fl">0.75</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">## subset of genes with high observed expression variation</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>high_tpm_var_genes <span class="op">=</span> <span class="bu">set</span>(tpm[tpm_var<span class="op">&gt;</span> tpm_threshold].index)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_79532/161308317.py:1: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+  tpm = pd.read_csv("/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed", header = 0, sep="\t",  index_col= 'gene_id')</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>eqtl <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/annotation/Brain.rn7.cis_qtl_signif.txt"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>counts <span class="op">=</span> eqtl[<span class="st">'gene_id'</span>].value_counts()</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>counts.describe()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display" data-execution_count="3">
+<pre><code>count    11238.000000
+mean      2312.935398
+std       1490.079008
+min          1.000000
+25%       1160.250000
+50%       2236.000000
+75%       3277.750000
+max      10799.000000
+Name: gene_id, dtype: float64</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>eqtl_threshold <span class="op">=</span> counts.quantile(<span class="fl">0.75</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>eqtl_genes <span class="op">=</span> counts[counts <span class="op">&gt;</span> eqtl_threshold].index</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> high_tpm_var_genes.intersection(<span class="bu">set</span>(eqtl_genes))</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="bu">len</span>(gene_list), <span class="st">"candidate genes for enformer prediction experiments"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>##FORMAT=&lt;ID=RGQ,Number=1,Type=Integer,Description="Unconditional reference genotype confidence, encoded as a phred quality -10*log10 p(genotype call is wrong)"&gt;
-chr1    77687   .   T   *,C 1247.25 PASS    AC=1,1;AF=0.063,0.063;AN=16;BaseQRankSum=2.202;DP=237;ExcessHet=3.3099;FS=6.493;MLEAC=1,1;MLEAF=0.063,0.063;MQ=59.94;MQRankSum=-1.459;QD=11.77;ReadPosRankSum=0.451;SOR=0.78    GT:AD:DP:GQ:PL  0/0:22,0,0:22:66:0,66,986,66,982,980    0/2:26,0,32:58:99:1258,1343,2463,0,1085,995 0/0:26,0,0:26:78:0,78,1170,78,1170,1170 0/0:15,0,0:15:45:0,45,675,48,678,706    0/0:16,0,0:16:48:0,48,689,48,692,700    0/0:20,0,0:20:60:0,63,920,60,861,852    0/1:22,26,0:48:99:1002,0,875,1076,930,2072  0/0:23,0,0:23:69:0,69,1003,75,1012,1097
-chr1    85968   .   G   *,A 2530.9  PASS    AC=1,7;AF=0.063,0.438;AN=16;BaseQRankSum=-1.249;DP=377;ExcessHet=20.0237;FS=1.435;MLEAC=1,7;MLEAF=0.063,0.438;MQ=54.59;MQRankSum=-2.573;QD=8.73;ReadPosRankSum=-1.591;SOR=0.593 GT:AD:DP:GQ:PL  0/2:19,0,10:29:99:229,308,1185,0,611,753    0/1:19,7,0:26:99:228,0,770,329,637,1330 0/2:23,0,18:41:99:424,545,1787,0,761,805    0/2:24,0,23:47:99:587,715,1918,0,722,885    0/2:16,0,21:37:99:558,659,1560,0,534,715    0/2:20,0,9:29:99:204,284,1223,0,685,921 0/2:20,5,14:39:99:315,203,1124,0,409,898    0/2:26,0,16:42:99:324,446,1813,0,847,1044
-chr1    288687  .   C   T,* 881.59  PASS    AC=1,7;AF=0.063,0.438;AN=16;BaseQRankSum=-1.115;DP=212;ExcessHet=7.9825;FS=0.716;MLEAC=1,7;MLEAF=0.063,0.438;MQ=41.24;MQRankSum=-3.677;QD=6.63;ReadPosRankSum=2.592;SOR=0.574   GT:AD:DP:GQ:PL  0/2:3,0,16:19:45:947,548,686,0,98,45    0/0:13,0,0:13:39:0,45,663,39,574,565    0/2:5,0,19:24:99:920,642,830,0,196,135  0/1:3,25,0:28:36:1187,0,36,890,110,943  0/2:4,1,13:18:99:666,404,521,0,136,103  2/2:0,0,9:9:27:659,371,325,51,27,0  0/2:5,0,7:12:99:262,316,1042,0,246,189  0/2:4,1,18:23:85:964,544,677,0,101,85
-chr1    290725  .   A   *,T 4810.07 PASS    AC=1,6;AF=0.063,0.375;AN=16;BaseQRankSum=-1.616;DP=345;ExcessHet=13.4916;FS=19.345;MLEAC=1,6;MLEAF=0.063,0.375;MQ=51.02;MQRankSum=-5.489;QD=14.75;ReadPosRankSum=-1.309;SOR=0.49    GT:AD:DP:GQ:PL  0/2:21,0,27:48:99:1020,1083,1932,0,823,741  0/0:16,0,0:16:48:0,48,720,51,712,751    0/2:24,0,20:44:99:610,683,1638,0,923,871    0/2:24,0,22:46:99:777,856,1890,0,1002,936   0/2:24,0,18:42:99:643,713,1680,0,933,878    0/2:16,0,18:34:99:709,758,1431,0,633,576    0/1:46,15,0:61:99:468,0,1843,604,1861,2458  0/2:21,1,29:51:99:1063,1092,1971,0,757,711</code></pre>
+<pre><code>1358 candidate genes for enformer prediction experiments</code></pre>
 </div>
 </div>
-<p>I had a lot of conversations with people on handling them and trying to cross-reference outbred and inbred rat variants. Worst case, I will assign the missing allele to the other recorded allele. Den thinks he can fill in some of the missing <code>*</code> alleles with long reads from the HS founders.</p>
-<section id="convert-ncbi-refseq-id-to-chromosome-numbers" class="level3">
-<h3 class="anchored" data-anchor-id="convert-ncbi-refseq-id-to-chromosome-numbers">Convert NCBI RefSeq ID to chromosome numbers</h3>
-<ol type="1">
-<li>Download assembly report for NCBI names to chromosome mapping</li>
-</ol>
-<pre><code>wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/015/227/675/GCF_015227675.2_mRatBN7.2/GCF_015227675.2_mRatBN7.2_assembly_report.txt -O /Users/sabrinami/Downloads/mRatBN7.2_assembly_report.txt</code></pre>
-<ol start="2" type="1">
-<li>Write chromosome annotation file for bcftools</li>
-</ol>
-<pre><code>grep -e '^[^#]' /Users/sabrinami/Downloads/mRatBN7.2_assembly_report.txt | awk '{ print $7, "chr" $1 }' &gt; /Users/sabrinami/Downloads/mRatBN7.2_chromosome_names.txt
-</code></pre>
-<p>There are extra annotations than needed, later on we will filter to chromosomes 1 through 20 and X.</p>
-<ol start="3" type="1">
-<li>Annotate VCF</li>
-</ol>
-<pre><code>cd /Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
-bcftools annotate \
-  --rename-chrs /Users/sabrinami/Downloads/mRatBN7.2_chromosome_names.txt \
-  --threads 10 \
-  -o Palmer_HS_founders_mRatBN7_annot.vcf.gz \
-  -Oz Palmer_HS_founders_mRatBN7_2.vcf.gz
-</code></pre>
+<div class="cell" data-execution_count="10">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/gene_list.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    completed_genes <span class="op">=</span> f.read().splitlines()</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>remaining_genes <span class="op">=</span> [gene <span class="cf">for</span> gene <span class="kw">in</span> gene_list <span class="cf">if</span> gene <span class="kw">not</span> <span class="kw">in</span> completed_genes]</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"gene_list_2.txt"</span>, <span class="st">"w"</span>) <span class="im">as</span> f:</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    f.write(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span>.join(remaining_genes))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
-<section id="replace-missing-genotypes-with-reference-alleles" class="level3">
-<h3 class="anchored" data-anchor-id="replace-missing-genotypes-with-reference-alleles">Replace Missing Genotypes with Reference Alleles</h3>
-<pre><code>gunzip Palmer_HS_founders_mRatBN7_annot.vcf.gz
-sed 's/\.\/\./0\/0/g' Palmer_HS_founders_mRatBN7_annot.vcf &gt; Palmer_HS_founders_mRatBN7_no_missing.vcf
-bgzip Palmer_HS_founders_mRatBN7_no_missing.vcf
-bcftools index -t Palmer_HS_founders_mRatBN7_no_missing.vcf.gz
+<section id="run-the-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="run-the-pipeline">Run the Pipeline</h2>
+<section id="write-metadata" class="level3">
+<h3 class="anchored" data-anchor-id="write-metadata">Write Metadata</h3>
+<div class="cell" data-execution_count="12">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">## write intervals.txt</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>annot_df <span class="op">=</span> pd.read_csv(<span class="st">'/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt'</span>, sep <span class="op">=</span><span class="st">'</span><span class="ch">\t</span><span class="st">'</span>,  index_col<span class="op">=</span><span class="st">'geneId'</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> write_intervals(gene_list, <span class="bu">file</span>):</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="bu">file</span>, <span class="st">'w'</span>) <span class="im">as</span> f:</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>            gene_annot <span class="op">=</span> annot_df.loc[gene]</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>            tss <span class="op">=</span> gene_annot[<span class="st">'tss'</span>]</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>            interval <span class="op">=</span> <span class="ss">f"chr</span><span class="sc">{</span>gene_annot[<span class="st">'chromosome'</span>]<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>tss<span class="sc">}</span><span class="ss">_</span><span class="sc">{</span>tss<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>            f.write(interval <span class="op">+</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>write_intervals(remaining_genes, <span class="st">"metadata/intervals.txt"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_79532/3155180299.py:2: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
+  annot_df = pd.read_csv('/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt', sep ='\t',  index_col='geneId')</code></pre>
+</div>
+</div>
+<pre><code>mkdir metadata
+cp ~/Github/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/metadata/individuals.txt metadata
+cp ~/Github/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/personalized_config.json .</code></pre>
+<p>(Replace every string <code>2023-08-31-Br-personalized-prediction-on-more-genes</code> with <code>2023-11-02-Br-personalized-prediction-additional-genes</code>)</p>
+</section>
+<section id="submit-jobs" class="level3">
+<h3 class="anchored" data-anchor-id="submit-jobs">Submit Jobs</h3>
+<pre><code>module load conda
+conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
+
+python /home/s1mi/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-02-Br-personalized-prediction-additional-genes/personalized_config.json
 </code></pre>
+
+
 </section>
-<section id="filter-out-indels" class="level3">
-<h3 class="anchored" data-anchor-id="filter-out-indels">Filter out Indels</h3>
-<pre><code>bcftools view --types snps Palmer_HS_founders_mRatBN7_no_missing.vcf.gz -o Palmer_HS_founders_mRatBN7_snps_only.vcf.gz -Oz
-bcftools index -t Palmer_HS_founders_mRatBN7_snps_only.vcf.gz</code></pre>
-</section>
-<section id="split-vcfs" class="level3">
-<h3 class="anchored" data-anchor-id="split-vcfs">Split VCFs</h3>
-<p>First by chromosome number:</p>
-<pre><code>mkdir FounderVCFs
-# Split VCF by chromosome
-vcf_in=Palmer_HS_founders_mRatBN7_snps_only.vcf.gz
-
-vcf_out_prefix=FounderVCFs/chr
-
-for i in {1..20}
-do
-    echo "Working on chromosome ${i}..."
-    bcftools view --regions chr${i} ${vcf_in} -o ${vcf_out_prefix}${i}.vcf.gz -Oz
-done
-
-
-# Index VCFs
-for i in {1..20}
-do
-    echo "Indexing chromosome ${i}..."
-    bcftools index -t FounderVCFs/chr${i}.vcf.gz
-done</code></pre>
-<p>Then separately for X chromosome:</p>
-<pre><code>bcftools view ${vcf_in} --regions chrX -o ${vcf_out_prefix}X.vcf.gz -Oz
-bcftools index -t FounderVCFs/chrX.vcf.gz</code></pre>
-
-
 </section>
 
 </main> <!-- /main -->
