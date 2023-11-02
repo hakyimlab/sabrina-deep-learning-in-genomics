@@ -2,9 +2,20 @@
 title: Preparing HS founder rat genotypes for Enformer pipeline
 date: 9/12/2023
 author: Sabrina Mi
+engine: knitr
 ---
 
 I downloaded the original VCF from TSCC to `/home/s1mi/enformer_rat_data/genotypes/Palmer_HS_founders_mRatBN7_2.vcf.gz`.
+
+So far, I've filtered out indels and replaced samples with missing genotype info with reference alleles. The current issue preventing me from running the enformer pipeline are the bi-allelic variants with a missing an alternative allele:
+
+```{bash}
+cd /Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
+zless Palmer_HS_founders_mRatBN7_snps_only.vcf.gz | grep '\*' | head -n 5
+
+```
+
+I had a lot of conversations with people on handling them and trying to cross-reference outbred and inbred rat variants. Worst case, I will assign the missing allele to the other recorded allele. Den thinks he can fill in some of the missing `*` alleles with long reads from the HS founders. 
 
 
 ### Convert NCBI RefSeq ID to chromosome numbers
