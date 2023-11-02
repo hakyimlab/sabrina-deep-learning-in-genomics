@@ -2691,7 +2691,7 @@ font-style: inherit;">'Enformer'</span>)</span>
 <h1>Sabrina’s Analysis</h1>
 <section id="collecting-results" class="level2">
 <h2 class="anchored" data-anchor-id="collecting-results">Collecting Results</h2>
-<div class="cell" data-execution_count="18">
+<div class="cell" data-execution_count="4">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb29" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><span class="im" style="color: #00769E;
@@ -2811,7 +2811,7 @@ background-color: null;
 font-style: inherit;">#     intervals.extend(f.read().splitlines()[:5]) # test on first few genes</span></span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="19">
+<div class="cell" data-execution_count="5">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1">gene_list <span class="op" style="color: #5E5E5E;
@@ -2861,7 +2861,7 @@ font-style: inherit;">==</span> tss)]</span>
 <span id="cb30-7">    gene_list.append(gene.item())</span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="20">
+<div class="cell">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1">CAGE_dict <span class="op" style="color: #5E5E5E;
@@ -2907,25 +2907,33 @@ background-color: null;
 font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">as</span> hf:</span>
-<span id="cb31-8">                haplo1 <span class="op" style="color: #5E5E5E;
+<span id="cb31-8">                <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(hf[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'haplotype1'</span>][:].shape)</span>
+<span id="cb31-9">                haplo1 <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> np.mean(hf[<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'haplotype1'</span>][:, <span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">3</span>:<span class="dv" style="color: #AD0000;
+font-style: inherit;">1</span>:<span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">7</span>, :])</span>
-<span id="cb31-9">                haplo2 <span class="op" style="color: #5E5E5E;
+font-style: inherit;">9</span>, :])</span>
+<span id="cb31-10">                haplo2 <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> np.mean(hf[<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'haplotype2'</span>][:, <span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">3</span>:<span class="dv" style="color: #AD0000;
+font-style: inherit;">1</span>:<span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">7</span>, :])</span>
-<span id="cb31-10">                prediction <span class="op" style="color: #5E5E5E;
+font-style: inherit;">9</span>, :])</span>
+<span id="cb31-11">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">break</span></span>
+<span id="cb31-12">                prediction <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> (haplo1 <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -2934,14 +2942,14 @@ background-color: null;
 font-style: inherit;">/</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">2</span></span>
-<span id="cb31-11">            CAGE_dict[gene].append(prediction)</span>
-<span id="cb31-12">        <span class="cf" style="color: #003B4F;
+<span id="cb31-13">            CAGE_dict[gene].append(prediction)</span>
+<span id="cb31-14">        <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">else</span>:</span>
-<span id="cb31-13">            CAGE_dict[gene].append(np.nan)</span></code></pre></div>
+<span id="cb31-15">            CAGE_dict[gene].append(np.nan)</span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="21">
+<div class="cell">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb32" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1">geuvadis_gex <span class="op" style="color: #5E5E5E;

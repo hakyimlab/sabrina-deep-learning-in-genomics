@@ -1100,7 +1100,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>Sabrina’s Analysis</h1>
 <section id="collecting-results" class="level2">
 <h2 class="anchored" data-anchor-id="collecting-results">Collecting Results</h2>
-<div class="cell" data-execution_count="18">
+<div class="cell" data-execution_count="4">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -1124,7 +1124,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a><span class="co">#     intervals.extend(f.read().splitlines()[:5]) # test on first few genes</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="19">
+<div class="cell" data-execution_count="5">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> []</span>
@@ -1136,7 +1136,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a>    gene_list.append(gene.item())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="20">
+<div class="cell">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>CAGE_dict <span class="op">=</span> {gene: [] <span class="cf">for</span> gene <span class="kw">in</span> gene_list}</span>
@@ -1146,15 +1146,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>        predictions_file <span class="op">=</span> os.path.join(predictions_dir, individual, <span class="ss">f'</span><span class="sc">{</span>interval<span class="sc">}</span><span class="ss">_predictions.h5'</span>)</span>
 <span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> os.path.exists(predictions_file):</span>
 <span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(predictions_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
-<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>                haplo1 <span class="op">=</span> np.mean(hf[<span class="st">'haplotype1'</span>][:, <span class="dv">3</span>:<span class="dv">7</span>, :])</span>
-<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>                haplo2 <span class="op">=</span> np.mean(hf[<span class="st">'haplotype2'</span>][:, <span class="dv">3</span>:<span class="dv">7</span>, :])</span>
-<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>                prediction <span class="op">=</span> (haplo1 <span class="op">+</span> haplo2)<span class="op">/</span><span class="dv">2</span></span>
-<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>            CAGE_dict[gene].append(prediction)</span>
-<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>            CAGE_dict[gene].append(np.nan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(hf[<span class="st">'haplotype1'</span>][:].shape)</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>                haplo1 <span class="op">=</span> np.mean(hf[<span class="st">'haplotype1'</span>][:, <span class="dv">1</span>:<span class="dv">9</span>, :])</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>                haplo2 <span class="op">=</span> np.mean(hf[<span class="st">'haplotype2'</span>][:, <span class="dv">1</span>:<span class="dv">9</span>, :])</span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a>                <span class="cf">break</span></span>
+<span id="cb31-12"><a href="#cb31-12" aria-hidden="true" tabindex="-1"></a>                prediction <span class="op">=</span> (haplo1 <span class="op">+</span> haplo2)<span class="op">/</span><span class="dv">2</span></span>
+<span id="cb31-13"><a href="#cb31-13" aria-hidden="true" tabindex="-1"></a>            CAGE_dict[gene].append(prediction)</span>
+<span id="cb31-14"><a href="#cb31-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb31-15"><a href="#cb31-15" aria-hidden="true" tabindex="-1"></a>            CAGE_dict[gene].append(np.nan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="21">
+<div class="cell">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>geuvadis_gex <span class="op">=</span> pd.read_csv(<span class="st">"/lus/grand/projects/TFXcan/imlab/data/1000G/expression/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt.gz"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>)</span>
