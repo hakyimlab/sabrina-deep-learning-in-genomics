@@ -17543,6 +17543,129 @@ bcftools index -t FounderVCFs/chrX.vcf.gz</code></pre>
 <h3 class="anchored" data-anchor-id="run-pipeline-locally">Run Pipeline Locally</h3>
 <pre><code>conda activate enformer-predict-tools
 python /Users/sabrinami/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-09-12-test-run-on-HS-founders/local_test_personalized.json</code></pre>
+</section>
+<section id="check-results" class="level3">
+<h3 class="anchored" data-anchor-id="check-results">Check Results</h3>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> h5py</span>
+<span id="cb3-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb3-3">individuals <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"BN"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ACI"</span>]</span>
+<span id="cb3-4">predictions_dir <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/predictions_folder/HS_founders_single_gene/predictions_2023-11-06/enformer_predictions"</span></span>
+<span id="cb3-5">predictions <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> {key: {<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'human'</span>: <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'mouse'</span>: <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>} <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> key <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> individuals}</span>
+<span id="cb3-6"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> individuals:</span>
+<span id="cb3-7">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">with</span> h5py.File(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>predictions_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>individual<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/haplotype0/chr20_12118762_12118762_predictions.h5"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> hf:</span>
+<span id="cb3-8">        <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Shape:"</span>, hf[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'human'</span>].shape, hf[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'mouse'</span>].shape)</span>
+<span id="cb3-9">        predictions[individual][<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'human'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> hf[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'human'</span>][:]</span>
+<span id="cb3-10">        predictions[individual][<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'mouse'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> hf[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'mouse'</span>][:]</span>
+<span id="cb3-11"></span>
+<span id="cb3-12"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> individuals:</span>
+<span id="cb3-13">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(individual)</span>
+<span id="cb3-14">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(predictions[individual][<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'human'</span>])</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Shape: (896, 5313) (896, 1643)
+Shape: (896, 5313) (896, 1643)
+BN
+[[0.24877878 0.30448553 0.51149255 ... 0.20368049 1.0607655  0.19327967]
+ [0.16539484 0.20737107 0.38517445 ... 0.04803995 0.24678004 0.06899814]
+ [0.16211113 0.2208599  0.45630974 ... 0.05229321 0.2012167  0.06385014]
+ ...
+ [0.18112534 0.22578599 0.29110363 ... 0.01156401 0.02807969 0.03532442]
+ [0.17189275 0.20729916 0.26284078 ... 0.01724032 0.0404281  0.06090482]
+ [0.15950578 0.21004479 0.22983137 ... 0.02550045 0.03975232 0.06125292]]
+ACI
+[[0.24076067 0.30101207 0.5132549  ... 0.20521325 1.1217918  0.25558835]
+ [0.15946281 0.20442429 0.37761706 ... 0.04465578 0.24607326 0.08344302]
+ [0.15568599 0.21775411 0.4520394  ... 0.05306218 0.20978831 0.08246609]
+ ...
+ [0.17938398 0.22463004 0.29506153 ... 0.01107231 0.02651541 0.0338815 ]
+ [0.16948122 0.2044945  0.2620006  ... 0.01690046 0.04069382 0.06031117]
+ [0.15266503 0.201914   0.22262897 ... 0.02438843 0.03895664 0.05986918]]</code></pre>
+</div>
+</div>
 
 
 </section>

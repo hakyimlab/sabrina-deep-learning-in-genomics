@@ -22,6 +22,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -152,6 +186,45 @@ ul.task-list li input[type="checkbox"] {
 <h3 class="anchored" data-anchor-id="run-pipeline-locally">Run Pipeline Locally</h3>
 <pre><code>conda activate enformer-predict-tools
 python /Users/sabrinami/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-09-12-test-run-on-HS-founders/local_test_personalized.json</code></pre>
+</section>
+<section id="check-results" class="level3">
+<h3 class="anchored" data-anchor-id="check-results">Check Results</h3>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> [<span class="st">"BN"</span>, <span class="st">"ACI"</span>]</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="st">"/Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/predictions_folder/HS_founders_single_gene/predictions_2023-11-06/enformer_predictions"</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>predictions <span class="op">=</span> {key: {<span class="st">'human'</span>: <span class="va">None</span>, <span class="st">'mouse'</span>: <span class="va">None</span>} <span class="cf">for</span> key <span class="kw">in</span> individuals}</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(<span class="ss">f"</span><span class="sc">{</span>predictions_dir<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>individual<span class="sc">}</span><span class="ss">/haplotype0/chr20_12118762_12118762_predictions.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Shape:"</span>, hf[<span class="st">'human'</span>].shape, hf[<span class="st">'mouse'</span>].shape)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>        predictions[individual][<span class="st">'human'</span>] <span class="op">=</span> hf[<span class="st">'human'</span>][:]</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>        predictions[individual][<span class="st">'mouse'</span>] <span class="op">=</span> hf[<span class="st">'mouse'</span>][:]</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(individual)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(predictions[individual][<span class="st">'human'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Shape: (896, 5313) (896, 1643)
+Shape: (896, 5313) (896, 1643)
+BN
+[[0.24877878 0.30448553 0.51149255 ... 0.20368049 1.0607655  0.19327967]
+ [0.16539484 0.20737107 0.38517445 ... 0.04803995 0.24678004 0.06899814]
+ [0.16211113 0.2208599  0.45630974 ... 0.05229321 0.2012167  0.06385014]
+ ...
+ [0.18112534 0.22578599 0.29110363 ... 0.01156401 0.02807969 0.03532442]
+ [0.17189275 0.20729916 0.26284078 ... 0.01724032 0.0404281  0.06090482]
+ [0.15950578 0.21004479 0.22983137 ... 0.02550045 0.03975232 0.06125292]]
+ACI
+[[0.24076067 0.30101207 0.5132549  ... 0.20521325 1.1217918  0.25558835]
+ [0.15946281 0.20442429 0.37761706 ... 0.04465578 0.24607326 0.08344302]
+ [0.15568599 0.21775411 0.4520394  ... 0.05306218 0.20978831 0.08246609]
+ ...
+ [0.17938398 0.22463004 0.29506153 ... 0.01107231 0.02651541 0.0338815 ]
+ [0.16948122 0.2044945  0.2620006  ... 0.01690046 0.04069382 0.06031117]
+ [0.15266503 0.201914   0.22262897 ... 0.02438843 0.03895664 0.05986918]]</code></pre>
+</div>
+</div>
 
 
 </section>

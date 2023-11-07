@@ -7,15 +7,7 @@ engine: knitr
 
 I downloaded the original VCF from TSCC to `/home/s1mi/enformer_rat_data/genotypes/Palmer_HS_founders_mRatBN7_2.vcf.gz`.
 
-So far, I've filtered out indels and replaced samples with missing genotype info with reference alleles. The current issue preventing me from running the enformer pipeline are the bi-allelic variants with a missing an alternative allele:
 
-```{bash}
-cd /Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
-zless Palmer_HS_founders_mRatBN7_snps_only.vcf.gz | grep '\*' | head -n 5
-
-```
-
-I had a lot of conversations with people on handling them and trying to cross-reference outbred and inbred rat variants. Worst case, I will assign the missing allele to the other recorded allele. Den thinks he can fill in some of the missing `*` alleles with long reads from the HS founders. 
 
 
 ### Convert NCBI RefSeq ID to chromosome numbers
@@ -42,27 +34,40 @@ cd /Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7
 bcftools annotate \
   --rename-chrs /Users/sabrinami/Downloads/mRatBN7.2_chromosome_names.txt \
   --threads 10 \
-  -o Palmer_HS_founders_mRatBN7_annot.vcf.gz \
-  -Oz Palmer_HS_founders_mRatBN7_2.vcf.gz
+  -o Palmer_HS_founders_mRatBN7_annot.vcf \
+  -Ov Palmer_HS_founders_mRatBN7_2.vcf.gz
 
 ```
 
 ### Replace Missing Genotypes with Reference Alleles
 
 ```
-gunzip Palmer_HS_founders_mRatBN7_annot.vcf.gz
 sed 's/\.\/\./0\/0/g' Palmer_HS_founders_mRatBN7_annot.vcf > Palmer_HS_founders_mRatBN7_no_missing.vcf
-bgzip Palmer_HS_founders_mRatBN7_no_missing.vcf
-bcftools index -t Palmer_HS_founders_mRatBN7_no_missing.vcf.gz
 
 ```
 
 ### Filter out Indels
 
 ```
-bcftools view --types snps Palmer_HS_founders_mRatBN7_no_missing.vcf.gz -o Palmer_HS_founders_mRatBN7_snps_only.vcf.gz -Oz
-bcftools index -t Palmer_HS_founders_mRatBN7_snps_only.vcf.gz
+bcftools view --types snps Palmer_HS_founders_mRatBN7_no_missing.vcf -o Palmer_HS_founders_mRatBN7_snps_only.vcf -Ov
 ```
+
+Some sites have deletions notated by `*` in the ALT field in addition to an allele:
+
+```{bash}
+cd /Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
+grep '\*' Palmer_HS_founders_mRatBN7_snps_only.vcf | head -n 5
+
+```
+
+We want to retain data for those samples with the alternative allele, but drop samples with the deletions. This is done in two steps, by first splitting the ALT column and then filtering out the deletion in the newly created record:
+
+```
+
+bcftools norm -m +snps Palmer_HS_founders_mRatBN7_snps_only.vcf | bcftools view -e 'ALT="*"' -o Palmer_HS_founders_mRatBN7_biallelic_snps.vcf.gz -Oz
+bcftools index -t Palmer_HS_founders_mRatBN7_biallelic_snps.vcf.gz
+```
+
 
 ### Split VCFs
 
@@ -71,7 +76,7 @@ First by chromosome number:
 ```
 mkdir FounderVCFs
 # Split VCF by chromosome
-vcf_in=Palmer_HS_founders_mRatBN7_snps_only.vcf.gz
+vcf_in=Palmer_HS_founders_mRatBN7_biallelic_snps.vcf.gz
 
 vcf_out_prefix=FounderVCFs/chr
 

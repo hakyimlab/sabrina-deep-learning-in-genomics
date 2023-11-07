@@ -1,0 +1,42 @@
+---
+title: "Test run of personalized Enformer on HS rats"
+date: 9/12/2023
+author: Sabrina Mi
+jupyter: quarto
+execute:
+  cache: false
+  freeze: false
+---
+
+### Write Individuals List
+
+```
+bcftools query -l /Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/Palmer_HS_founders_mRatBN7_2.vcf.gz > metadata/individuals.txt
+
+```
+
+### Run Pipeline Locally
+
+```
+conda activate enformer-predict-tools
+python /Users/sabrinami/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-09-12-test-run-on-HS-founders/local_test_personalized.json
+```
+
+### Check Results
+
+```{python}
+import h5py
+import numpy as np
+individuals = ["BN", "ACI"]
+predictions_dir = "/Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/predictions_folder/HS_founders_single_gene/predictions_2023-11-06/enformer_predictions"
+predictions = {key: {'human': None, 'mouse': None} for key in individuals}
+for individual in individuals:
+    with h5py.File(f"{predictions_dir}/{individual}/haplotype0/chr20_12118762_12118762_predictions.h5", "r") as hf:
+        print("Shape:", hf['human'].shape, hf['mouse'].shape)
+        predictions[individual]['human'] = hf['human'][:]
+        predictions[individual]['mouse'] = hf['mouse'][:]
+
+for individual in individuals:
+    print(individual)
+    print(predictions[individual]['human'])
+```
