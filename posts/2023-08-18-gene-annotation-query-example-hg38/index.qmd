@@ -38,7 +38,7 @@ ensembl <- useEnsembl(biomart = "genes", dataset = "hsapiens_gene_ensembl")
 protein_coding_TSS <- biomaRt::getBM(attributes = c("ensembl_gene_id","external_gene_name", "chromosome_name","transcript_start","transcript_end","transcript_biotype","transcription_start_site", "transcript_is_canonical", "strand"), filters = c("transcript_biotype","chromosome_name", "transcript_is_canonical"),values = list("protein_coding",c(1:22, 'X', 'Y'), TRUE), mart = ensembl)
 
 # extract columns of interest
-protein_coding_TSS = protein_coding_TSS[, c("ensembl_gene_id", "external_gene_name", "chromosome_name", "transcription_start_site")]
+protein_coding_TSS = protein_coding_TSS[, c("ensembl_gene_id", "external_gene_name", "chromosome_name", "transcription_start_site", "transcript_start", "transcript_end")]
 
 # write to file
 write.table(protein_coding_TSS, file="protein_coding_TSS.tsv", sep="\t", row.names=FALSE, col.names=TRUE, quote=FALSE)
