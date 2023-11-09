@@ -2848,7 +2848,7 @@ font-style: inherit;">'Enformer'</span>)</span>
 <h1>Sabrina’s Analysis</h1>
 <section id="collecting-results" class="level2">
 <h2 class="anchored" data-anchor-id="collecting-results">Collecting Results</h2>
-<div class="cell" data-execution_count="4">
+<div class="cell" data-execution_count="1">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb29" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><span class="im" style="color: #00769E;
@@ -2968,7 +2968,7 @@ background-color: null;
 font-style: inherit;">#     intervals.extend(f.read().splitlines()[:5]) # test on first few genes</span></span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="5">
+<div class="cell" data-execution_count="2">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1">gene_list <span class="op" style="color: #5E5E5E;
@@ -3018,7 +3018,7 @@ font-style: inherit;">==</span> tss)]</span>
 <span id="cb30-7">    gene_list.append(gene.item())</span></code></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-execution_count="3">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1">CAGE_dict <span class="op" style="color: #5E5E5E;
@@ -3064,12 +3064,7 @@ background-color: null;
 font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">as</span> hf:</span>
-<span id="cb31-8">                <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(hf[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'haplotype1'</span>][:].shape)</span>
-<span id="cb31-9">                haplo1 <span class="op" style="color: #5E5E5E;
+<span id="cb31-8">                haplo1 <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> np.mean(hf[<span class="st" style="color: #20794D;
 background-color: null;
@@ -3078,7 +3073,7 @@ background-color: null;
 font-style: inherit;">1</span>:<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">9</span>, :])</span>
-<span id="cb31-10">                haplo2 <span class="op" style="color: #5E5E5E;
+<span id="cb31-9">                haplo2 <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> np.mean(hf[<span class="st" style="color: #20794D;
 background-color: null;
@@ -3087,10 +3082,7 @@ background-color: null;
 font-style: inherit;">1</span>:<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">9</span>, :])</span>
-<span id="cb31-11">                <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">break</span></span>
-<span id="cb31-12">                prediction <span class="op" style="color: #5E5E5E;
+<span id="cb31-10">                prediction <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> (haplo1 <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -3099,14 +3091,14 @@ background-color: null;
 font-style: inherit;">/</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">2</span></span>
-<span id="cb31-13">            CAGE_dict[gene].append(prediction)</span>
-<span id="cb31-14">        <span class="cf" style="color: #003B4F;
+<span id="cb31-11">            CAGE_dict[gene].append(prediction)</span>
+<span id="cb31-12">        <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">else</span>:</span>
-<span id="cb31-15">            CAGE_dict[gene].append(np.nan)</span></code></pre></div>
+<span id="cb31-13">            CAGE_dict[gene].append(np.nan)</span></code></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-execution_count="4">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb32" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1">geuvadis_gex <span class="op" style="color: #5E5E5E;
@@ -3146,7 +3138,7 @@ background-color: null;
 font-style: inherit;">True</span>)</span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="23">
+<div class="cell" data-execution_count="5">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb33-1">expr_dict <span class="op" style="color: #5E5E5E;
@@ -3174,7 +3166,7 @@ background-color: null;
 font-style: inherit;">=</span> expr_df.dropna()</span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="24">
+<div class="cell" data-execution_count="6">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb34" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb34-1">pearson_corr_by_gene <span class="op" style="color: #5E5E5E;
@@ -3205,7 +3197,7 @@ background-color: null;
 font-style: inherit;">=</span> [corr, pval]</span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="25">
+<div class="cell" data-execution_count="7">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb35" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1">spearman_corr_by_gene <span class="op" style="color: #5E5E5E;
@@ -3238,8 +3230,8 @@ font-style: inherit;">=</span> [corr, pval]</span></code></pre></div>
 </div>
 <section id="borzois-best-performing-gene" class="level3">
 <h3 class="anchored" data-anchor-id="borzois-best-performing-gene">Borzoi’s Best Performing Gene</h3>
-<p><strong>(out of the first 30 randomly-sampled genes)</strong> ENSG00000137265 was the best performing gene (both for Spearman and Pearson R) for Borzoi’s personalized prediction.</p>
-<div class="cell" data-execution_count="28">
+<p><strong>(out of the first 47 randomly-sampled genes)</strong> ENSG00000137265 was the best performing gene (both for Spearman and Pearson R) for Borzoi’s personalized prediction.</p>
+<div class="cell" data-execution_count="8">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb36" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb36-1">colors <span class="op" style="color: #5E5E5E;
@@ -3311,7 +3303,7 @@ font-style: inherit;"># Show the plot</span></span>
 </section>
 <section id="compare-correlations-to-enformer" class="level2">
 <h2 class="anchored" data-anchor-id="compare-correlations-to-enformer">Compare Correlations to Enformer</h2>
-<div class="cell" data-execution_count="30">
+<div class="cell" data-execution_count="10">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb37" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb37-1">enformer_corr_df <span class="op" style="color: #5E5E5E;
@@ -3350,7 +3342,7 @@ font-style: inherit;">==</span> gene_name]</span>
 <span id="cb37-6">    enformer_corr.append(corr.item())</span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="31">
+<div class="cell" data-execution_count="11">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb38" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1">spearman_corr_by_gene[<span class="st" style="color: #20794D;
@@ -3373,12 +3365,12 @@ background-color: null;
 font-style: inherit;">"P-value"</span>])</span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="36">
+<div class="cell" data-execution_count="12">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb39" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1">spearman_corr_by_model.head()</span></code></pre></div>
 </details>
-<div class="cell-output cell-output-display" data-execution_count="36">
+<div class="cell-output cell-output-display" data-execution_count="12">
 <div>
 
 
@@ -3392,29 +3384,29 @@ font-style: inherit;">"P-value"</span>])</span></code></pre></div>
 </thead>
 <tbody>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000146386</td>
-<td>-0.095356</td>
-<td>-0.080603</td>
+<td data-quarto-table-cell-role="th">ENSG00000011638</td>
+<td>0.097914</td>
+<td>0.241614</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000133422</td>
-<td>0.035114</td>
-<td>-0.013208</td>
+<td data-quarto-table-cell-role="th">ENSG00000112031</td>
+<td>0.036816</td>
+<td>-0.007003</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000188573</td>
-<td>0.037473</td>
-<td>0.076608</td>
+<td data-quarto-table-cell-role="th">ENSG00000172732</td>
+<td>0.022511</td>
+<td>0.078569</td>
 </tr>
 <tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000234444</td>
-<td>-0.076919</td>
-<td>0.001128</td>
+<td data-quarto-table-cell-role="th">ENSG00000173638</td>
+<td>0.112324</td>
+<td>-0.084114</td>
 </tr>
 <tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000176058</td>
-<td>-0.005758</td>
-<td>-0.027832</td>
+<td data-quarto-table-cell-role="th">ENSG00000156535</td>
+<td>0.084083</td>
+<td>0.031968</td>
 </tr>
 </tbody>
 </table>
@@ -3422,7 +3414,7 @@ font-style: inherit;">"P-value"</span>])</span></code></pre></div>
 </div>
 </div>
 </div>
-<div class="cell" data-execution_count="33">
+<div class="cell" data-execution_count="13">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb40" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1">colors <span class="op" style="color: #5E5E5E;
@@ -3484,7 +3476,7 @@ font-style: inherit;">"Comparing Spearman R Correlations for Personalized Predic
 <p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-01-borzoi-performance-analysis/index_files/figure-html/cell-41-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-<div class="cell" data-execution_count="37">
+<div class="cell" data-execution_count="14">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb41" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1">colors <span class="op" style="color: #5E5E5E;
@@ -3551,7 +3543,7 @@ font-style: inherit;">"Comparing Absolute Spearman R Correlations for Personaliz
 <section id="bin-sizing" class="level3">
 <h3 class="anchored" data-anchor-id="bin-sizing">Bin Sizing</h3>
 <p>We used a 4 bin window centered at the TSS for each CAGE computation, we want to see which bin width gives the best estimate.</p>
-<div class="cell" data-execution_count="38">
+<div class="cell" data-execution_count="15">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb42" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1">CAGE_dicts <span class="op" style="color: #5E5E5E;
@@ -3665,7 +3657,7 @@ font-style: inherit;">5</span>):</span>
 <span id="cb42-15">                CAGE_dicts[i][gene].append(np.nan)</span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="40">
+<div class="cell">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb43" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1">spearman_corr_by_bin_size <span class="op" style="color: #5E5E5E;
@@ -3723,7 +3715,7 @@ background-color: null;
 font-style: inherit;">=</span> results</span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="41">
+<div class="cell">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb44" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><span class="kw" style="color: #003B4F;
@@ -3785,7 +3777,7 @@ font-style: inherit;"># Display the plot</span></span>
 <span id="cb44-11">    plt.show()</span></code></pre></div>
 </details>
 </div>
-<div class="cell" data-execution_count="44">
+<div class="cell">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb45" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><span class="cf" style="color: #003B4F;
