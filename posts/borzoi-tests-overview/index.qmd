@@ -27,4 +27,4 @@ I double-checked the borzoi code and tested various adjustments thoroughly enoug
 
 * Borzoi's CAGE tracks for LCL are worse than Enformer's at predicting expression
 
-![borzoi vs enformer on GEUVADIS LCL tissue](borzoi_enformer_scatter.png)
+[Sofia and Sabrina's combined analysis](https://sabrina-dl.hakyimlab.org/posts/2023-11-01-borzoi-performance-analysis/)

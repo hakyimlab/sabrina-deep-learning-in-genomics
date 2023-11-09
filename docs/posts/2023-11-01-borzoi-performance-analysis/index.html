@@ -1345,7 +1345,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>                CAGE_dicts[i][gene].append(np.nan)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-execution_count="16">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>spearman_corr_by_bin_size <span class="op">=</span> pd.DataFrame({<span class="st">"Enformer"</span>: enformer_corr}, index<span class="op">=</span>gene_list)</span>
@@ -1359,7 +1359,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>    spearman_corr_by_bin_size[<span class="ss">f'Borzoi, </span><span class="sc">{</span><span class="dv">2</span><span class="op">*</span>(i<span class="op">+</span><span class="dv">1</span>)<span class="sc">}</span><span class="ss"> bins'</span>] <span class="op">=</span> results</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-execution_count="17">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> histogram(x, title):</span>
@@ -1375,7 +1375,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb44-11"><a href="#cb44-11" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
-<div class="cell">
+<div class="cell" data-execution_count="18">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> column <span class="kw">in</span> spearman_corr_by_bin_size:</span>
@@ -1402,7 +1402,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><img src="index_files/figure-html/cell-46-output-6.png" class="img-fluid"></p>
 </div>
 </div>
-<div class="cell" data-execution_count="46">
+<div class="cell" data-execution_count="19">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> column <span class="kw">in</span> spearman_corr_by_bin_size:</span>
@@ -1429,7 +1429,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><img src="index_files/figure-html/cell-47-output-6.png" class="img-fluid"></p>
 </div>
 </div>
-<div class="cell" data-execution_count="43">
+<div class="cell" data-execution_count="20">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>model_perf_dict <span class="op">=</span> {column: <span class="dv">0</span> <span class="cf">for</span> column <span class="kw">in</span> spearman_corr_by_bin_size}</span>
@@ -1447,9 +1447,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code>Highest Correlation Model:
-{'Enformer': 19, 'Borzoi, 2 bins': 4, 'Borzoi, 4 bins': 2, 'Borzoi, 6 bins': 2, 'Borzoi, 8 bins': 4, 'Borzoi, 10 bins': 2}
+{'Enformer': 30, 'Borzoi, 2 bins': 6, 'Borzoi, 4 bins': 5, 'Borzoi, 6 bins': 2, 'Borzoi, 8 bins': 5, 'Borzoi, 10 bins': 4}
 Highest Absolute Valued Correlation Model:
-{'Enformer': 20, 'Borzoi, 2 bins': 4, 'Borzoi, 4 bins': 3, 'Borzoi, 6 bins': 1, 'Borzoi, 8 bins': 4, 'Borzoi, 10 bins': 1}</code></pre>
+{'Enformer': 33, 'Borzoi, 2 bins': 7, 'Borzoi, 4 bins': 5, 'Borzoi, 6 bins': 2, 'Borzoi, 8 bins': 4, 'Borzoi, 10 bins': 1}</code></pre>
 </div>
 </div>
 </section>

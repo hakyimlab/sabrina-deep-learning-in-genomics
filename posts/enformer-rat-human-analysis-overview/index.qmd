@@ -6,11 +6,16 @@ format: html
 
 ## Updates this Week
 
-* [Found human head output (7,611 tracks)](https://sabrina-dl.hakyimlab.org/posts/home/s1mi/Github/deep-learning-in-genomics/posts/2023-09-25-baskerville-tutorial/)
-* Started running predictions on human reference genome for 981 genes
-    * No results yet, waiting in the queue
-    * Average GPU time per prediction doubled? (~2.5 -> ~5 seconds)
-* [Set up personalized prediction pipeline](https://sabrina-dl.hakyimlab.org/posts/2023-09-26-borzoi-personalized-test/geuvadis_personalized_test)
+* [Resolved founder VCF issues with multiallelic sites with `*` in ALT column](https://sabrina-dl.hakyimlab.org/posts/2023-09-12-processing-hs-founder-rat-genotypes/)
+    * Two types of mutations at one site: deletion (`*`) and alternative allele
+    * Dropped deletions, kept alternative allele genotype data
+* [Submitted jobs for Enformer genome-wide prediction on 8 founder rats](https://sabrina-dl.hakyimlab.org/posts/2023-11-07-hs-founder-epigenomes/pipeline)
+* [Submitted jobs for Enformer runs across Br rat population for 490 genes](https://sabrina-dl.hakyimlab.org/posts/2023-11-02-br-personalized-prediction-additional-genes/pipeline)
+    * We currently have [cross-population performance results](https://sabrina-dl.hakyimlab.org/posts/2023-08-31-br-personalized-prediction-on-more-genes/) for 868 genes
+* [Started Br individual haplotype probabilities from 8 founder rats](https://sabrina-dl.hakyimlab.org/posts/2023-11-08-calculating-Br-genotype-probabilities/)
+    * Downloaded genetic mapping files and split by chromosome
+    * I'm currently trying to install all dependencies: pysam, qtl2 (R)
+* Applied for SDSC's Expanse HPC compute resources
 
 ## Introduction
 
