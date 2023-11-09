@@ -10,7 +10,164 @@
 <atom:link href="https://sabrinami.quarto.pub/deep-learning-in-genomics/index.xml" rel="self" type="application/rss+xml"/>
 <description>Sabrina&#39;s blog for Deep Learning in Genomics course</description>
 <generator>quarto-1.3.361</generator>
-<lastBuildDate>Thu, 02 Nov 2023 07:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 07 Nov 2023 08:00:00 GMT</lastBuildDate>
+<item>
+  <title>Running Enformer genome-wide on HS founder rats</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/pipeline.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>After subset to genes that were expressed in rat brain tissue, we end up with 23,867 genomic regions.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pd</span>
+<span id="cb1-2">rn7_reference_brain_gex <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/enformer_rat_data/output/rn7_reference_predicted_vs_observed_expression.csv"</span>, index_col<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb1-3">gene_list <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">list</span>(rn7_reference_brain_gex.index[rn7_reference_brain_gex[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'observed'</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])</span>
+<span id="cb1-4"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">with</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Br_expressed_genes.txt'</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'w'</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> f:</span>
+<span id="cb1-5">    f.write(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>.join(gene_list))</span>
+<span id="cb1-6"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## write intervals.txt</span></span>
+<span id="cb1-7">annot_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt'</span>, sep <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\t</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>,  index_col<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'geneId'</span>)</span>
+<span id="cb1-8"></span>
+<span id="cb1-9"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">def</span> write_intervals(gene_list, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">file</span>):</span>
+<span id="cb1-10">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">with</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">open</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">file</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'w'</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> f:</span>
+<span id="cb1-11">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> gene_list:</span>
+<span id="cb1-12">            gene_annot <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> annot_df.loc[gene]</span>
+<span id="cb1-13">            tss <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gene_annot[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'tss'</span>]</span>
+<span id="cb1-14">            interval <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>gene_annot[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'chromosome'</span>]<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>tss<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>tss<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb1-15">            f.write(interval <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>)</span>
+<span id="cb1-16"></span>
+<span id="cb1-17">write_intervals(gene_list, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"metadata/intervals.txt"</span>)</span></code></pre></div>
+</div>
+<section id="run-pipeline" class="level3">
+<h3 class="anchored" data-anchor-id="run-pipeline">Run Pipeline</h3>
+<pre><code>module load conda
+conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
+
+python /home/s1mi/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/founder_epigenome_config.json</code></pre>
+
+
+</section>
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/pipeline.html</guid>
+  <pubDate>Tue, 07 Nov 2023 08:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Running personalized Enformer pipeline on Br (round 2)</title>
   <dc:creator>Sabrina Mi</dc:creator>
@@ -10559,73 +10716,6 @@ font-style: inherit;">"Borzoi CAGE and GTEx Predictions"</span>)</span>
 
 <section id="sample-genes" class="level2">
 <h2 class="anchored" data-anchor-id="sample-genes">Sample Genes</h2>
-<div class="cell" data-execution_count="24">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span>
-<span id="cb1-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">from</span> scipy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> stats</span>
-<span id="cb1-3">annot_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/annotation/hg38.gene.txt"</span>, sep<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb1-4">gene_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>)</span>
-<span id="cb1-5">gene_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> annot_df[<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span>annot_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ensembl_gene_id"</span>].isin(gene_list[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>])]</span>
-<span id="cb1-6">gene_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> annot_df.sample(n<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1000</span>).drop(columns<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"external_gene_name"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"transcription_start_site"</span>])</span>
-<span id="cb1-7">gene_df.to_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"gene_list.txt"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>, index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>)</span></code></pre></div>
-</div>
 </section>
 <section id="run-borzoi" class="level2">
 <h2 class="anchored" data-anchor-id="run-borzoi">Run Borzoi</h2>
@@ -10636,475 +10726,9 @@ python borzoi_predict.py --gene_df gene_list.txt --tracks "17,18,19" </code></pr
 </section>
 <section id="plot-comparisons-across-genes" class="level2">
 <h2 class="anchored" data-anchor-id="plot-comparisons-across-genes">Plot Comparisons Across Genes</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#!cat gene_predictions.csv gene_predictions0.csv &gt; /home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv</span></span>
-<span id="cb3-2">output_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>).dropna()</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">human_brain_gex <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_all_GTEx_brain_tissues.csv"</span>, index_col<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>).dropna()</span>
-<span id="cb4-2">merged_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> output_df.merge(human_brain_gex, left_on<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, right_index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>)</span>
-<span id="cb4-3">merged_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"cortex"</span>]]</span>
-<span id="cb4-4">merged_df.columns<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"gene"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"borzoi"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"observed"</span>]</span>
-<span id="cb4-5">merged_df</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">gene</th>
-<th data-quarto-table-cell-role="th">borzoi</th>
-<th data-quarto-table-cell-role="th">enformer</th>
-<th data-quarto-table-cell-role="th">observed</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
-<td>ENSG00000260286</td>
-<td>6.873438e+02</td>
-<td>0.005209</td>
-<td>0.086014</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
-<td>ENSG00000162877</td>
-<td>3.553310e+03</td>
-<td>0.270328</td>
-<td>0.128466</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
-<td>ENSG00000083845</td>
-<td>9.018748e+06</td>
-<td>18.964096</td>
-<td>135.113922</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
-<td>ENSG00000143199</td>
-<td>1.511829e+03</td>
-<td>0.049658</td>
-<td>0.256258</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">5</td>
-<td>ENSG00000188522</td>
-<td>8.282543e+04</td>
-<td>0.083827</td>
-<td>0.460673</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">998</td>
-<td>ENSG00000198626</td>
-<td>3.959017e+04</td>
-<td>11.577308</td>
-<td>8.737213</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">999</td>
-<td>ENSG00000184206</td>
-<td>8.352521e+03</td>
-<td>0.002583</td>
-<td>0.155200</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">1000</td>
-<td>ENSG00000140043</td>
-<td>3.883056e+04</td>
-<td>5.710264</td>
-<td>7.826176</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1001</td>
-<td>ENSG00000081248</td>
-<td>3.480795e+03</td>
-<td>0.021962</td>
-<td>0.345895</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">1002</td>
-<td>ENSG00000198774</td>
-<td>1.029021e+04</td>
-<td>0.156194</td>
-<td>0.116595</td>
-</tr>
-</tbody>
-</table>
-
-<p>973 rows × 4 columns</p>
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="27">
-<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> plt</span>
-<span id="cb5-2">x <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"observed"</span>]</span>
-<span id="cb5-3">y <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"borzoi"</span>]</span>
-<span id="cb5-4">corr, pval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> stats.pearsonr(x, y)</span>
-<span id="cb5-5">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb5-6">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Observed'</span>)</span>
-<span id="cb5-7">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Borzoi'</span>)</span>
-<span id="cb5-8">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Human Reference Gene Expression in Brain Tissue"</span>)</span>
-<span id="cb5-9">plt.legend()</span>
-<span id="cb5-10">plt.show()</span></code></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index_files/figure-html/cell-5-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-execution_count="29">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">x <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"observed"</span>]</span>
-<span id="cb6-2">y <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"borzoi"</span>]</span>
-<span id="cb6-3">corr, pval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> stats.spearmanr(x, y)</span>
-<span id="cb6-4">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb6-5">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Observed Rank'</span>)</span>
-<span id="cb6-6">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Borzoi Rank'</span>)</span>
-<span id="cb6-7">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Human Reference Gene Expression in Brain Tissue"</span>)</span>
-<span id="cb6-8">plt.legend()</span>
-<span id="cb6-9">plt.show()</span></code></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index_files/figure-html/cell-6-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-execution_count="30">
-<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">x <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"observed"</span>]</span>
-<span id="cb7-2">y <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer"</span>]</span>
-<span id="cb7-3">corr, pval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> stats.spearmanr(x, y)</span>
-<span id="cb7-4">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb7-5">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Rank Observed'</span>)</span>
-<span id="cb7-6">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Rank Enformer'</span>)</span>
-<span id="cb7-7">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Human Reference Gene Expression in Brain Tissue"</span>)</span>
-<span id="cb7-8">plt.legend()</span>
-<span id="cb7-9">plt.show()</span></code></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index_files/figure-html/cell-7-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-execution_count="31">
-<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">x <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"borzoi"</span>]</span>
-<span id="cb8-2">y <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer"</span>]</span>
-<span id="cb8-3">corr, pval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> stats.spearmanr(x, y)</span>
-<span id="cb8-4">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb8-5">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Rank Borzoi'</span>)</span>
-<span id="cb8-6">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Rank Enformer'</span>)</span>
-<span id="cb8-7">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Human Reference Gene Expression in Brain Tissue"</span>)</span>
-<span id="cb8-8">plt.legend()</span>
-<span id="cb8-9">plt.show()</span></code></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-21-borzoi-reference-gene-expression-prediction-test/index_files/figure-html/cell-8-output-1.png" class="img-fluid"></p>
-</div>
-</div>
 </section>
 <section id="summary" class="level2">
 <h2 class="anchored" data-anchor-id="summary">Summary</h2>
-<div class="cell" data-execution_count="35">
-<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Pearson R"</span>)</span>
-<span id="cb9-2">merged_df.corr(method<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pearson"</span>)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Pearson R</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_42770/1150790563.py:2: FutureWarning: The default value of numeric_only in DataFrame.corr is deprecated. In a future version, it will default to False. Select only valid columns or specify the value of numeric_only to silence this warning.
-  merged_df.corr(method="pearson")</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="35">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">borzoi</th>
-<th data-quarto-table-cell-role="th">enformer</th>
-<th data-quarto-table-cell-role="th">observed</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">borzoi</td>
-<td>1.000000</td>
-<td>0.225605</td>
-<td>0.620217</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">enformer</td>
-<td>0.225605</td>
-<td>1.000000</td>
-<td>0.593030</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">observed</td>
-<td>0.620217</td>
-<td>0.593030</td>
-<td>1.000000</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="34">
-<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Spearman R"</span>)</span>
-<span id="cb12-2">merged_df.corr(method<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"spearman"</span>)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Spearman R</code></pre>
-</div>
-<div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_42770/774805496.py:2: FutureWarning: The default value of numeric_only in DataFrame.corr is deprecated. In a future version, it will default to False. Select only valid columns or specify the value of numeric_only to silence this warning.
-  merged_df.corr(method="spearman")</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="34">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">borzoi</th>
-<th data-quarto-table-cell-role="th">enformer</th>
-<th data-quarto-table-cell-role="th">observed</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">borzoi</td>
-<td>1.000000</td>
-<td>0.773361</td>
-<td>0.856641</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">enformer</td>
-<td>0.773361</td>
-<td>1.000000</td>
-<td>0.795909</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">observed</td>
-<td>0.856641</td>
-<td>0.795909</td>
-<td>1.000000</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
 
 
 </section>
@@ -21361,419 +20985,6 @@ font-style: inherit;">in</span> gene_sample:</span>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/index.html</guid>
-  <pubDate>Fri, 01 Sep 2023 07:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Investigating the various CAGE brain tissue mouse tracks</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-01-selecting-mouse-track-for-CAGE-brain-prediction/index.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<div class="cell" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span>
-<span id="cb1-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> np</span>
-<span id="cb1-3"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> h5py</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">## subset to all brain-specific CAGE targets</span></span>
-<span id="cb2-2">targets <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://raw.githubusercontent.com/calico/basenji/master/manuscripts/cross2020/targets_mouse.txt"</span>, sep <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb2-3">CAGE_targets <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> targets[targets[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'index'</span>].isin([<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6612</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6613</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6622</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6627</span>])]</span>
-<span id="cb2-4">track_indices <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(CAGE_targets.index)</span>
-<span id="cb2-5">CAGE_targets.head()</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="23">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">index</th>
-<th data-quarto-table-cell-role="th">genome</th>
-<th data-quarto-table-cell-role="th">identifier</th>
-<th data-quarto-table-cell-role="th">file</th>
-<th data-quarto-table-cell-role="th">clip</th>
-<th data-quarto-table-cell-role="th">scale</th>
-<th data-quarto-table-cell-role="th">sum_stat</th>
-<th data-quarto-table-cell-role="th">description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">1299</td>
-<td>6612</td>
-<td>1</td>
-<td>CNhs10477</td>
-<td>/home/drk/tillage/datasets/mouse/cage/fantom/C...</td>
-<td>384</td>
-<td>1</td>
-<td>sum</td>
-<td>CAGE:medulla oblongata, adult</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1300</td>
-<td>6613</td>
-<td>1</td>
-<td>CNhs10478</td>
-<td>/home/drk/tillage/datasets/mouse/cage/fantom/C...</td>
-<td>384</td>
-<td>1</td>
-<td>sum</td>
-<td>CAGE:hippocampus, adult</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">1309</td>
-<td>6622</td>
-<td>1</td>
-<td>CNhs10489</td>
-<td>/home/drk/tillage/datasets/mouse/cage/fantom/C...</td>
-<td>384</td>
-<td>1</td>
-<td>sum</td>
-<td>CAGE:olfactory brain, adult</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1314</td>
-<td>6627</td>
-<td>1</td>
-<td>CNhs10494</td>
-<td>/home/drk/tillage/datasets/mouse/cage/fantom/C...</td>
-<td>384</td>
-<td>1</td>
-<td>sum</td>
-<td>CAGE:cerebellum, adult</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">predictions_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/Br_predictions/predictions_folder/personalized_Br_selected_genes/predictions_2023-09-01/enformer_predictions"</span></span>
-<span id="cb3-2">gene_expr_bed <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span></span>
-<span id="cb3-3">obs_gene_expr <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(gene_expr_bed, sep<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, index_col<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'gene_id'</span>)</span>
-<span id="cb3-4">annot_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt"</span>, sep<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, index_col<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'geneId'</span>)</span>
-<span id="cb3-5">gene_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ENSRNOG00000060185"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ENSRNOG00000022448"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ENSRNOG00000006331"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ENSRNOG00000000435"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ENSRNOG00000001336"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ENSRNOG00000016623"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ENSRNOG00000025324"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ENSRNOG00000012087"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ENSRNOG00000021663"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ENSRNOG00000012333"</span>]</span></code></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_120274/1359220184.py:3: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
-  obs_gene_expr = pd.read_csv(gene_expr_bed, sep="\t", header=0, index_col='gene_id')
-/tmp/ipykernel_120274/1359220184.py:4: DtypeWarning: Columns (2) have mixed types. Specify dtype option on import or set low_memory=False.
-  annot_df = pd.read_csv("/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt", sep="\t", header= 0, index_col='geneId')</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">expr_dict <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {}</span>
-<span id="cb5-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb5-3">    obs <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> obs_gene_expr.loc[gene][<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>:]</span>
-<span id="cb5-4">    expr_dict[gene] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.DataFrame({<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"observed"</span>: obs})</span>
-<span id="cb5-5">            </span></code></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> os</span>
-<span id="cb6-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb6-3">    gene_annot <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> annot_df.loc[gene]</span>
-<span id="cb6-4">    interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"chr</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>gene_annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'chromosome'</span>]<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>gene_annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'tss'</span>]<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>gene_annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'tss'</span>]<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span></span>
-<span id="cb6-5">    medulla_oblongata <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> []</span>
-<span id="cb6-6">    hippocampus <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> []</span>
-<span id="cb6-7">    olfactory_brain <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> []</span>
-<span id="cb6-8">    cerebellum <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> []</span>
-<span id="cb6-9">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> expr_dict[gene].index:</span>
-<span id="cb6-10">        haplo0 <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> h5py.File(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>predictions_dir<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">/</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>individual<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">/haplotype0/</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>interval<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_predictions.h5"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>)</span>
-<span id="cb6-11">        predictions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> haplo0[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"mouse"</span>][<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">446</span>:<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">450</span>, track_indices]</span>
-<span id="cb6-12">        medulla_oblongata.append(np.average(predictions[:,<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>]))</span>
-<span id="cb6-13">        hippocampus.append(np.average(predictions[:,<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>]))</span>
-<span id="cb6-14">        olfactory_brain.append(np.average(predictions[:,<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>]))</span>
-<span id="cb6-15">        cerebellum.append(np.average(predictions[:,<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>]))</span>
-<span id="cb6-16">    expr_dict[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"medulla oblongata"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> medulla_oblongata</span>
-<span id="cb6-17">    expr_dict[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"hippocampus"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> hippocampus</span>
-<span id="cb6-18">    expr_dict[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"olfactory brain"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> olfactory_brain</span>
-<span id="cb6-19">    expr_dict[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"cerebellum"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> cerebellum</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="131">
-<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">corr_by_gene_and_track <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.DataFrame(columns <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"medulla oblongata"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"hippocampus"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"olfactory brain"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"cerebellum"</span>], index <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gene_list)</span>
-<span id="cb7-2"></span>
-<span id="cb7-3"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb7-4">    corr_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> expr_dict[gene].corr()</span>
-<span id="cb7-5">    corr_by_gene_and_track.loc[gene] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.to_numeric(corr_df.iloc[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>,<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>:])</span>
-<span id="cb7-6"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(corr_by_gene_and_track)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>                   medulla oblongata hippocampus olfactory brain cerebellum
-ENSRNOG00000060185          0.340841    0.339026        0.340439   0.338799
-ENSRNOG00000022448          0.176105    0.183011        0.179076   0.176374
-ENSRNOG00000006331          0.284351    0.326806        0.327064    0.32246
-ENSRNOG00000000435          0.212012    0.233529        0.171748   0.097784
-ENSRNOG00000001336          0.550703    0.540987         0.54114   0.551966
-ENSRNOG00000016623          0.060619    0.170785        0.153715  -0.109455
-ENSRNOG00000025324         -0.315003   -0.223645       -0.240727  -0.174633
-ENSRNOG00000012087          0.285358    0.309409        0.312098   0.312001
-ENSRNOG00000021663         -0.325343   -0.430207       -0.426303  -0.014811
-ENSRNOG00000012333         -0.081875    0.098419        0.077553   0.038098</code></pre>
-</div>
-</div>
-<p>Based off a row-wise look at the table, I’ve decided to use the CAGE:hippocampus mouse track as a representative of brain tissue.</p>
-
-
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-01-selecting-mouse-track-for-CAGE-brain-prediction/index.html</guid>
   <pubDate>Fri, 01 Sep 2023 07:00:00 GMT</pubDate>
 </item>
 </channel>
