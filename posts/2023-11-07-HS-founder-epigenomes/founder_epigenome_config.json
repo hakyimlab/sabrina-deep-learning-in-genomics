@@ -56,7 +56,7 @@
       }
     },
     "parsl_parameters": {
-        "job_name": "hs_founder_genomewide",
+        "job_name": "hs_founder_genome_wide",
         "num_of_full_nodes": 1,
         "walltime": "00:30:00",
         "init_blocks":1,
