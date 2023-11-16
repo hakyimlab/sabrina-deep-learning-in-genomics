@@ -133,24 +133,30 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="updates-this-week" class="level2">
 <h2 class="anchored" data-anchor-id="updates-this-week">Updates this Week</h2>
+<p><strong>Debugging Founder Genotype Probabilities Runs</strong></p>
+<ol type="1">
+<li><p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-08-calculating-Br-genotype-probabilities/">Ran Dan’s scripts as-is (genome-wide) on Polaris</a></p>
 <ul>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-09-12-processing-hs-founder-rat-genotypes/">Resolved founder VCF issues with multiallelic sites with <code>*</code> in ALT column</a>
-<ul>
-<li>Two types of mutations at one site: deletion (<code>*</code>) and alternative allele</li>
-<li>Dropped deletions, kept alternative allele genotype data</li>
+<li>I allocated enough memory, number of cores, walltime for the computation, but it gets killed anyways</li>
 </ul></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-07-hs-founder-epigenomes/pipeline">Submitted jobs for Enformer genome-wide prediction on 8 founder rats</a></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-02-br-personalized-prediction-additional-genes/pipeline">Submitted jobs for Enformer runs across Br rat population for 490 genes</a>
+</ol>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="../2023-11-08-calculating-Br-genotype-probabilities/polaris_calc_genoprob_bug.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">R on Polaris Compute Node with 64 CPUs</figcaption>
+</figure>
+</div>
+<ol start="2" type="1">
+<li><p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-14-calculating-genotype-probabilities-by-chromosome">Modified code to run qtl2 on each chromosome separately</a></p>
 <ul>
-<li>We currently have <a href="https://sabrina-dl.hakyimlab.org/posts/2023-08-31-br-personalized-prediction-on-more-genes/">cross-population performance results</a> for 868 genes</li>
-</ul></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-08-calculating-Br-genotype-probabilities/">Started Br individual haplotype probabilities from 8 founder rats</a>
-<ul>
-<li>Downloaded genetic mapping files and split by chromosome</li>
-<li>I’m currently trying to install all dependencies: pysam, qtl2 (R)</li>
-</ul></li>
-<li>Applied for SDSC’s Expanse HPC compute resources</li>
+<li>Two different methods of writing input files for chromosome 20, both result in the same error:</li>
 </ul>
+<img src="chr20_calc_genoprob.png" class="img-fluid" alt="Chromosome 20">
+<ul>
+<li>Runs locally for chromosome 19</li>
+</ul>
+<img src="chr19_calc_genoprob.png" class="img-fluid" alt="Chromosome 19"></li>
+</ol>
 </section>
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>

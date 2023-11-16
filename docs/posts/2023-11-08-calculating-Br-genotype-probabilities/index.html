@@ -225,13 +225,24 @@ python qtl2-founder-haps.py $DATA_DIR/filtered.Brain.rn7.vcf.gz $DATA_DIR/Palmer
 Error: vector memory exhausted (limit reached?)
 Execution halted
 </code></pre>
-<p>I copied over the input files in <code>~/Github/qtl2-founder-haps/tmp-qtl2-founder-haps</code> to polaris and started an interactive job.</p>
-<pre class="{r}"><code>library(qtl2)
+<p>I copied over the input files in <code>~/Github/qtl2-founder-haps/tmp-qtl2-founder-haps</code> to polaris and started an interactive job: <code>qsub -I -A AIHPC4EDU -l select=1:ncpus=64 -l walltime=2:00:00 -l filesystems=home -q preemptable</code></p>
+<pre><code>cd ~/Github/qtl2-founder-haps/tmp-qtl2-founder-haps
+module load conda
+conda activate genomics</code></pre>
+<p>Then in R:</p>
+<pre><code>library(qtl2)
 cross &lt;- read_cross2("control.yaml")
-pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 1)
+pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 64)
 pr &lt;- genoprob_to_alleleprob(pr)
 saveRDS(pr, "~/Github/qtl2-founder-haps/probs.rds")
 </code></pre>
+<p><strong>Debugging:</strong> I am stuck at the step calling <code>calc_genoprob</code>; after 25 minutes of running, the process gets killed.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="polaris_calc_genoprob_bug.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">R on Polaris Compute Node with 64 CPUs</figcaption>
+</figure>
+</div>
 
 
 </section>

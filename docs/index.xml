@@ -178,7 +178,7 @@ No. markers by chr:
 </section>
 <section id="original-code" class="level3">
 <h3 class="anchored" data-anchor-id="original-code">Original Code</h3>
-<p>I’m going back to Dan’s original code, passing in chromosome 20 VCFs. My inital reasoning for converting Dan’s code to a module was to 1) save memory by not reading in genetic mapping files for every chromosome and 2) have better control over file naming, but I realize it’s not worth the trouble of debugging</p>
+<p>I’m going back to Dan’s original code, passing in chromosome 20 VCFs. My inital reasoning for converting Dan’s code to a module was to 1) save memory by not reading in genetic mapping files for every chromosome and 2) have better control over file naming, and 3) break up the task into preparing input files (python) and qtl2 computations (R), but I realized it’s not worth the trouble of debugging.</p>
 <pre><code>cd /Users/sabrinami/Desktop/qtl2_data
 conda activate genomics
 python /Users/sabrinami/Github/qtl2-founder-haps/qtl2-founder-haps.py BrainVCFs/chr20.vcf.gz FounderVCFs/chr20.vcf.gz output/chr20_prob.rds --working-dir chr20-qtl2-founder-haps
@@ -188,7 +188,13 @@ python /Users/sabrinami/Github/qtl2-founder-haps/qtl2-founder-haps.py BrainVCFs/
 conda activate genomics
 python /Users/sabrinami/Github/qtl2-founder-haps/qtl2-founder-haps.py BrainVCFs/chr19.vcf.gz FounderVCFs/chr19.vcf.gz output/chr19_prob.rds --working-dir chr19-qtl2-founder-haps
 </code></pre>
-<p>I’m so confused. Why is it running for chromosome 19 and not chromosome 20?</p>
+<p>It seems to run fine for chromosome 19, although I can’t confirm until I try running it on Polaris or Expanse with sufficient memory. On my local computer (8G memory), the R code ran for just under 2 hours before being killed.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-14-calculating-genotype-probabilities-by-chromosome/macbook_calc_genoprob_bug.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">R on MacBook</figcaption>
+</figure>
+</div>
 
 
 </section>
@@ -308,13 +314,24 @@ python qtl2-founder-haps.py $DATA_DIR/filtered.Brain.rn7.vcf.gz $DATA_DIR/Palmer
 Error: vector memory exhausted (limit reached?)
 Execution halted
 </code></pre>
-<p>I copied over the input files in <code>~/Github/qtl2-founder-haps/tmp-qtl2-founder-haps</code> to polaris and started an interactive job.</p>
-<pre class="{r}"><code>library(qtl2)
+<p>I copied over the input files in <code>~/Github/qtl2-founder-haps/tmp-qtl2-founder-haps</code> to polaris and started an interactive job: <code>qsub -I -A AIHPC4EDU -l select=1:ncpus=64 -l walltime=2:00:00 -l filesystems=home -q preemptable</code></p>
+<pre><code>cd ~/Github/qtl2-founder-haps/tmp-qtl2-founder-haps
+module load conda
+conda activate genomics</code></pre>
+<p>Then in R:</p>
+<pre><code>library(qtl2)
 cross &lt;- read_cross2("control.yaml")
-pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 1)
+pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 64)
 pr &lt;- genoprob_to_alleleprob(pr)
 saveRDS(pr, "~/Github/qtl2-founder-haps/probs.rds")
 </code></pre>
+<p><strong>Debugging:</strong> I am stuck at the step calling <code>calc_genoprob</code>; after 25 minutes of running, the process gets killed.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-08-calculating-Br-genotype-probabilities/polaris_calc_genoprob_bug.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">R on Polaris Compute Node with 64 CPUs</figcaption>
+</figure>
+</div>
 
 
 </section>
