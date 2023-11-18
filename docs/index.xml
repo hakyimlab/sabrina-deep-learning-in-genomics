@@ -10,7 +10,203 @@
 <atom:link href="https://sabrinami.quarto.pub/deep-learning-in-genomics/index.xml" rel="self" type="application/rss+xml"/>
 <description>Sabrina&#39;s blog for Deep Learning in Genomics course</description>
 <generator>quarto-1.3.361</generator>
-<lastBuildDate>Tue, 14 Nov 2023 08:00:00 GMT</lastBuildDate>
+<lastBuildDate>Fri, 17 Nov 2023 08:00:00 GMT</lastBuildDate>
+<item>
+  <title>Debugging qtl2’s calc_genoprob</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-17-debugging-qtl2-founder-haps/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="subset-individuals" class="level3">
+<h3 class="anchored" data-anchor-id="subset-individuals">Subset Individuals</h3>
+<p>For debugging, we filter the VCFs to 2 samples:</p>
+<pre><code>cd /Users/sabrinami/Desktop/qtl2_data
+bcftools view -s '000789972A,0007899884' -Oz -o test/chr20.vcf.gz BrainVCFs/chr20.vcf.gz
+bcftools index -t test/chr20.vcf.gz
+bcftools view -s '000789972A,0007899884' -Oz -o test/chr19.vcf.gz BrainVCFs/chr19.vcf.gz
+bcftools index -t test/chr19.vcf.gz
+</code></pre>
+<p>Create the input files:</p>
+<pre><code>conda activate genomics
+python /Users/sabrinami/Github/qtl2-founder-haps/qtl2-founder-haps.py test/chr20.vcf.gz FounderVCFs/chr20.vcf.gz output/chr20_prob.rds --working-dir chr20-test
+python /Users/sabrinami/Github/qtl2-founder-haps/qtl2-founder-haps.py test/chr19.vcf.gz FounderVCFs/chr19.vcf.gz output/chr19_prob.rds --working-dir chr19-test
+</code></pre>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_475932e5ff924ca91e9f463b2bbf0cac">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%&amp;%"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">function</span>(a,b) <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">paste</span>(a,b,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">sep=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">""</span>)</span>
+<span id="cb3-2">data_dir <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'/Users/sabrinami/Desktop/qtl2_data/'</span></span>
+<span id="cb3-3">chr20_prob <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(data_dir <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'output/chr20_prob.rds'</span>)</span>
+<span id="cb3-4">chr19_prob <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(data_dir <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'output/chr19_prob.rds'</span>)</span>
+<span id="cb3-5"></span>
+<span id="cb3-6">chr20_prob[[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]][, , <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>]</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>, , chr20:3201
+
+                    ACI           BN       BUF       F344      M520        MR
+000789972A 0.4992629643 1.885205e-06 0.1389550 0.01293124 0.2504721 0.0980062
+0007899884 0.0003664564 1.852144e-06 0.3551907 0.02549159 0.3575424 0.2610384
+                    WKY           WN
+000789972A 1.885205e-06 0.0003687873
+0007899884 1.852144e-06 0.0003667471
+
+, , chr20:7226
+
+                    ACI           BN       BUF       F344      M520         MR
+000789972A 4.999977e-01 4.759653e-08 0.1388944 0.01259253 0.2506577 0.09785527
+0007899884 2.218615e-08 1.648856e-10 0.3556074 0.02518061 0.3579643 0.26124736
+                    WKY           WN
+000789972A 4.759653e-08 2.353476e-06
+0007899884 1.648856e-10 3.134648e-07
+
+, , chr20:7266
+
+                    ACI           BN       BUF       F344      M520         MR
+000789972A 4.999999e-01 3.164964e-08 0.1388947 0.01259055 0.2506599 0.09785478
+0007899884 9.923816e-12 4.269602e-12 0.3556093 0.02517666 0.3579662 0.26124757
+                    WKY           WN
+000789972A 3.164964e-08 1.476223e-07
+0007899884 4.269602e-12 2.923039e-07
+
+, , chr20:7269
+
+                    ACI           BN       BUF       F344      M520         MR
+000789972A 4.999999e-01 3.039399e-08 0.1388947 0.01259039 0.2506600 0.09785475
+0007899884 1.107912e-12 4.627740e-12 0.3556094 0.02517635 0.3579663 0.26124758
+                    WKY           WN
+000789972A 3.039399e-08 1.459054e-07
+0007899884 4.627740e-12 2.906267e-07
+
+, , chr20:7341
+
+                    ACI           BN       BUF       F344      M520        MR
+000789972A 5.000000e-01 2.313504e-09 0.1388951 0.01258686 0.2506640 0.0978539
+0007899884 8.523267e-12 1.790190e-09 0.3556128 0.02516929 0.3579697 0.2612479
+                    WKY           WN
+000789972A 2.313504e-09 1.265991e-07
+0007899884 1.790190e-09 2.523467e-07</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dim</span>(chr20_prob[[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]])</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]      2      8 202387</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1">chr19_prob[[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]][, , <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>]</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>, , chr19:2445
+
+                 ACI           BN       BUF         F344         M520        MR
+000789972A 0.2438649 4.366846e-08 0.2844450 0.0006018009 0.0006018009 0.2438649
+0007899884 0.2434618 4.366846e-08 0.2848848 0.0006018009 0.0006018009 0.2434618
+                    WKY        WN
+000789972A 0.0006018009 0.2260199
+0007899884 0.0006018009 0.2263861
+
+, , chr19:2531
+
+                 ACI           BN       BUF        F344        M520        MR
+000789972A 0.2438709 4.949989e-10 0.2844534 0.000593287 0.000593287 0.2438709
+0007899884 0.2434678 4.949989e-10 0.2848934 0.000593287 0.000593287 0.2434678
+                   WKY        WN
+000789972A 0.000593287 0.2260249
+0007899884 0.000593287 0.2263911
+
+, , chr19:2727
+
+                 ACI          BN       BUF         F344         M520        MR
+000789972A 0.2438845 2.10961e-13 0.2844724 0.0005741863 0.0005741863 0.2438845
+0007899884 0.2434814 2.10961e-13 0.2849124 0.0005741863 0.0005741863 0.2434814
+                    WKY        WN
+000789972A 0.0005741863 0.2260360
+0007899884 0.0005741863 0.2264023
+
+, , chr19:2728
+
+                 ACI           BN       BUF         F344         M520        MR
+000789972A 0.2438846 2.351976e-13 0.2844726 0.0005740712 0.0005740712 0.2438846
+0007899884 0.2434814 2.351976e-13 0.2849125 0.0005740712 0.0005740712 0.2434814
+                    WKY        WN
+000789972A 0.0005740712 0.2260361
+0007899884 0.0005740712 0.2264024
+
+, , chr19:3021
+
+                 ACI           BN       BUF         F344         M520        MR
+000789972A 0.2439049 6.487041e-12 0.2845011 0.0005454151 0.0005454151 0.2439049
+0007899884 0.2435017 6.487041e-12 0.2849412 0.0005454151 0.0005454151 0.2435017
+                    WKY        WN
+000789972A 0.0005454151 0.2260528
+0007899884 0.0005454151 0.2264192</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dim</span>(chr19_prob[[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]])</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1]      2      8 139713</code></pre>
+</div>
+</div>
+
+
+</section>
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-17-debugging-qtl2-founder-haps/index.html</guid>
+  <pubDate>Fri, 17 Nov 2023 08:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Testing qtl’s founder haplotype probability inferences on a single chromosome</title>
   <dc:creator>Sabrina Mi</dc:creator>
@@ -18820,345 +19016,6 @@ font-style: inherit;">True</span>)</span>
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-06-validating-Huang-et-al/index.html</guid>
   <pubDate>Wed, 06 Sep 2023 07:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Rerunning Enformer pipeline on missing individuals, intervals</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/debugging.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="split-by-number-missing" class="level3">
-<h3 class="anchored" data-anchor-id="split-by-number-missing">Split by Number Missing</h3>
-<div class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> os</span>
-<span id="cb1-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="266">
-<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">predictions_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/Br_predictions/predictions_folder/personalized_Br_selected_genes/predictions_2023-09-02/enformer_predictions"</span></span>
-<span id="cb2-2">successful_predictions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {}</span>
-<span id="cb2-3"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> os.listdir(predictions_dir):</span>
-<span id="cb2-4">    n_intervals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">len</span>(os.listdir(os.path.join(predictions_dir, individual, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"haplotype0"</span>)))</span>
-<span id="cb2-5">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> n_intervals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&lt;</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">868</span>:</span>
-<span id="cb2-6">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> n_intervals <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> successful_predictions.keys():</span>
-<span id="cb2-7">            successful_predictions[n_intervals] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [individual]</span>
-<span id="cb2-8">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb2-9">            successful_predictions[n_intervals].append(individual)</span>
-<span id="cb2-10"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> n_intervals <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> successful_predictions.keys():</span>
-<span id="cb2-11">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"n individuals with"</span>, n_intervals, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"predictions:"</span>, <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">len</span>(successful_predictions[n_intervals]))</span>
-<span id="cb2-12"></span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="257">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"metadata/intervals.txt"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb3-2">    all_intervals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> f.read().splitlines()</span></code></pre></div>
-</div>
-</section>
-<section id="write-metadata" class="level2">
-<h2 class="anchored" data-anchor-id="write-metadata">Write Metadata</h2>
-<div class="cell" data-execution_count="258">
-<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> index, n_intervals <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">enumerate</span>(successful_predictions.keys()):</span>
-<span id="cb4-2">    individuals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> successful_predictions[n_intervals]</span>
-<span id="cb4-3">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"metadata/individuals</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>index<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.txt"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"w"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb4-4">        f.write(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\n</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>.join(individuals))</span>
-<span id="cb4-5">    individual <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> individuals[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>]</span>
-<span id="cb4-6">    files <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.listdir(os.path.join(predictions_dir, individual, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"haplotype0"</span>))</span>
-<span id="cb4-7">    intervals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>.replace(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"_predictions.h5"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">""</span>) <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> files]</span>
-<span id="cb4-8">    missing_intervals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [interval <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> interval <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> all_intervals <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> interval <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">not</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> intervals]</span>
-<span id="cb4-9">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"metadata/intervals</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>index<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.txt"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"w"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb4-10">        f.write(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\n</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>.join(missing_intervals))</span></code></pre></div>
-</div>
-</section>
-<section id="write-config-files" class="level2">
-<h2 class="anchored" data-anchor-id="write-config-files">Write Config Files</h2>
-<div class="cell" data-execution_count="259">
-<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> json</span>
-<span id="cb5-2"></span>
-<span id="cb5-3"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"personalized_config.json"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> input_json:</span>
-<span id="cb5-4">    parameters <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> json.load(input_json)</span>
-<span id="cb5-5"></span>
-<span id="cb5-6"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> index, n_intervals <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">enumerate</span>(successful_predictions.keys()):</span>
-<span id="cb5-7">    parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"individuals"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/metadata/individuals</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>index<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.txt"</span></span>
-<span id="cb5-8">    parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"interval_list_file"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/metadata/intervals</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>index<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.txt"</span></span>
-<span id="cb5-9">    parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"n_individuals"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">len</span>(successful_predictions[n_intervals])</span>
-<span id="cb5-10">    parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"batch_individuals"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span></span>
-<span id="cb5-11">    parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"n_regions"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">868</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> n_intervals</span>
-<span id="cb5-12">    parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"batch_regions"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span></span>
-<span id="cb5-13">    parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"date"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"2023-09-02"</span></span>
-<span id="cb5-14">    parameters[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"parsl_parameters"</span>][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"walltime"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"00:30:00"</span></span>
-<span id="cb5-15">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"personalized_config</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>index<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.json"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"w"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> output_json:</span>
-<span id="cb5-16">        json.dump(parameters, output_json, indent<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>)</span></code></pre></div>
-</div>
-</section>
-<section id="run-pipeline" class="level2">
-<h2 class="anchored" data-anchor-id="run-pipeline">Run Pipeline</h2>
-<pre><code>module load conda
-conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
-
-for i in {0..2}; do
-    python /home/s1mi/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/personalized_config${i}.json &amp;
-    sleep 20
-done</code></pre>
-
-
-</section>
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-08-31-Br-personalized-prediction-on-more-genes/debugging.html</guid>
-  <pubDate>Sat, 02 Sep 2023 07:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>

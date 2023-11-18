@@ -1,0 +1,43 @@
+---
+title: Debugging qtl2's calc_genoprob
+author: Sabrina Mi
+date: 11/17/2023
+---
+
+### Subset Individuals
+
+For debugging, we filter the VCFs to 2 samples:
+
+```
+cd /Users/sabrinami/Desktop/qtl2_data
+bcftools view -s '000789972A,0007899884' -Oz -o test/chr20.vcf.gz BrainVCFs/chr20.vcf.gz
+bcftools index -t test/chr20.vcf.gz
+bcftools view -s '000789972A,0007899884' -Oz -o test/chr19.vcf.gz BrainVCFs/chr19.vcf.gz
+bcftools index -t test/chr19.vcf.gz
+
+```
+
+Create the input files:
+
+```
+conda activate genomics
+python /Users/sabrinami/Github/qtl2-founder-haps/qtl2-founder-haps.py test/chr20.vcf.gz FounderVCFs/chr20.vcf.gz output/chr20_prob.rds --working-dir chr20-test
+python /Users/sabrinami/Github/qtl2-founder-haps/qtl2-founder-haps.py test/chr19.vcf.gz FounderVCFs/chr19.vcf.gz output/chr19_prob.rds --working-dir chr19-test
+
+```
+
+```{r}
+"%&%" = function(a,b) paste(a,b,sep="")
+data_dir <- '/Users/sabrinami/Desktop/qtl2_data/'
+chr20_prob <- readRDS(data_dir %&% 'output/chr20_prob.rds')
+chr19_prob <- readRDS(data_dir %&% 'output/chr19_prob.rds')
+
+chr20_prob[[1]][, , 1:5]
+dim(chr20_prob[[1]])
+
+chr19_prob[[1]][, , 1:5]
+dim(chr19_prob[[1]])
+
+```
+
+
