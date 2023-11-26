@@ -1,0 +1,22 @@
+#PBS -A AIHPC4EDU
+#PBS -l walltime=00:05:00
+#PBS -l filesystems=home
+#PBS -N qtl2-founder-haps-by-chromosome
+#PBS -q debug
+#PBS -k doe
+# #PBS -o logs/${PBS_JOBNAME}.o${PBS_JOBID}.log
+# #PBS -e logs/${PBS_JOBNAME}.e${PBS_JOBID}.err
+
+echo ${CHR}
+module load conda 
+GENO_DIR=/home/s1mi/enformer_rat_data/genotypes
+DATA_DIR=/home/s1mi/qtl2-data
+
+conda activate borzoi
+python make_qtl2_inputs.py $GENO_DIR/BrainVCFs/chr${CHR}.vcf.gz $GENO_DIR/FounderVCFs/chr${CHR}.vcf.gz --working-dir $DATA_DIR/chr${CHR}-qtl2-founder-haps --gmap-dir $DATA_DIR/rn7_genetic_map
+
+conda deactivate
+conda activate genomics
+python run_qtl2_batches.py --data-dir $DATA_DIR/chr${CHR}-qtl2-founder-haps --output-dir $DATA_DIR/chr${CHR}-qtl2-outputs --work-dir $DATA_DIR/tmp-chr${CHR}-qtl2-founder-haps
+
+
