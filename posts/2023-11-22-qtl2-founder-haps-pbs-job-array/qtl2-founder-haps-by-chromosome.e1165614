@@ -1,0 +1,18 @@
+
+Lmod is automatically replacing "nvhpc/22.11" with "gcc/12.2.0".
+
+
+Lmod is automatically replacing "PrgEnv-nvhpc/8.3.3" with "PrgEnv-gnu/8.3.3".
+
+
+Due to MODULEPATH changes, the following have been reloaded:
+  1) cray-mpich/8.1.25
+
+[W::hts_idx_load3] The index file is older than the data file: /home/s1mi/enformer_rat_data/genotypes/BrainVCFs/chr1.vcf.gz.tbi
+[W::hts_idx_load3] The index file is older than the data file: /home/s1mi/enformer_rat_data/genotypes/FounderVCFs/chr1.vcf.gz.tbi
+/bin/sh: R: command not found
+Traceback (most recent call last):
+  File "/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/run_qtl2_batches.py", line 34, in <module>
+    geno_df.to_csv(f'{args.work-dir}/geno.csv', index=True)
+                      ^^^^^^^^^
+AttributeError: 'Namespace' object has no attribute 'work'

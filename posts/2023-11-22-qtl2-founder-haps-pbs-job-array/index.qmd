@@ -7,6 +7,9 @@ date: 11/22/2023
 
 ### Prepare Chromosome Inputs
 
+We first generate chromosome-wide input files with Dan's original make_qtl2_inputs function locally, because I'm having so much trouble creating a conda environment with both R and python's pysam libraries.
+
+
 ```
 /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
 for i in {1..3}
