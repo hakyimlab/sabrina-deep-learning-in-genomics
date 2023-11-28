@@ -2,7 +2,7 @@ import pandas as pd
 import time
 import subprocess
 import argparse
-
+import os
 
 def qtl_command(batch_dir, output_file, n_cores=1):
     cmd = (
@@ -27,13 +27,17 @@ batch_size = 10
 n_batches = len(geno.columns) // batch_size
 
 for i in range(n_batches):
+    prob_rds = f'{args.output_dir}/batch{i}_prob.rds'
+    if os.path.exists(prob_rds):
+        continue
     tic = time.perf_counter()
     geno_df = geno.iloc[:, i:i+batch_size]
     samples = geno_df.columns.to_list()
     covar_df = pd.DataFrame({'id': samples, 'generations': [90] *  len(samples)})
     geno_df.to_csv(f'{args.work_dir}/geno.csv', index=True)
     covar_df.to_csv(f'{args.work_dir}/covar.csv', index=False)
-    cmd = qtl_command(args.work_dir, f'{args.output_dir}/batch{i}_prob.rds', n_cores = 32)
+
+    cmd = qtl_command(args.work_dir, prob_rds, n_cores = 32)
     subprocess.run(f"R -e '{cmd}'", shell=True)
     toc = time.perf_counter()
     print("Batch:", i+1, "...", (toc-tic)/60, "minutes")

@@ -9,18 +9,26 @@ date: 11/22/2023
 
 We first generate chromosome-wide input files with Dan's original make_qtl2_inputs function locally, because I'm having so much trouble creating a conda environment with both R and python's pysam libraries.
 
-
 ```
-/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
-for i in {1..3}
+conda activate genomics
+cd Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
+GENO_DIR=/Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
+DATA_DIR=/Users/sabrinami/Desktop/qtl2_data
+for CHR in {1..20}
 do
-    qsub -v CHR=${i} qtl2-founder-haps-by-chromsome.pbs 
+    python make_qtl2_inputs.py $GENO_DIR/BrainVCFs/chr${CHR}.vcf.gz $GENO_DIR/FounderVCFs/chr${CHR}.vcf.gz --working-dir $DATA_DIR/chr${CHR}-qtl2-founder-haps --gmap-dir $DATA_DIR/genetic_map
 done
 
+scp -r $DATA_DIR/chr*-qtl2-founder-haps polaris:qtl2-data
+```
 
-/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
-i=1
-qsub -v CHR=${i} qtl2-founder-haps-by-chromsome.pbs 
+```
+cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
+for i in {1..20}
+do
+    qsub -v CHR=${i} -N chr${i}-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
+    sleep 60
+done
 
 ```
 
