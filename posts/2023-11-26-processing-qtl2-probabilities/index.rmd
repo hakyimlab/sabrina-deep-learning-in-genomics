@@ -4,24 +4,34 @@ author: Sabrina Mi
 date: 11/26/2023
 ---
 
+I eventually want to organize these probabilities indexed by position in an h5 file, so that given a genomic region, for each individual, we can query probabilities at all snps in the interval. But for now, I just combine the .rds outputs into csvs for each individual, with snp IDs as row names and the 8 founder rats as the columns.
+
+## Concatenate Probabilites by Chromosome
+
 ```{r}
 "%&%" = function(a,b) paste(a,b,sep="")
 chr = as.character(20)
-output_dir <- "~/chr" %&% chr %&% "-qtl2-outputs/"
-batches <- list.files(output_dir)
+qtl2_output_dir <- "~/chr" %&% chr %&% "-qtl2-outputs/"
+batches <- list.files(qtl2_output_dir)
 n_batches <- length(batches)
+batch_size = 10
 ```
 
 
 
 ```{r}
-id = "000789972A"
-mat <- matrix(, nrow = 8)
+output_dir = "~/chr" %&% chr %&% "-Br-genotype-probabilites/"
+
 for (i in 1:n_batches) {
-  pr <- readRDS(output_dir %&% batches[i])
-  mat <- rbind(pr[[1]][1, , ])
+  pr <- readRDS(qtl2_output_dir %&% batches[i])[[1]]
+  samples <- rownames(pr)
+  for (sample in samples) {
+    mat <- rbind(pr[sample, , ])
+    write.csv(t(mat), output_dir %&% sample %&% ".csv", quote=FALSE)
+  }
+  break
 }
-mat <- t(mat)
-write.csv(mat, output_dir %&% id %&% ".csv" )
+
+
 ```
 
