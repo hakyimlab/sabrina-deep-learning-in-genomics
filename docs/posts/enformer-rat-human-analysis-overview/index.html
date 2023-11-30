@@ -133,29 +133,28 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="updates-this-week" class="level2">
 <h2 class="anchored" data-anchor-id="updates-this-week">Updates this Week</h2>
-<p><strong>Debugging Founder Genotype Probabilities Runs</strong></p>
 <ol type="1">
-<li><p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-08-calculating-Br-genotype-probabilities/">Ran Dan’s scripts as-is (genome-wide) on Polaris</a></p>
+<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-07-hs-founder-epigenomes/pipeline">Finished the Founder Rat Epigenomes</a> (human and mouse outputs)
 <ul>
-<li>I allocated enough memory, number of cores, walltime for the computation, but it gets killed anyways</li>
+<li><code>/eagle/AIHPC4Edu/sabrina/Br_predictions/predictions_folder/HS_founders_genome_wide/predictions_2023-11-27/enformer_predictions</code></li>
+<li>To-do: Concatenate intervals for each founder
+<ul>
+<li>The intervals are all centered at a gene, rather than incremental positions, so I would need to identify each interval with its matrix. Ideally, I want to try to index the intervals so that any region can be efficiently queried.</li>
 </ul></li>
-</ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="../2023-11-08-calculating-Br-genotype-probabilities/polaris_calc_genoprob_bug.png" class="img-fluid figure-img"></p>
-<figcaption class="figure-caption">R on Polaris Compute Node with 64 CPUs</figcaption>
-</figure>
-</div>
-<ol start="2" type="1">
-<li><p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-14-calculating-genotype-probabilities-by-chromosome">Modified code to run qtl2 on each chromosome separately</a></p>
+</ul></li>
+<li>Most rats have founder genotype probabilities at each site across the genome
 <ul>
-<li>Two different methods of writing input files for chromosome 20, both result in the same error:</li>
-</ul>
-<img src="chr20_calc_genoprob.png" class="img-fluid" alt="Chromosome 20">
+<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/index.qmd">Split Br rats into batches for qtl2 computations</a>, most batches have probabilities done, but it varies by chromosome</li>
+<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-26-processing-qtl2-probabilities/">Reorganized results as CSVs</a>
 <ul>
-<li>Runs locally for chromosome 19</li>
-</ul>
-<img src="chr19_calc_genoprob.png" class="img-fluid" alt="Chromosome 19"></li>
+<li><code>/home/s1mi/Br_genotype_probabilities/{individual}/chr{i}_probabilities.csv</code></li>
+<li>Only 43 rats with complete genotype probabilities
+<ul>
+<li>I suspect the issue is that each chromosome has different batches that failed qtl2 calculations, my code as-is only writes the CSV for a sample if all of the chromosome were successful</li>
+<li>I will review the job logs from the unsuccessful batches for more clarification</li>
+</ul></li>
+</ul></li>
+</ul></li>
 </ol>
 </section>
 <section id="introduction" class="level2">

@@ -200,9 +200,38 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="run-pipeline" class="level3">
 <h3 class="anchored" data-anchor-id="run-pipeline">Run Pipeline</h3>
 <pre><code>module load conda
-conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
+conda activate enformer-predict-tools
 
 python /home/s1mi/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/founder_epigenome_config.json</code></pre>
+</section>
+<section id="check-predictions" class="level2">
+<h2 class="anchored" data-anchor-id="check-predictions">Check Predictions</h2>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>h5_file <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/predictions_folder/HS_founders_genome_wide/predictions_2023-11-27/enformer_predictions/BN/haplotype0/chr10_100115821_100115821_predictions.h5"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(h5_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, value <span class="kw">in</span> hf.items():</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(key)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(value[:])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>human
+[[0.09566703 0.10165276 0.08404372 ... 0.00587161 0.06136435 0.04359803]
+ [0.10662825 0.1139144  0.09694222 ... 0.00824633 0.07404334 0.06823193]
+ [0.09993935 0.10983597 0.09347952 ... 0.00431036 0.06122369 0.04992136]
+ ...
+ [0.06703217 0.06465818 0.05357087 ... 0.01535742 0.05460119 0.04726781]
+ [0.03674487 0.03669333 0.02561367 ... 0.00362175 0.01091049 0.00503846]
+ [0.06257919 0.07025048 0.06735092 ... 0.00419223 0.00971855 0.00822341]]
+mouse
+[[0.09508593 0.04494116 0.08364319 ... 0.24798432 0.38567212 0.3783706 ]
+ [0.09461962 0.05752731 0.08894978 ... 0.299645   0.44955045 0.44385162]
+ [0.10998561 0.07225344 0.09443015 ... 0.2621954  0.35028058 0.3864176 ]
+ ...
+ [0.04612014 0.0642754  0.07402609 ... 0.4328676  1.1677598  0.7585961 ]
+ [0.02304047 0.02882738 0.04057743 ... 0.13793258 0.27883688 0.23426382]
+ [0.04535931 0.05920705 0.08596259 ... 0.24028273 0.40435565 0.40454867]]</code></pre>
+</div>
+</div>
 
 
 </section>

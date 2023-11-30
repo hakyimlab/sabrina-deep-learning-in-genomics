@@ -10,7 +10,1235 @@
 <atom:link href="https://sabrinami.quarto.pub/deep-learning-in-genomics/index.xml" rel="self" type="application/rss+xml"/>
 <description>Sabrina&#39;s blog for Deep Learning in Genomics course</description>
 <generator>quarto-1.3.361</generator>
-<lastBuildDate>Fri, 17 Nov 2023 08:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 26 Nov 2023 08:00:00 GMT</lastBuildDate>
+<item>
+  <title>Processing qtl2-founder-haps probabilies</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-26-processing-qtl2-probabilities/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>I eventually want to organize these probabilities indexed by position in an h5 file, so that given a genomic region, for each individual, we can query probabilities at all snps in the interval. But for now, I just combine the .rds outputs into csvs for each individual, with snp IDs as row names and the 8 founder rats as the columns.</p>
+<p>I created a new folder <code>/home/s1mi/Br_genotype_probabilities</code> with subdirectories for each chromosome to store csvs for each individual.</p>
+<section id="concatenate-probabilites-by-chromosome" class="level2">
+<h2 class="anchored" data-anchor-id="concatenate-probabilites-by-chromosome">Concatenate Probabilites by Chromosome</h2>
+<div class="cell" data-hash="index_cache/html/global variables_3388f019ced2a8f039da434304fbde4f">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1">qtl2_output_dir <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/qtl2-outputs/"</span></span>
+<span id="cb1-2">batch_size <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span></span>
+<span id="cb1-3">n_batches <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">34</span></span></code></pre></div>
+</div>
+<div class="cell" data-hash="index_cache/html/functions_8f0a18961760966498307eb354482c9d">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%&amp;%"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">function</span>(a,b) <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">paste</span>(a,b,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">sep=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">""</span>)</span>
+<span id="cb2-2">split_by_sample <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">function</span>(chromosome) {</span>
+<span id="cb2-3">  chr <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.character</span>(chromosome)</span>
+<span id="cb2-4">  prob_dir <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> qtl2_output_dir <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"chr"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> chr <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-qtl2-outputs/"</span></span>
+<span id="cb2-5">  output_dir <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/Br_genotype_probabilities/"</span></span>
+<span id="cb2-6">  batches <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">list.files</span>(prob_dir)</span>
+<span id="cb2-7"></span>
+<span id="cb2-8">  <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> (file <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> batches) {</span>
+<span id="cb2-9">    pr <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(prob_dir <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> file)[[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]]</span>
+<span id="cb2-10">    samples <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(pr)</span>
+<span id="cb2-11">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> (sample <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> samples) {</span>
+<span id="cb2-12">      sample_dir <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> output_dir <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> sample</span>
+<span id="cb2-13">      <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> (<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">file.exists</span>(sample_dir)) {</span>
+<span id="cb2-14">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dir.create</span>(sample_dir, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">recursive =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb2-15">      }</span>
+<span id="cb2-16">      csv <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> sample_dir <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/chr"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> chr <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"_probabilies.csv"</span></span>
+<span id="cb2-17">      <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> (<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">file.exists</span>(csv)) {</span>
+<span id="cb2-18">        mat <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rbind</span>(pr[sample, , ])</span>
+<span id="cb2-19">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">write.csv</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">t</span>(mat), csv, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">quote=</span><span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>)</span>
+<span id="cb2-20">      }</span>
+<span id="cb2-21">      </span>
+<span id="cb2-22">    }</span>
+<span id="cb2-23">  }</span>
+<span id="cb2-24">}</span></code></pre></div>
+</div>
+</section>
+<section id="write-csvs" class="level2">
+<h2 class="anchored" data-anchor-id="write-csvs">Write CSVs</h2>
+<div class="cell" data-hash="index_cache/html/run_afc946943eabe27b5f66ba74508afd1a">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> (i <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>) {</span>
+<span id="cb3-2">  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># cat("Chromosome:", as.character((i)))</span></span>
+<span id="cb3-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">split_by_sample</span>(i)</span>
+<span id="cb3-4">}</span></code></pre></div>
+</div>
+
+
+</section>
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-26-processing-qtl2-probabilities/index.html</guid>
+  <pubDate>Sun, 26 Nov 2023 08:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Br rat haplotype probabilities from HS founders by chromosome</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="prepare-chromosome-inputs" class="level3">
+<h3 class="anchored" data-anchor-id="prepare-chromosome-inputs">Prepare Chromosome Inputs</h3>
+<p>We first generate chromosome-wide input files with Dan’s original make_qtl2_inputs function locally, because I’m having so much trouble creating a conda environment with both R and python’s pysam libraries.</p>
+<pre><code>conda activate genomics
+cd Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
+GENO_DIR=/Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
+DATA_DIR=/Users/sabrinami/Desktop/qtl2_data
+for CHR in {1..20}
+do
+    python make_qtl2_inputs.py $GENO_DIR/BrainVCFs/chr${CHR}.vcf.gz $GENO_DIR/FounderVCFs/chr${CHR}.vcf.gz --working-dir $DATA_DIR/chr${CHR}-qtl2-founder-haps --gmap-dir $DATA_DIR/genetic_map
+done
+
+scp -r $DATA_DIR/chr*-qtl2-founder-haps polaris:qtl2-data</code></pre>
+<p><a href="https://github.com/hakyimlab/sabrina-deep-learning-in-genomics/blob/main/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/run_qtl2_batches.py"><code>run_qtl2_batches.py</code></a> splits genotype inputs for a given chromsome into batches of 10 samples. I passed in chromosome number as a variables when I submitted <a href="https://github.com/hakyimlab/sabrina-deep-learning-in-genomics/blob/main/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/qtl2-founder-haps-by-chromsome.pbs"><code>qtl2-founder-haps-by-chromsome.pbs</code></a>.</p>
+<pre><code>cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
+for i in {1..20}
+do
+    qsub -v CHR=${i} -N chr${i}-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
+    sleep 60
+done
+</code></pre>
+
+
+</section>
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/index.html</guid>
+  <pubDate>Wed, 22 Nov 2023 08:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Splitting chr20 Brain rats into batches for qtl2 analysis</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-19-split-qlt2-inputs-batches/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>We’ll split the 340 Br rats into batches of 10. The goal is to do this without creating a new VCF for each batchThe following code subsets the chr20 input files, specifically geno.csv and covar.csv files, that were generated with <a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-14-calculating-genotype-probabilities-by-chromosome/">qtl2-founder-haps code</a>. I set up by copying over the other input files that should stay the same.</p>
+<pre><code>mkdir tmp-chr20-qtl2-founder-haps
+mkdir chr20-qtl2-outputs
+cp chr20-qtl2-founder-haps/control.yaml tmp-chr20-qtl2-founder-haps/control.yaml
+cp chr20-qtl2-founder-haps/founder_geno.csv tmp-chr20-qtl2-founder-haps/founder_geno.csv
+cp chr20-qtl2-founder-haps/gmap.csv tmp-chr20-qtl2-founder-haps/gmap.csv
+cp chr20-qtl2-founder-haps/pmap.csv tmp-chr20-qtl2-founder-haps/pmap.csv</code></pre>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pd</span>
+<span id="cb2-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> time</span>
+<span id="cb2-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> subprocess</span>
+<span id="cb2-4">data_dir <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'/home/s1mi/chr20-qtl2-founder-haps'</span></span>
+<span id="cb2-5">tmp_dir <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'/home/s1mi/tmp-chr20-qtl2-founder-haps'</span></span>
+<span id="cb2-6">output_dir <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'/home/s1mi/chr20-qtl2-outputs'</span></span>
+<span id="cb2-7">geno <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>data_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/geno.csv'</span>, index_col<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'id'</span>)</span>
+<span id="cb2-8">batch_size <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span></span>
+<span id="cb2-9">n_batches <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(geno.columns) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">//</span> batch_size</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">def</span> qtl_command(output_file, n_cores<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>):</span>
+<span id="cb3-2">    cmd <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (</span>
+<span id="cb3-3">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'library(qtl2); '</span></span>
+<span id="cb3-4">        <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'cross &lt;- read_cross2("</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>tmp_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/control.yaml"); '</span></span>
+<span id="cb3-5">        <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>n_cores<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">); '</span></span>
+<span id="cb3-6">        <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>output_file<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">")'</span></span>
+<span id="cb3-7">    )</span>
+<span id="cb3-8">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">return</span> cmd</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> i <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(n_batches):</span>
+<span id="cb4-2">    tic <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> time.perf_counter()</span>
+<span id="cb4-3">    geno_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> geno.iloc[:, i:i<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span>batch_size]</span>
+<span id="cb4-4">    samples <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> geno_df.columns.to_list()</span>
+<span id="cb4-5">    covar_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.DataFrame({<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'id'</span>: samples, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'generations'</span>: [<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">90</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span>  <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(samples)})</span>
+<span id="cb4-6">    geno_df.to_csv(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>tmp_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/geno.csv'</span>, index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb4-7">    covar_df.to_csv(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>tmp_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/covar.csv'</span>, index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span>)</span>
+<span id="cb4-8">    cmd <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> qtl_command(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>output_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/batch</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>i<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">_prob.rds'</span>, n_cores <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>)</span>
+<span id="cb4-9">    subprocess.run(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"R -e '</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>cmd<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'"</span>, shell<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb4-10">    toc <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> time.perf_counter()</span>
+<span id="cb4-11">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Batch:"</span>, i<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"..."</span>, (toc<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>tic)<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">60</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"minutes"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch0_prob.rds")
+&gt; 
+&gt; 
+Batch: 1 ... 5.516161077900324 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch1_prob.rds")
+&gt; 
+&gt; 
+Batch: 2 ... 5.188156945933588 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch2_prob.rds")
+&gt; 
+&gt; 
+Batch: 3 ... 5.320735947232849 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch3_prob.rds")
+&gt; 
+&gt; 
+Batch: 4 ... 5.9591666307009294 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch4_prob.rds")
+&gt; 
+&gt; 
+Batch: 5 ... 5.304590424666336 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch5_prob.rds")
+&gt; 
+&gt; 
+Batch: 6 ... 5.208924225267643 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch6_prob.rds")
+&gt; 
+&gt; 
+Batch: 7 ... 5.362514834082686 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch7_prob.rds")
+&gt; 
+&gt; 
+Batch: 8 ... 5.318476139800623 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch8_prob.rds")
+&gt; 
+&gt; 
+Batch: 9 ... 5.43069331633354 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch9_prob.rds")
+&gt; 
+&gt; 
+Batch: 10 ... 5.109263749249901 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch10_prob.rds")
+&gt; 
+&gt; 
+Batch: 11 ... 5.2156281993336355 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch11_prob.rds")
+&gt; 
+&gt; 
+Batch: 12 ... 5.699721770366887 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch12_prob.rds")
+&gt; 
+&gt; 
+Batch: 13 ... 5.225824187783291 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch13_prob.rds")
+&gt; 
+&gt; 
+Batch: 14 ... 4.885130250700361 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch14_prob.rds")
+&gt; 
+&gt; 
+Batch: 15 ... 5.367877415949867 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch15_prob.rds")
+&gt; 
+&gt; 
+Batch: 16 ... 5.298072982882149 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch16_prob.rds")
+&gt; 
+&gt; 
+Batch: 17 ... 5.088831246948879 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch17_prob.rds")
+&gt; 
+&gt; 
+Batch: 18 ... 5.172468327915218 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch18_prob.rds")
+&gt; 
+&gt; 
+Batch: 19 ... 5.2715786983006785 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch19_prob.rds")
+&gt; 
+&gt; 
+Batch: 20 ... 4.73374969640087 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch20_prob.rds")
+&gt; 
+&gt; 
+Batch: 21 ... 4.411744385201018 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch21_prob.rds")
+&gt; 
+&gt; 
+Batch: 22 ... 4.215313976900264 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch22_prob.rds")
+&gt; 
+&gt; 
+Batch: 23 ... 4.53186046264988 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch23_prob.rds")
+&gt; 
+&gt; 
+Batch: 24 ... 3.9959222979164526 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch24_prob.rds")
+&gt; 
+&gt; 
+Batch: 25 ... 3.932872584433062 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch25_prob.rds")
+&gt; 
+&gt; 
+Batch: 26 ... 4.306167855666717 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch26_prob.rds")
+&gt; 
+&gt; 
+Batch: 27 ... 4.43262422256715 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch27_prob.rds")
+&gt; 
+&gt; 
+Batch: 28 ... 4.370494974033985 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch28_prob.rds")
+&gt; 
+&gt; 
+Batch: 29 ... 4.498125915382601 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch29_prob.rds")
+&gt; 
+&gt; 
+Batch: 30 ... 5.5711056028997215 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch30_prob.rds")
+&gt; 
+&gt; 
+Batch: 31 ... 5.131772985549954 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch31_prob.rds")
+&gt; 
+&gt; 
+Batch: 32 ... 5.087727682616484 minutes
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+&gt; library(qtl2); cross &lt;- read_cross2("/home/s1mi/tmp-chr20-qtl2-founder-haps/control.yaml"); pr &lt;- calc_genoprob(cross, error_prob = 0.01, cores = 2); pr &lt;- genoprob_to_alleleprob(pr); saveRDS(pr, "/home/s1mi/chr20-qtl2-outputs/batch32_prob.rds")</code></pre>
+</div>
+</div>
+
+
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-19-split-qlt2-inputs-batches/index.html</guid>
+  <pubDate>Sun, 19 Nov 2023 08:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Debugging qtl2’s calc_genoprob</title>
   <dc:creator>Sabrina Mi</dc:creator>
@@ -400,8 +1628,8 @@ python /Users/sabrinami/Github/qtl2-founder-haps/qtl2-founder-haps.py BrainVCFs/
   <pubDate>Tue, 14 Nov 2023 08:00:00 GMT</pubDate>
 </item>
 <item>
-  <title>Calculating Br rat haplotype probabilities from HS founders</title>
-  <dc:creator>Sabrina </dc:creator>
+  <title>All of the bugs encountered when calculating haplotype probabilites from founders</title>
+  <dc:creator>Sabrina Mi</dc:creator>
   <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-08-calculating-Br-genotype-probabilities/index.html</link>
   <description><![CDATA[ 
 
@@ -478,28 +1706,6 @@ font-style: inherit;">=</span><span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'gzip'</span>)</span></code></pre></div>
 </div>
-</section>
-<section id="process-vcfs" class="level2">
-<h2 class="anchored" data-anchor-id="process-vcfs">Process VCFs</h2>
-<p>I need to filter out X and Y chromosomes, along with small formatting changes.</p>
-<p><strong>Br Rats</strong></p>
-<pre><code>cd ~/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
-wget https://ratgtex.org/data/geno/genotypes/Brain.rn7.vcf.gz
-gunzip genotypes/Brain.rn7.vcf.gz
-awk '{if($0 !~ /^#/) print "chr"$0; else print $0}' genotypes/Brain.rn7.vcf &gt; output.vcf
-bgzip output.vcf
-bcftools index -t output.vcf.gz
-bcftools view -i 'CHROM!="chrX" &amp;&amp; CHROM!="chrY"' output.vcf.gz -o filtered.Brain.rn7.vcf.gz -Oz
-bcftools index -t filtered.Brain.rn7.vcf.gz
-</code></pre>
-<p><strong>Founder Rats</strong></p>
-<p>Most of the processing is documented <a href="https://sabrina-dl.hakyimlab.org/posts/2023-09-12-processing-hs-founder-rat-genotypes/">here</a>, I only needed to filter out X and Y chromosomes.</p>
-<pre><code>bcftools view -i 'CHROM!="chrX" &amp;&amp; CHROM!="chrY"' Palmer_HS_founders_mRatBN7_biallelic_snps.vcf.gz -o Palmer_HS_founders_mRatBN7_filtered.vcf.gz -Oz
-bcftools index -t Palmer_HS_founders_mRatBN7_filtered.vcf.gz
-</code></pre>
-</section>
-<section id="run-python-code" class="level2">
-<h2 class="anchored" data-anchor-id="run-python-code">Run Python Code</h2>
 <pre><code>conda activate genomics
 cd ~/Github/qtl2-founder-haps
 DATA_DIR=~/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
@@ -682,9 +1888,58 @@ font-style: inherit;">"metadata/intervals.txt"</span>)</span></code></pre></div>
 <section id="run-pipeline" class="level3">
 <h3 class="anchored" data-anchor-id="run-pipeline">Run Pipeline</h3>
 <pre><code>module load conda
-conda activate /lus/grand/projects/TFXcan/imlab/shared/software/conda_envs/enformer-predict-tools
+conda activate enformer-predict-tools
 
 python /home/s1mi/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/founder_epigenome_config.json</code></pre>
+</section>
+<section id="check-predictions" class="level2">
+<h2 class="anchored" data-anchor-id="check-predictions">Check Predictions</h2>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> h5py</span>
+<span id="cb3-2">h5_file <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/eagle/AIHPC4Edu/sabrina/Br_predictions/predictions_folder/HS_founders_genome_wide/predictions_2023-11-27/enformer_predictions/BN/haplotype0/chr10_100115821_100115821_predictions.h5"</span></span>
+<span id="cb3-3"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">with</span> h5py.File(h5_file, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> hf:</span>
+<span id="cb3-4">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> key, value <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> hf.items():</span>
+<span id="cb3-5">        <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(key)</span>
+<span id="cb3-6">        <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(value[:])</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>human
+[[0.09566703 0.10165276 0.08404372 ... 0.00587161 0.06136435 0.04359803]
+ [0.10662825 0.1139144  0.09694222 ... 0.00824633 0.07404334 0.06823193]
+ [0.09993935 0.10983597 0.09347952 ... 0.00431036 0.06122369 0.04992136]
+ ...
+ [0.06703217 0.06465818 0.05357087 ... 0.01535742 0.05460119 0.04726781]
+ [0.03674487 0.03669333 0.02561367 ... 0.00362175 0.01091049 0.00503846]
+ [0.06257919 0.07025048 0.06735092 ... 0.00419223 0.00971855 0.00822341]]
+mouse
+[[0.09508593 0.04494116 0.08364319 ... 0.24798432 0.38567212 0.3783706 ]
+ [0.09461962 0.05752731 0.08894978 ... 0.299645   0.44955045 0.44385162]
+ [0.10998561 0.07225344 0.09443015 ... 0.2621954  0.35028058 0.3864176 ]
+ ...
+ [0.04612014 0.0642754  0.07402609 ... 0.4328676  1.1677598  0.7585961 ]
+ [0.02304047 0.02882738 0.04057743 ... 0.13793258 0.27883688 0.23426382]
+ [0.04535931 0.05920705 0.08596259 ... 0.24028273 0.40435565 0.40454867]]</code></pre>
+</div>
+</div>
 
 
 </section>
@@ -17557,1465 +18812,6 @@ font-style: inherit;">"Human and Rat Reference Gene Expression in Brain Tissue (
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-13-all-correlation-across-genes-plots/index.html</guid>
   <pubDate>Wed, 13 Sep 2023 07:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Preparing HS founder rat genotypes for Enformer pipeline</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-12-processing-HS-founder-rat-genotypes/index.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<p>I downloaded the original VCF from TSCC to <code>/home/s1mi/enformer_rat_data/genotypes/Palmer_HS_founders_mRatBN7_2.vcf.gz</code>.</p>
-<section id="convert-ncbi-refseq-id-to-chromosome-numbers" class="level3">
-<h3 class="anchored" data-anchor-id="convert-ncbi-refseq-id-to-chromosome-numbers">Convert NCBI RefSeq ID to chromosome numbers</h3>
-<ol type="1">
-<li>Download assembly report for NCBI names to chromosome mapping</li>
-</ol>
-<pre><code>wget https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/015/227/675/GCF_015227675.2_mRatBN7.2/GCF_015227675.2_mRatBN7.2_assembly_report.txt -O /Users/sabrinami/Downloads/mRatBN7.2_assembly_report.txt</code></pre>
-<ol start="2" type="1">
-<li>Write chromosome annotation file for bcftools</li>
-</ol>
-<pre><code>grep -e '^[^#]' /Users/sabrinami/Downloads/mRatBN7.2_assembly_report.txt | awk '{ print $7, "chr" $1 }' &gt; /Users/sabrinami/Downloads/mRatBN7.2_chromosome_names.txt
-</code></pre>
-<p>There are extra annotations than needed, later on we will filter to chromosomes 1 through 20 and X.</p>
-<ol start="3" type="1">
-<li>Annotate VCF</li>
-</ol>
-<pre><code>cd /Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
-bcftools annotate \
-  --rename-chrs /Users/sabrinami/Downloads/mRatBN7.2_chromosome_names.txt \
-  --threads 10 \
-  -o Palmer_HS_founders_mRatBN7_annot.vcf \
-  -Ov Palmer_HS_founders_mRatBN7_2.vcf.gz
-</code></pre>
-</section>
-<section id="replace-missing-genotypes-with-reference-alleles" class="level3">
-<h3 class="anchored" data-anchor-id="replace-missing-genotypes-with-reference-alleles">Replace Missing Genotypes with Reference Alleles</h3>
-<pre><code>sed 's/\.\/\./0\/0/g' Palmer_HS_founders_mRatBN7_annot.vcf &gt; Palmer_HS_founders_mRatBN7_no_missing.vcf
-</code></pre>
-</section>
-<section id="filter-out-indels" class="level3">
-<h3 class="anchored" data-anchor-id="filter-out-indels">Filter out Indels</h3>
-<pre><code>bcftools view --types snps Palmer_HS_founders_mRatBN7_no_missing.vcf -o Palmer_HS_founders_mRatBN7_snps_only.vcf -Ov</code></pre>
-<p>Some sites have deletions notated by <code>*</code> in the ALT field in addition to an allele:</p>
-<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_345f6b9eec052ff5311fdb4613af32c8">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">cd</span> /Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data</span>
-<span id="cb6-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">grep</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'\*'</span> Palmer_HS_founders_mRatBN7_snps_only.vcf <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">|</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">head</span> <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">-n</span> 5</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>##FORMAT=&lt;ID=RGQ,Number=1,Type=Integer,Description="Unconditional reference genotype confidence, encoded as a phred quality -10*log10 p(genotype call is wrong)"&gt;
-chr1    77687   .   T   *,C 1247.25 PASS    AC=1,1;AF=0.063,0.063;AN=16;BaseQRankSum=2.202;DP=237;ExcessHet=3.3099;FS=6.493;MLEAC=1,1;MLEAF=0.063,0.063;MQ=59.94;MQRankSum=-1.459;QD=11.77;ReadPosRankSum=0.451;SOR=0.78    GT:AD:DP:GQ:PL  0/0:22,0,0:22:66:0,66,986,66,982,980    0/2:26,0,32:58:99:1258,1343,2463,0,1085,995 0/0:26,0,0:26:78:0,78,1170,78,1170,1170 0/0:15,0,0:15:45:0,45,675,48,678,706    0/0:16,0,0:16:48:0,48,689,48,692,700    0/0:20,0,0:20:60:0,63,920,60,861,852    0/1:22,26,0:48:99:1002,0,875,1076,930,2072  0/0:23,0,0:23:69:0,69,1003,75,1012,1097
-chr1    85968   .   G   *,A 2530.9  PASS    AC=1,7;AF=0.063,0.438;AN=16;BaseQRankSum=-1.249;DP=377;ExcessHet=20.0237;FS=1.435;MLEAC=1,7;MLEAF=0.063,0.438;MQ=54.59;MQRankSum=-2.573;QD=8.73;ReadPosRankSum=-1.591;SOR=0.593 GT:AD:DP:GQ:PL  0/2:19,0,10:29:99:229,308,1185,0,611,753    0/1:19,7,0:26:99:228,0,770,329,637,1330 0/2:23,0,18:41:99:424,545,1787,0,761,805    0/2:24,0,23:47:99:587,715,1918,0,722,885    0/2:16,0,21:37:99:558,659,1560,0,534,715    0/2:20,0,9:29:99:204,284,1223,0,685,921 0/2:20,5,14:39:99:315,203,1124,0,409,898    0/2:26,0,16:42:99:324,446,1813,0,847,1044
-chr1    288687  .   C   T,* 881.59  PASS    AC=1,7;AF=0.063,0.438;AN=16;BaseQRankSum=-1.115;DP=212;ExcessHet=7.9825;FS=0.716;MLEAC=1,7;MLEAF=0.063,0.438;MQ=41.24;MQRankSum=-3.677;QD=6.63;ReadPosRankSum=2.592;SOR=0.574   GT:AD:DP:GQ:PL  0/2:3,0,16:19:45:947,548,686,0,98,45    0/0:13,0,0:13:39:0,45,663,39,574,565    0/2:5,0,19:24:99:920,642,830,0,196,135  0/1:3,25,0:28:36:1187,0,36,890,110,943  0/2:4,1,13:18:99:666,404,521,0,136,103  2/2:0,0,9:9:27:659,371,325,51,27,0  0/2:5,0,7:12:99:262,316,1042,0,246,189  0/2:4,1,18:23:85:964,544,677,0,101,85
-chr1    290725  .   A   *,T 4810.07 PASS    AC=1,6;AF=0.063,0.375;AN=16;BaseQRankSum=-1.616;DP=345;ExcessHet=13.4916;FS=19.345;MLEAC=1,6;MLEAF=0.063,0.375;MQ=51.02;MQRankSum=-5.489;QD=14.75;ReadPosRankSum=-1.309;SOR=0.49    GT:AD:DP:GQ:PL  0/2:21,0,27:48:99:1020,1083,1932,0,823,741  0/0:16,0,0:16:48:0,48,720,51,712,751    0/2:24,0,20:44:99:610,683,1638,0,923,871    0/2:24,0,22:46:99:777,856,1890,0,1002,936   0/2:24,0,18:42:99:643,713,1680,0,933,878    0/2:16,0,18:34:99:709,758,1431,0,633,576    0/1:46,15,0:61:99:468,0,1843,604,1861,2458  0/2:21,1,29:51:99:1063,1092,1971,0,757,711</code></pre>
-</div>
-</div>
-<p>We want to retain data for those samples with the alternative allele, but drop samples with the deletions. This is done in two steps, by first splitting the ALT column and then filtering out the deletion in the newly created record:</p>
-<pre><code>
-bcftools norm -m +snps Palmer_HS_founders_mRatBN7_snps_only.vcf | bcftools view -e 'ALT="*"' -o Palmer_HS_founders_mRatBN7_biallelic_snps.vcf.gz -Oz
-bcftools index -t Palmer_HS_founders_mRatBN7_biallelic_snps.vcf.gz</code></pre>
-</section>
-<section id="split-vcfs" class="level3">
-<h3 class="anchored" data-anchor-id="split-vcfs">Split VCFs</h3>
-<p>First by chromosome number:</p>
-<pre><code>mkdir FounderVCFs
-# Split VCF by chromosome
-vcf_in=Palmer_HS_founders_mRatBN7_biallelic_snps.vcf.gz
-
-vcf_out_prefix=FounderVCFs/chr
-
-for i in {1..20}
-do
-    echo "Working on chromosome ${i}..."
-    bcftools view --regions chr${i} ${vcf_in} -o ${vcf_out_prefix}${i}.vcf.gz -Oz
-done
-
-
-# Index VCFs
-for i in {1..20}
-do
-    echo "Indexing chromosome ${i}..."
-    bcftools index -t FounderVCFs/chr${i}.vcf.gz
-done</code></pre>
-<p>Then separately for X chromosome:</p>
-<pre><code>bcftools view ${vcf_in} --regions chrX -o ${vcf_out_prefix}X.vcf.gz -Oz
-bcftools index -t FounderVCFs/chrX.vcf.gz</code></pre>
-
-
-</section>
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-12-processing-HS-founder-rat-genotypes/index.html</guid>
-  <pubDate>Tue, 12 Sep 2023 07:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Test run of personalized Enformer on HS rats</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-12-test-run-on-HS-founders/index.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="write-individuals-list" class="level3">
-<h3 class="anchored" data-anchor-id="write-individuals-list">Write Individuals List</h3>
-<pre><code>bcftools query -l /Users/sabrinami/Desktop/2022-23/tutorials/enformer_pipeline_test/rn7_data/Palmer_HS_founders_mRatBN7_2.vcf.gz &gt; metadata/individuals.txt
-</code></pre>
-</section>
-<section id="run-pipeline-locally" class="level3">
-<h3 class="anchored" data-anchor-id="run-pipeline-locally">Run Pipeline Locally</h3>
-<pre><code>conda activate enformer-predict-tools
-python /Users/sabrinami/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /Users/sabrinami/Github/deep-learning-in-genomics/posts/2023-09-12-test-run-on-HS-founders/local_test_personalized.json</code></pre>
-</section>
-<section id="check-results" class="level3">
-<h3 class="anchored" data-anchor-id="check-results">Check Results</h3>
-<div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> h5py</span>
-<span id="cb3-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> np</span>
-<span id="cb3-3">individuals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"BN"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ACI"</span>]</span>
-<span id="cb3-4">predictions_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/predictions_folder/HS_founders_single_gene/predictions_2023-11-06/enformer_predictions"</span></span>
-<span id="cb3-5">predictions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {key: {<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'human'</span>: <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'mouse'</span>: <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>} <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> key <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> individuals}</span>
-<span id="cb3-6"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> individuals:</span>
-<span id="cb3-7">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>predictions_dir<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">/</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>individual<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">/haplotype0/chr20_12118762_12118762_predictions.h5"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> hf:</span>
-<span id="cb3-8">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Shape:"</span>, hf[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'human'</span>].shape, hf[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'mouse'</span>].shape)</span>
-<span id="cb3-9">        predictions[individual][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'human'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> hf[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'human'</span>][:]</span>
-<span id="cb3-10">        predictions[individual][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'mouse'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> hf[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'mouse'</span>][:]</span>
-<span id="cb3-11"></span>
-<span id="cb3-12"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> individuals:</span>
-<span id="cb3-13">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(individual)</span>
-<span id="cb3-14">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(predictions[individual][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'human'</span>])</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Shape: (896, 5313) (896, 1643)
-Shape: (896, 5313) (896, 1643)
-BN
-[[0.24877878 0.30448553 0.51149255 ... 0.20368049 1.0607655  0.19327967]
- [0.16539484 0.20737107 0.38517445 ... 0.04803995 0.24678004 0.06899814]
- [0.16211113 0.2208599  0.45630974 ... 0.05229321 0.2012167  0.06385014]
- ...
- [0.18112534 0.22578599 0.29110363 ... 0.01156401 0.02807969 0.03532442]
- [0.17189275 0.20729916 0.26284078 ... 0.01724032 0.0404281  0.06090482]
- [0.15950578 0.21004479 0.22983137 ... 0.02550045 0.03975232 0.06125292]]
-ACI
-[[0.24076067 0.30101207 0.5132549  ... 0.20521325 1.1217918  0.25558835]
- [0.15946281 0.20442429 0.37761706 ... 0.04465578 0.24607326 0.08344302]
- [0.15568599 0.21775411 0.4520394  ... 0.05306218 0.20978831 0.08246609]
- ...
- [0.17938398 0.22463004 0.29506153 ... 0.01107231 0.02651541 0.0338815 ]
- [0.16948122 0.2044945  0.2620006  ... 0.01690046 0.04069382 0.06031117]
- [0.15266503 0.201914   0.22262897 ... 0.02438843 0.03895664 0.05986918]]</code></pre>
-</div>
-</div>
-
-
-</section>
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-12-test-run-on-HS-founders/index.html</guid>
-  <pubDate>Tue, 12 Sep 2023 07:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Validating reference gene expression prediction</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-06-validating-Huang-et-al/index.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<p>I replicated the Enformer result’s in <a href="https://www.biorxiv.org/content/10.1101/2023.06.30.547100v1">Personal transcriptome variation is poorly explained by current genomic deep learning models, Huang et al</a>. They reported a 0.57 correlation in reference prediction across all genes. They used median GEUVADIS LCL gene expression data for their comparison and quantified predicted gene expression using the average of 10 bin window around each gene’s TSS on the CAGE:B lymphoblastoid cell line track.</p>
-<p>They subsetted to 3,295 genes with a significant cis-QTL, however, when I expanded the analysis to all GEUVADIS genes, I found an even higher correlation of 0.77.</p>
-<section id="libraries-and-definitions" class="level3">
-<h3 class="anchored" data-anchor-id="libraries-and-definitions">Libraries and Definitions</h3>
-<div class="cell" data-execution_count="26">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> h5py</span>
-<span id="cb1-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span>
-<span id="cb1-3"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> np</span>
-<span id="cb1-4"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> plt</span>
-<span id="cb1-5"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> scipy.stats</span>
-<span id="cb1-6"></span>
-<span id="cb1-7">enfref_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/grand/TFXcan/imlab/users/lvairus/reftile_project/enformer-reference-epigenome"</span></span>
-<span id="cb1-8"></span>
-<span id="cb1-9"><span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">def</span> query_epigenome(chr_num, center_bp, n_bins<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>, tracks<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=-</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>):</span>
-<span id="cb1-10">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">"""</span></span>
-<span id="cb1-11"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    Parameters:</span></span>
-<span id="cb1-12"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">        path_to_enfref (str): path to the directory containing the concatenated reference enformer files</span></span>
-<span id="cb1-13"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">        chr_num (int/string): chromosome number</span></span>
-<span id="cb1-14"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">        center_bp (int): center base pair position (1-indexed)</span></span>
-<span id="cb1-15"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">        n_bins (int): number of bins to extract centered around center_bp (default: 896) </span></span>
-<span id="cb1-16"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">            note: if the number of bins is even, the center bin will be in the second half of the array</span></span>
-<span id="cb1-17"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">        tracks (int list): list of tracks to extract (default: all 5313 tracks)</span></span>
-<span id="cb1-18"></span>
-<span id="cb1-19"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    Returns:</span></span>
-<span id="cb1-20"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">        epigen (np.array): enformer predictions centered at center_bp of shape (n_bins, len(tracks))</span></span>
-<span id="cb1-21"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    """</span></span>
-<span id="cb1-22"></span>
-<span id="cb1-23">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># from position choose center bin</span></span>
-<span id="cb1-24">    center_bin <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> center_bp <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">128</span></span>
-<span id="cb1-25">    </span>
-<span id="cb1-26">    half_bins <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> n_bins <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">//</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span></span>
-<span id="cb1-27">    start_bin <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> center_bin <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> half_bins</span>
-<span id="cb1-28">    end_bin <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> center_bin <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> half_bins</span>
-<span id="cb1-29">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> n_bins <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">%</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">!=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>: <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># if n_bins is odd</span></span>
-<span id="cb1-30">        end_bin <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span></span>
-<span id="cb1-31"></span>
-<span id="cb1-32">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>enfref_dir<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">/chr</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>chr_num<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_cat.h5"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb1-33">        <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># get tracks if list provided</span></span>
-<span id="cb1-34">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> tracks <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>:</span>
-<span id="cb1-35">            epigen <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> f[<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'chr</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>chr_num<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>][start_bin:end_bin, :] </span>
-<span id="cb1-36">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb1-37">            epigen <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> f[<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'chr</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>chr_num<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>][start_bin:end_bin, tracks] </span>
-<span id="cb1-38"></span>
-<span id="cb1-39">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">return</span> epigen</span></code></pre></div>
-</div>
-</section>
-<section id="query-enformer-predicted-gene-expression" class="level3">
-<h3 class="anchored" data-anchor-id="query-enformer-predicted-gene-expression">Query Enformer predicted gene expression</h3>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">## Function to put CAGE predictions in list (in the same order as gene list by chromosome)</span></span>
-<span id="cb2-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> chr_list:</span>
-<span id="cb2-3">    gene_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gene_dict[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>]</span>
-<span id="cb2-4">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb2-5">        bins <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> query_epigenome(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>, hg38_annot.loc[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'transcription_start_site'</span>], num_bins<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>, tracks<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5110</span>])</span>
-<span id="cb2-6">        CAGE_predictions[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>].append(np.average(bins))</span></code></pre></div>
-</div>
-</section>
-<section id="calculate-geuvadis-reference-gene-expression" class="level3">
-<h3 class="anchored" data-anchor-id="calculate-geuvadis-reference-gene-expression">Calculate GEUVADIS reference gene expression</h3>
-<div class="cell" data-execution_count="80">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">geuvadis_gex <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/lus/grand/projects/TFXcan/imlab/data/1000G/expression/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt.gz"</span>, sep<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb3-2">geuvadis_gex.head()</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="80">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">TargetID</th>
-<th data-quarto-table-cell-role="th">Gene_Symbol</th>
-<th data-quarto-table-cell-role="th">Chr</th>
-<th data-quarto-table-cell-role="th">Coord</th>
-<th data-quarto-table-cell-role="th">HG00096</th>
-<th data-quarto-table-cell-role="th">HG00097</th>
-<th data-quarto-table-cell-role="th">HG00099</th>
-<th data-quarto-table-cell-role="th">HG00100</th>
-<th data-quarto-table-cell-role="th">HG00101</th>
-<th data-quarto-table-cell-role="th">HG00102</th>
-<th data-quarto-table-cell-role="th">...</th>
-<th data-quarto-table-cell-role="th">NA20810</th>
-<th data-quarto-table-cell-role="th">NA20811</th>
-<th data-quarto-table-cell-role="th">NA20812</th>
-<th data-quarto-table-cell-role="th">NA20813</th>
-<th data-quarto-table-cell-role="th">NA20814</th>
-<th data-quarto-table-cell-role="th">NA20815</th>
-<th data-quarto-table-cell-role="th">NA20816</th>
-<th data-quarto-table-cell-role="th">NA20819</th>
-<th data-quarto-table-cell-role="th">NA20826</th>
-<th data-quarto-table-cell-role="th">NA20828</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
-<td>ENSG00000152931.6</td>
-<td>ENSG00000152931.6</td>
-<td>5</td>
-<td>59783540</td>
-<td>0.101858</td>
-<td>0.078110</td>
-<td>0.048981</td>
-<td>0.118597</td>
-<td>0.004035</td>
-<td>0.010925</td>
-<td>...</td>
-<td>0.088601</td>
-<td>0.240010</td>
-<td>0.137175</td>
-<td>0.148494</td>
-<td>0.038643</td>
-<td>0.088509</td>
-<td>0.029204</td>
-<td>0.024423</td>
-<td>0.044816</td>
-<td>0.139186</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
-<td>ENSG00000183696.9</td>
-<td>ENSG00000183696.9</td>
-<td>7</td>
-<td>48128225</td>
-<td>8.183805</td>
-<td>5.686911</td>
-<td>2.434653</td>
-<td>3.830894</td>
-<td>6.612288</td>
-<td>4.709646</td>
-<td>...</td>
-<td>13.428205</td>
-<td>6.094500</td>
-<td>12.536000</td>
-<td>2.217262</td>
-<td>3.573394</td>
-<td>7.583364</td>
-<td>4.052882</td>
-<td>1.570378</td>
-<td>4.900372</td>
-<td>6.737308</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
-<td>ENSG00000139269.2</td>
-<td>ENSG00000139269.2</td>
-<td>12</td>
-<td>57846106</td>
-<td>1.199910</td>
-<td>1.573572</td>
-<td>0.521616</td>
-<td>1.447225</td>
-<td>3.565791</td>
-<td>1.982681</td>
-<td>...</td>
-<td>3.225880</td>
-<td>1.996067</td>
-<td>2.854923</td>
-<td>2.267343</td>
-<td>1.331201</td>
-<td>2.187895</td>
-<td>1.004250</td>
-<td>3.003316</td>
-<td>1.984362</td>
-<td>1.684954</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
-<td>ENSG00000169129.8</td>
-<td>ENSG00000169129.8</td>
-<td>10</td>
-<td>116164515</td>
-<td>0.831940</td>
-<td>0.069778</td>
-<td>0.931086</td>
-<td>0.620941</td>
-<td>1.660668</td>
-<td>0.570481</td>
-<td>...</td>
-<td>1.023381</td>
-<td>1.127852</td>
-<td>0.774409</td>
-<td>1.495854</td>
-<td>0.895342</td>
-<td>1.513521</td>
-<td>0.826377</td>
-<td>1.021201</td>
-<td>0.952502</td>
-<td>0.740565</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
-<td>ENSG00000134602.11</td>
-<td>ENSG00000134602.11</td>
-<td>X</td>
-<td>131157293</td>
-<td>27.646422</td>
-<td>24.395572</td>
-<td>16.445374</td>
-<td>24.806650</td>
-<td>25.113349</td>
-<td>19.233988</td>
-<td>...</td>
-<td>25.079490</td>
-<td>28.725528</td>
-<td>24.450520</td>
-<td>27.264069</td>
-<td>26.912814</td>
-<td>29.509210</td>
-<td>26.462331</td>
-<td>25.624009</td>
-<td>25.707741</td>
-<td>22.824957</td>
-</tr>
-</tbody>
-</table>
-
-<p>5 rows × 466 columns</p>
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="81">
-<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">geuvadis_gex[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'TargetID'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> geuvadis_gex[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'TargetID'</span>].<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">apply</span>(<span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">lambda</span> gene: gene.split(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'.'</span>)[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>])</span>
-<span id="cb4-2">geuvadis_gex.set_index(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'TargetID'</span>, inplace<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>)</span>
-<span id="cb4-3"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Calculate average gene expression</span></span>
-<span id="cb4-4">geuvadis_mean_gex <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> geuvadis_gex.drop(columns<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Gene_Symbol'</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Chr'</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Coord'</span>]).mean(axis<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>)</span>
-<span id="cb4-5">geuvadis_mean_gex.name <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'geuvadis, mean'</span></span>
-<span id="cb4-6"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Calculate median gene expression</span></span>
-<span id="cb4-7">geuvadis_median_gex <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> geuvadis_gex.drop(columns<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Gene_Symbol'</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Chr'</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Coord'</span>]).median(axis<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>)</span>
-<span id="cb4-8">geuvadis_median_gex.name <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'geuvadis, median'</span></span></code></pre></div>
-</div>
-</section>
-<section id="split-genes-by-chromosome" class="level2">
-<h2 class="anchored" data-anchor-id="split-genes-by-chromosome">Split genes by chromosome</h2>
-<div class="cell" data-execution_count="47">
-<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">## Subset annotation to GEUVADIS genes</span></span>
-<span id="cb5-2">hg38_annot <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/annotation/hg38.protein_coding_TSS.txt"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, sep<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb5-3">hg38_annot <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> hg38_annot[hg38_annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ensembl_gene_id"</span>].isin(geuvadis_gex.index)]</span>
-<span id="cb5-4">gene_dict <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> hg38_annot.groupby(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'chromosome_name'</span>)[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'ensembl_gene_id'</span>].<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">apply</span>(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>).to_dict()</span>
-<span id="cb5-5"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">## Initialize CAGE predictions</span></span>
-<span id="cb5-6">hg38_annot.set_index(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ensembl_gene_id"</span>, inplace<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>)</span>
-<span id="cb5-7">chr_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"1"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"2"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"3"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"4"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"5"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"6"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"7"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"8"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"9"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"10"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"11"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"12"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"13"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"14"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"15"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"16"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"17"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"18"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"19"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"20"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"21"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"22"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"X"</span>]</span>
-<span id="cb5-8">CAGE_predictions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {key: [] <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> key <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> chr_list}</span></code></pre></div>
-</div>
-</section>
-<section id="query-enformer-predicted-gene-expression-1" class="level2">
-<h2 class="anchored" data-anchor-id="query-enformer-predicted-gene-expression-1">Query Enformer predicted gene expression</h2>
-<div class="cell" data-execution_count="56">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> chr_list:</span>
-<span id="cb6-2">    gene_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gene_dict[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>]</span>
-<span id="cb6-3">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb6-4">        bins <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> query_epigenome(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>, hg38_annot.loc[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'transcription_start_site'</span>], tracks<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5110</span>])</span>
-<span id="cb6-5">        CAGE_predictions[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>].append(np.average(bins))</span>
-<span id="cb6-6">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">break</span></span></code></pre></div>
-</div>
-<section id="plot-correlation-across-genes" class="level3">
-<h3 class="anchored" data-anchor-id="plot-correlation-across-genes">Plot correlation across genes</h3>
-<div class="cell" data-execution_count="64">
-<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">merged_dict <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>: pd.DataFrame(index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>gene_dict[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>]) <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> chr_list}</span>
-<span id="cb7-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> chr_list:</span>
-<span id="cb7-3">    merged_dict[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'enformer, 3 bin'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> CAGE_predictions[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>]</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="65">
-<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> chr_list:</span>
-<span id="cb8-2">    merged_dict[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_dict[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>].merge(geuvadis_mean_gex, left_index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>, right_index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>, how<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'inner'</span>).dropna()</span>
-<span id="cb8-3">    merged_dict[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_dict[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>].merge(geuvadis_median_gex, left_index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>, right_index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>, how<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'inner'</span>).dropna()</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="66">
-<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1">all_genes <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.concat(merged_dict.values())</span>
-<span id="cb9-2"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># #all_genes.to_csv("/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_GEUVADIS.csv")</span></span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="72">
-<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#all_genes = pd.read_csv("/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_GEUVADIS.csv", index_col=0)</span></span>
-<span id="cb10-2"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Pearson Correlation across all GEUVADIS genes, 3 bin"</span>, all_genes.corr(method <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pearson"</span>).iloc[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>,<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>])</span>
-<span id="cb10-3">corr <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> scipy.stats.spearmanr(all_genes[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"geuvadis"</span>], all_genes[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer, 3 bin"</span>])[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>]</span>
-<span id="cb10-4"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Spearman Correlation across all GEUVADIS genes, 3 bin:"</span>, corr)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Pearson Correlation across all GEUVADIS genes, 3 bin 0.20215477325106418
-Spearman Correlation across all GEUVADIS genes, 3 bin: 0.7688261493752583</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="74">
-<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1">plt.scatter(all_genes[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'enformer, 3 bin'</span>], all_genes[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'geuvadis'</span>], label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'Correlation: </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb12-2">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'observed'</span>)</span>
-<span id="cb12-3">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'predicted'</span>)</span>
-<span id="cb12-4">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"hg38 prediction across genes"</span>)</span>
-<span id="cb12-5">plt.legend()</span>
-<span id="cb12-6">plt.grid(<span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>)</span>
-<span id="cb12-7">plt.show()</span></code></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-06-validating-Huang-et-al/index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-</section>
-<section id="compare-to-10-bin-window-predictions" class="level3">
-<h3 class="anchored" data-anchor-id="compare-to-10-bin-window-predictions">Compare to 10 bin window predictions</h3>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> time</span>
-<span id="cb13-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span> <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> chr_list:</span>
-<span id="cb13-3">    tic <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> time.perf_counter()</span>
-<span id="cb13-4">    gene_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_dict[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>].index</span>
-<span id="cb13-5">    predictions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> []</span>
-<span id="cb13-6">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb13-7">        bins <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> query_epigenome(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>, hg38_annot.loc[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'transcription_start_site'</span>], n_bins<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>, tracks<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5110</span>])</span>
-<span id="cb13-8">        predictions.append(np.average(bins))</span>
-<span id="cb13-9">    merged_dict[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer, 10 bin"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> predictions</span>
-<span id="cb13-10">    toc <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> time.perf_counter()</span>
-<span id="cb13-11">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Querying chromosome"</span>, <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"genes...,"</span>, toc <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> tic, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"seconds"</span>)</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="94">
-<div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1">all_genes <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.concat(merged_dict.values())</span>
-<span id="cb14-2">all_genes <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> all_genes[[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"geuvadis, mean"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"geuvadis, median"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer, 3 bin"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer, 10 bin"</span>]]</span>
-<span id="cb14-3">all_genes.to_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_GEUVADIS.csv"</span>)</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="90">
-<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Pearson Correlation"</span>)</span>
-<span id="cb15-2">all_genes.corr(method <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pearson"</span>)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Pearson Correlation</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="90">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">geuvadis, mean</th>
-<th data-quarto-table-cell-role="th">geuvadis, median</th>
-<th data-quarto-table-cell-role="th">enformer, 3 bin</th>
-<th data-quarto-table-cell-role="th">enformer, 10 bin</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">geuvadis, mean</td>
-<td>1.000000</td>
-<td>0.999931</td>
-<td>0.202155</td>
-<td>0.193256</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">geuvadis, median</td>
-<td>0.999931</td>
-<td>1.000000</td>
-<td>0.201489</td>
-<td>0.192641</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">enformer, 3 bin</td>
-<td>0.202155</td>
-<td>0.201489</td>
-<td>1.000000</td>
-<td>0.923923</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">enformer, 10 bin</td>
-<td>0.193256</td>
-<td>0.192641</td>
-<td>0.923923</td>
-<td>1.000000</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="89">
-<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Spearman Correlation:"</span>)</span>
-<span id="cb17-2">all_genes.corr(method <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"spearman"</span>)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Spearman Correlation:</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="89">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">geuvadis, mean</th>
-<th data-quarto-table-cell-role="th">geuvadis, median</th>
-<th data-quarto-table-cell-role="th">enformer, 3 bin</th>
-<th data-quarto-table-cell-role="th">enformer, 10 bin</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">geuvadis, mean</td>
-<td>1.000000</td>
-<td>0.999273</td>
-<td>0.768826</td>
-<td>0.759941</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">geuvadis, median</td>
-<td>0.999273</td>
-<td>1.000000</td>
-<td>0.770554</td>
-<td>0.761739</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">enformer, 3 bin</td>
-<td>0.768826</td>
-<td>0.770554</td>
-<td>1.000000</td>
-<td>0.963611</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">enformer, 10 bin</td>
-<td>0.759941</td>
-<td>0.761739</td>
-<td>0.963611</td>
-<td>1.000000</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<p>The highest correlation between observed and predicted expression in the 14,585 GEUVADIS genes is 0.77, by using a 3 bin average around the TSS for predicted reference and median gene expression across GEUVADIS individuals as observed reference. This is actually better than the reported 0.57 correlation by Huang et al, but I will run the original code to triple check.</p>
-</section>
-<section id="original-code" class="level3">
-<h3 class="anchored" data-anchor-id="original-code">Original Code</h3>
-<p>I cloned <a href="https://github.com/ni-lab/personalized-expression-benchmark.git">personalized-expression-benchmark</a>.</p>
-<p>The first difference I noticed in their analysis is that they subset to 3259 genes in the GEUVADIS EUR dataset found to have at least one significant cis-eQTL.</p>
-</section>
-<section id="original-code-1" class="level3">
-<h3 class="anchored" data-anchor-id="original-code-1">Original Code</h3>
-<p>My only modification was hard-coding paths and removing the fasta folder argument in <a href="https://github.com/ni-lab/personalized-expression-benchmark/blob/main/enformer/run_enformer_reference.py"><code>personalized-expression-benchmark/enformer/run_enformer_reference.py</code></a></p>
-<pre><code>module load conda
-conda activate ml-python
-cd /home/s1mi/Github/personalized-expression-benchmark
-
-python3 enformer/run_enformer_reference.py . data/gene_list.csv
-</code></pre>
-<div class="cell" data-execution_count="99">
-<div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1">output <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/Github/personalized-expression-benchmark/output/reference_predictions.csv"</span>)</span>
-<span id="cb20-2">merged_output <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> output.merge(geuvadis_median_gex, left_on<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"geneId"</span>, right_index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>).drop(columns<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"mean"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"max"</span>])</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="102">
-<div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Pearson Correlation:"</span>)</span>
-<span id="cb21-2">merged_output.corr(method<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pearson"</span>)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Pearson Correlation:</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="102">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">tss3</th>
-<th data-quarto-table-cell-role="th">tss10</th>
-<th data-quarto-table-cell-role="th">geuvadis, median</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">tss3</td>
-<td>1.000000</td>
-<td>0.835206</td>
-<td>0.197672</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">tss10</td>
-<td>0.835206</td>
-<td>1.000000</td>
-<td>0.218041</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">geuvadis, median</td>
-<td>0.197672</td>
-<td>0.218041</td>
-<td>1.000000</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="103">
-<div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Spearman Correlation:"</span>)</span>
-<span id="cb23-2">merged_output.corr(method<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"spearman"</span>)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Spearman Correlation:</code></pre>
-</div>
-<div class="cell-output cell-output-display" data-execution_count="103">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">tss3</th>
-<th data-quarto-table-cell-role="th">tss10</th>
-<th data-quarto-table-cell-role="th">geuvadis, median</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">tss3</td>
-<td>1.000000</td>
-<td>0.893283</td>
-<td>0.501058</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">tss10</td>
-<td>0.893283</td>
-<td>1.000000</td>
-<td>0.569476</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">geuvadis, median</td>
-<td>0.501058</td>
-<td>0.569476</td>
-<td>1.000000</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="106">
-<div class="sourceCode cell-code" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1">corr <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_output.corr(method<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"spearman"</span>).iloc[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>,<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>]</span>
-<span id="cb25-2">plt.scatter(all_genes[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'enformer, 10 bin'</span>], all_genes[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'geuvadis, median'</span>], label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'Correlation: </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.2f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb25-3">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'observed'</span>)</span>
-<span id="cb25-4">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'predicted'</span>)</span>
-<span id="cb25-5">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"hg38 prediction across genes"</span>)</span>
-<span id="cb25-6">plt.legend()</span>
-<span id="cb25-7">plt.grid(<span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>)</span>
-<span id="cb25-8">plt.show()</span></code></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-06-validating-Huang-et-al/index_files/figure-html/cell-20-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-
-
-</section>
-</section>
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-06-validating-Huang-et-al/index.html</guid>
-  <pubDate>Wed, 06 Sep 2023 07:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
