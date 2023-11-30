@@ -8,21 +8,9 @@ format: html
 
 **Debugging Founder Genotype Probabilities Runs**
 
-1. [Ran Dan's scripts as-is (genome-wide) on Polaris](https://sabrina-dl.hakyimlab.org/posts/2023-11-08-calculating-Br-genotype-probabilities/)
+1. 
 
-    * I allocated enough memory, number of cores, walltime for the computation, but it gets killed anyways
 
-![R on Polaris Compute Node with 64 CPUs](../2023-11-08-calculating-Br-genotype-probabilities/polaris_calc_genoprob_bug.png)
-
-2. [Modified code to run qtl2 on each chromosome separately](https://sabrina-dl.hakyimlab.org/posts/2023-11-14-calculating-genotype-probabilities-by-chromosome)
-
-    * Two different methods of writing input files for chromosome 20, both result in the same error: 
-    
-    ![Chromosome 20](chr20_calc_genoprob.png)
-
-    * Runs locally for chromosome 19 
-    
-    ![Chromosome 19](chr19_calc_genoprob.png)
 
 ## Introduction
 

@@ -22,6 +22,8 @@ done
 scp -r $DATA_DIR/chr*-qtl2-founder-haps polaris:qtl2-data
 ```
 
+[`run_qtl2_batches.py`](https://github.com/hakyimlab/sabrina-deep-learning-in-genomics/blob/main/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/run_qtl2_batches.py) splits genotype inputs for a given chromsome into batches of 10 samples. I passed in chromosome number as a variables when I submitted [`qtl2-founder-haps-by-chromsome.pbs`](https://github.com/hakyimlab/sabrina-deep-learning-in-genomics/blob/main/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/qtl2-founder-haps-by-chromsome.pbs).
+
 ```
 cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
 for i in {1..20}
