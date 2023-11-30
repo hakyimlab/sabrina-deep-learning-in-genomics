@@ -12,7 +12,7 @@ format: html
         * The intervals are all centered at a gene, rather than incremental positions, so I would need to identify each interval with its matrix. Ideally, I want to try to index the intervals so that any region can be efficiently queried.
 
 2. Most rats have founder genotype probabilities at each site across the genome
-    * [Split Br rats into batches for qtl2 computations](https://sabrina-dl.hakyimlab.org/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/index.qmd), most batches have probabilities done, but it varies by chromosome
+    * [Split Br rats into batches for qtl2 computations](https://sabrina-dl.hakyimlab.org/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/), most batches have probabilities done, but it varies by chromosome
     * [Reorganized results as CSVs](https://sabrina-dl.hakyimlab.org/posts/2023-11-26-processing-qtl2-probabilities/)
         * `/home/s1mi/Br_genotype_probabilities/{individual}/chr{i}_probabilities.csv` 
         * Only 43 rats with complete genotype probabilities
