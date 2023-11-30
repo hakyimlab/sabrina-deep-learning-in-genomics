@@ -1,0 +1,27 @@
+---
+title: Processing qtl2-founder-haps probabilies
+author: Sabrina Mi
+date: 11/26/2023
+---
+
+```{r}
+"%&%" = function(a,b) paste(a,b,sep="")
+chr = as.character(20)
+output_dir <- "~/chr" %&% chr %&% "-qtl2-outputs/"
+batches <- list.files(output_dir)
+n_batches <- length(batches)
+```
+
+
+
+```{r}
+id = "000789972A"
+mat <- matrix(, nrow = 8)
+for (i in 1:n_batches) {
+  pr <- readRDS(output_dir %&% batches[i])
+  mat <- rbind(pr[[1]][1, , ])
+}
+mat <- t(mat)
+write.csv(mat, output_dir %&% id %&% ".csv" )
+```
+
