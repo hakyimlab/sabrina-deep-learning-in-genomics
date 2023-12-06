@@ -18,5 +18,10 @@ format:
     css: styles.css
 
 execute:
+  cache: true
   freeze: auto
+
+editor:
+  markdown:
+    wrap: 72
 
