@@ -7,7 +7,7 @@ date: 11/22/2023
 
 ### Prepare Chromosome Inputs
 
-We first generate chromosome-wide input files with Dan's original make_qtl2_inputs function locally, because I'm having so much trouble creating a conda environment with both R and python's pysam libraries.
+We first generate chromosome-wide input files with Dan's original make_qtl2_inputs function locally, because I'm having so much trouble creating a conda environment with both R and python's pysam libraries on polaris.
 
 ```
 conda activate genomics
@@ -29,8 +29,19 @@ cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-hap
 for i in {1..20}
 do
     qsub -v CHR=${i} -N chr${i}-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
-    sleep 60
+    sleep 5
 done
 
 ```
 
+### Fill in Gaps
+
+```
+module load conda
+conda activate genomics
+GENO_DIR=/home/s1mi/enformer_rat_data/genotypes
+DATA_DIR=/home/s1mi/qtl2-data
+cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
+python run_qtl2_batches.py --data_dir $DATA_DIR/chr1-qtl2-founder-haps --output_dir /home/s1mi/qtl2-outputs/chr1-qtl2-outputs --work_dir $DATA_DIR/tmp-chr1-qtl2-founder-haps
+
+```

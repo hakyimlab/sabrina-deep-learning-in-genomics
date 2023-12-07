@@ -30,14 +30,13 @@ split_by_sample = function(chromosome) {
     for (sample in samples) {
       sample_dir = output_dir %&% sample
       if (!file.exists(sample_dir)) {
-        dir.create(sample_dir, recursive = TRUE)
+        dir.create(sample_dir)
       }
-      csv = sample_dir %&% "/chr" %&% chr %&% "_probabilies.csv"
+      csv = sample_dir %&% "/chr" %&% chr %&% "_probabilities.csv"
       if (!file.exists(csv)) {
-        mat <- rbind(pr[sample, , ])
-        write.csv(t(mat), csv, quote=FALSE)
+        print("Write Probabilities")
+        write.csv(t(pr[sample, ,]), csv, quote=FALSE)
       }
-      
     }
   }
 }
@@ -48,7 +47,9 @@ split_by_sample = function(chromosome) {
 
 ```{r run}
 for (i in 1:20) {
-  # cat("Chromosome:", as.character((i)))
+  cat("Chromosome:", as.character((i)))
   split_by_sample(i)
+  break
 }
 ```
+

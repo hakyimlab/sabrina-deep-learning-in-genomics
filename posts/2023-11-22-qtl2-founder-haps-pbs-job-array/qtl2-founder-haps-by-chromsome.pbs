@@ -1,7 +1,7 @@
 #PBS -A AIHPC4EDU
-#PBS -l walltime=01:00:00
+#PBS -l walltime=05:00:00
 #PBS -l filesystems=home
-#PBS -q debug
+#PBS -q preemptable
 #PBS -k doe
 
 module load conda 
@@ -9,15 +9,17 @@ conda activate genomics
 
 GENO_DIR=/home/s1mi/enformer_rat_data/genotypes
 DATA_DIR=/home/s1mi/qtl2-data
+OUTPUT_DIR=/eagle/AIHPC4Edu/sabrina/qtl2-outputs
 
-# mkdir $DATA_DIR/chr${CHR}-qtl2-outputs
-# mkdir $DATA_DIR/tmp-chr${CHR}-qtl2-founder-haps
+mkdir $DATA_DIR/chr${CHR}-qtl2-outputs
+mkdir $DATA_DIR/tmp-chr${CHR}-qtl2-founder-haps
+mkdir $OUTPUT_DIR/chr${CHR}-qtl2-outputs
 cp $DATA_DIR/chr${CHR}-qtl2-founder-haps/control.yaml $DATA_DIR/tmp-chr${CHR}-qtl2-founder-haps/control.yaml
 cp $DATA_DIR/chr${CHR}-qtl2-founder-haps/founder_geno.csv $DATA_DIR/tmp-chr${CHR}-qtl2-founder-haps/founder_geno.csv
 cp $DATA_DIR/chr${CHR}-qtl2-founder-haps/gmap.csv $DATA_DIR/tmp-chr${CHR}-qtl2-founder-haps/gmap.csv
 cp $DATA_DIR/chr${CHR}-qtl2-founder-haps/pmap.csv $DATA_DIR/tmp-chr${CHR}-qtl2-founder-haps/pmap.csv
 
 cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
-python run_qtl2_batches.py --data_dir $DATA_DIR/chr${CHR}-qtl2-founder-haps --output_dir /home/s1mi/qtl2-outputs/chr${CHR}-qtl2-outputs --work_dir $DATA_DIR/tmp-chr${CHR}-qtl2-founder-haps
+python run_qtl2_batches.py --data_dir $DATA_DIR/chr${CHR}-qtl2-founder-haps --output_dir $OUTPUT_DIR/chr${CHR}-qtl2-outputs --work_dir $DATA_DIR/tmp-chr${CHR}-qtl2-founder-haps
 
 

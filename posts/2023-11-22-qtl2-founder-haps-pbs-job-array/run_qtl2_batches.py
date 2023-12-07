@@ -31,7 +31,7 @@ for i in range(n_batches):
     if os.path.exists(prob_rds):
         continue
     tic = time.perf_counter()
-    geno_df = geno.iloc[:, i:i+batch_size]
+    geno_df = geno.iloc[:, batch_size*i:batch_size*(i+1)]
     samples = geno_df.columns.to_list()
     covar_df = pd.DataFrame({'id': samples, 'generations': [90] *  len(samples)})
     geno_df.to_csv(f'{args.work_dir}/geno.csv', index=True)
