@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-11-22">
+<meta name="dcterms.date" content="2023-12-06">
 
-<title>deep-learning-in-genomics - Br rat haplotype probabilities from HS founders by chromosome</title>
+<title>deep-learning-in-genomics - Concatenating HS Founder Epigenomes</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -108,7 +142,7 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Br rat haplotype probabilities from HS founders by chromosome</h1>
+      <h1 class="title">Concatenating HS Founder Epigenomes</h1>
                       </div>
   </div>
     
@@ -125,7 +159,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">November 22, 2023</p>
+        <p class="date">December 6, 2023</p>
       </div>
     </div>
     
@@ -143,37 +177,83 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="prepare-chromosome-inputs" class="level3">
-<h3 class="anchored" data-anchor-id="prepare-chromosome-inputs">Prepare Chromosome Inputs</h3>
-<p>We first generate chromosome-wide input files with Dan’s original make_qtl2_inputs function locally, because I’m having so much trouble creating a conda environment with both R and python’s pysam libraries on polaris.</p>
-<pre><code>conda activate genomics
-cd Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
-GENO_DIR=/Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
-DATA_DIR=/Users/sabrinami/Desktop/qtl2_data
-for CHR in {1..20}
-do
-    python make_qtl2_inputs.py $GENO_DIR/BrainVCFs/chr${CHR}.vcf.gz $GENO_DIR/FounderVCFs/chr${CHR}.vcf.gz --working-dir $DATA_DIR/chr${CHR}-qtl2-founder-haps --gmap-dir $DATA_DIR/genetic_map
-done
-
-scp -r $DATA_DIR/chr*-qtl2-founder-haps polaris:qtl2-data</code></pre>
-<p><a href="https://github.com/hakyimlab/sabrina-deep-learning-in-genomics/blob/main/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/run_qtl2_batches.py"><code>run_qtl2_batches.py</code></a> splits genotype inputs for a given chromsome into batches of 10 samples. I passed in chromosome number as a variables when I submitted <a href="https://github.com/hakyimlab/sabrina-deep-learning-in-genomics/blob/main/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/qtl2-founder-haps-by-chromsome.pbs"><code>qtl2-founder-haps-by-chromsome.pbs</code></a>.</p>
-<pre><code>cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
-for i in {1..20}
-do
-    qsub -v CHR=${i} -N chr${i}-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
-    sleep 5
-done
-</code></pre>
+<section id="initialize-gene-interval-mapping" class="level2">
+<h2 class="anchored" data-anchor-id="initialize-gene-interval-mapping">Initialize Gene-Interval Mapping</h2>
+<div class="cell" data-execution_count="25">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/Br_expressed_genes.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    gene_list <span class="op">=</span> f.read().splitlines()</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/metadata/intervals.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    intervals <span class="op">=</span> f.read().splitlines()</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>mapping <span class="op">=</span> pd.DataFrame({<span class="st">"gene"</span>: gene_list, <span class="st">"interval"</span>: intervals})</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>mapping[<span class="st">'chromosome'</span>] <span class="op">=</span> mapping[<span class="st">'interval'</span>].<span class="bu">str</span>.split(<span class="st">'_'</span>).<span class="bu">str</span>[<span class="dv">0</span>].<span class="bu">str</span>[<span class="dv">3</span>:]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 </section>
-<section id="fill-in-gaps" class="level3">
-<h3 class="anchored" data-anchor-id="fill-in-gaps">Fill in Gaps</h3>
-<pre><code>module load conda
-conda activate genomics
-GENO_DIR=/home/s1mi/enformer_rat_data/genotypes
-DATA_DIR=/home/s1mi/qtl2-data
-cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
-python run_qtl2_batches.py --data_dir $DATA_DIR/chr1-qtl2-founder-haps --output_dir /home/s1mi/qtl2-outputs/chr1-qtl2-outputs --work_dir $DATA_DIR/tmp-chr1-qtl2-founder-haps
-</code></pre>
+<section id="concatenate-by-chromosome" class="level2">
+<h2 class="anchored" data-anchor-id="concatenate-by-chromosome">Concatenate by Chromosome</h2>
+<div class="cell" data-execution_count="60">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>predictions_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/predictions_folder/HS_founders_genome_wide/predictions_2023-11-27/enformer_predictions"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>gene_dict <span class="op">=</span> mapping.groupby(<span class="st">'chromosome'</span>)[<span class="st">'gene'</span>].<span class="bu">apply</span>(<span class="bu">list</span>).to_dict()</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>founders <span class="op">=</span> os.listdir(predictions_dir)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="100">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> N <span class="kw">in</span> gene_dict.keys():</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    output_path <span class="op">=</span> os.path.join(output_dir, <span class="st">"human"</span>, <span class="ss">f"chr</span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(output_path, <span class="st">"w"</span>):</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    output_path <span class="op">=</span> os.path.join(output_dir, <span class="st">"mouse"</span>, <span class="ss">f"chr</span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(output_path, <span class="st">"w"</span>):</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">pass</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="111">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> concatenate_predictions(N, completed):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> gene <span class="kw">in</span> gene_dict[N]:</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> gene <span class="kw">in</span> completed:</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        interval <span class="op">=</span> mapping[mapping[<span class="st">"gene"</span>] <span class="op">==</span> gene][<span class="st">'interval'</span>].item()</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> individual <span class="kw">in</span> founders:</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>            input_path <span class="op">=</span> os.path.join(predictions_dir, individual, <span class="st">"haplotype0"</span>,<span class="ss">f'</span><span class="sc">{</span>interval<span class="sc">}</span><span class="ss">_predictions.h5'</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(input_path, <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">input</span>:</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>                <span class="cf">for</span> model <span class="kw">in</span> <span class="bu">input</span>.keys():</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>                    output_path <span class="op">=</span> os.path.join(output_dir, model, <span class="ss">f"chr</span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                    <span class="cf">with</span> h5py.File(output_path, <span class="st">"a"</span>) <span class="im">as</span> output:</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>                        <span class="cf">if</span> gene <span class="kw">not</span> <span class="kw">in</span> output:</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>                            gene_group <span class="op">=</span> output.create_group(gene)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>                        <span class="cf">else</span>:</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>                            gene_group <span class="op">=</span> output[gene]</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>                        <span class="cf">if</span> individual <span class="kw">not</span> <span class="kw">in</span> gene_group:</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>                            gene_group.create_dataset(individual, data<span class="op">=</span><span class="bu">input</span>[model][:])</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        completed.append(gene)</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>            </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="110">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>output_path <span class="op">=</span> os.path.join(output_dir, <span class="st">"human"</span>, <span class="ss">f"chr20_genes.h5"</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(output_path, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, value <span class="kw">in</span> hf.items():</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(key, value)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>output_path <span class="op">=</span> os.path.join(output_dir, <span class="st">"mouse"</span>, <span class="ss">f"chr20_genes.h5"</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(output_path, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> key, value <span class="kw">in</span> hf.items():</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(key, value)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>ENSRNOG00000026051 &lt;HDF5 group "/ENSRNOG00000026051" (2 members)&gt;
+ENSRNOG00000031607 &lt;HDF5 group "/ENSRNOG00000031607" (8 members)&gt;
+ENSRNOG00000026051 &lt;HDF5 group "/ENSRNOG00000026051" (2 members)&gt;
+ENSRNOG00000031607 &lt;HDF5 group "/ENSRNOG00000031607" (8 members)&gt;</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="112">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>completed_genes <span class="op">=</span> []</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>concatenate_predictions(<span class="st">"20"</span>, completed_genes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
 
 
 </section>

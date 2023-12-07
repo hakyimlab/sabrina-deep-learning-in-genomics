@@ -4,7 +4,10 @@
     "items": [
       "/posts/borzoi-tests-overview/index.html",
       "/posts/enformer-rat-human-analysis-overview/index.html",
-      "/posts/2023-11-26-processing-qtl2-probabilities/index.html",
+      "/posts/2023-12-07-concatenating-HS-reference-epigenomes/index.html",
+      "/posts/2023-12-06-qtl2-probabilites-to-sqlite-database/index.html",
+      "/posts/2023-12-01-Den-outbred-rats-haplotypes/index.html",
+      "/posts/2023-11-26-qtl2-probabilities-to-csv/index.html",
       "/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/index.html",
       "/posts/2023-11-19-split-qlt2-inputs-batches/index.html",
       "/posts/2023-11-17-debugging-qtl2-founder-haps/index.html",
