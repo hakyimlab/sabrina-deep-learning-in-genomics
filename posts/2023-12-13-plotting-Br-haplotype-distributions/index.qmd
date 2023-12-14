@@ -2,7 +2,6 @@
 title: Plotting Br Rats' Haplotype Distributions
 author: Sabrina Mi, Dan Munro
 date: 12/13/2023
-engine: markdown
 ---
 
 ```{r libraries}
@@ -14,8 +13,8 @@ library(stringr)
 
 
 ```{r calc_genoprob to df function}
-prob <- readRDS("/Users/sabrinami/chr20-qtl2-outputs/batch0_prob.rds")
-reshape_genoprob <- function(sample) {
+
+reshape_genoprob <- function(sample, prob) {
   sample_prob <- as.data.frame(t(prob[[1]][sample, , ]))
   snps <- str_split(rownames(sample_prob), ":", simplify = TRUE)
   colnames(snps) <- c("chrom", "pos")
@@ -31,8 +30,13 @@ reshape_genoprob <- function(sample) {
 ### Samples Plots
 
 ```{r}
-for (sample in sample(rownames(prob[[1]]), size = 2, replace = FALSE)) {
-  df <- reshape_genoprob(sample)
+chr20_prob <- readRDS("/Users/sabrinami/chr20-qtl2-outputs/batch0_prob.rds")
+chr19_prob <- readRDS("/Users/sabrinami/chr19-qtl2-outputs/batch0_prob.rds")
+samples <- sample(rownames(chr20_prob[[1]])
+for (sample in samples, size = 2, replace = FALSE)) {
+  chr20_df <- reshape_genoprob(sample, chr20_prob)
+  chr19_df <- reshape_genoprob(sample, chr19_prob)
+  df <- rbind(chr19_df, chr20_df)
   plot <- df %>% ggplot(aes(x = pos, y = prob, fill = Strain)) +
     facet_wrap(~ chrom, ncol = 2, dir = "v", strip.position = "left") +
     geom_area() +
