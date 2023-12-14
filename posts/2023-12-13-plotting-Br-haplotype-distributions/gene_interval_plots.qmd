@@ -4,3 +4,55 @@ author: Sabrina Mi
 date: 12/14/2023
 ---
 
+```{r libraries}
+library(ggplot2)
+library(tidyr)
+library(stringr)
+library(dplyr)
+```
+
+```{r calc_genoprob to df function}
+reshape_genoprob <- function(sample, prob) {
+  sample_prob <- as.data.frame(t(prob[[1]][sample, , ]))
+  snps <- str_split(rownames(sample_prob), ":", simplify = TRUE)
+  colnames(snps) <- c("chrom", "pos")
+  sample_prob <- cbind(sample_prob, snps)
+  sample_prob$pos <- as.integer(sample_prob$pos)
+  return(sample_prob)
+}
+
+```
+
+```{r gene annot}
+intervals <- read.csv("/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/metadata/intervals.txt", header=FALSE)
+genes <- read.csv("/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/Br_expressed_genes.txt", header=FALSE)
+split <- str_split(intervals$V1, "_", simplify = TRUE)
+genes_df <- data.frame(genes = genes$V1, chrom = split[,1], tss = as.integer(split[,2]))
+```
+
+```{r}
+filtered_genes <- filter(genes_df, chrom == 'chr20')
+prob <- readRDS("/home/s1mi/qtl2-outputs/chr20-qtl2-outputs/batch0_prob.rds")
+sample_prob <- reshape_genoprob("000789972A", prob)
+grouped_df <- data.frame()
+for (i in 1:nrow(filtered_genes)) {
+  gene <- filtered_genes[i, "genes"]
+  chrom <- filtered_genes[i, "chrom"]
+  tss <- filtered_genes[i, "tss"]
+  
+  # Check for matching 'chrom' and 'pos' in sample_prob
+  filtered_snps <- sample_prob %>% filter(between(pos, tss-28672, tss+28672))
+  # If a match is found, add a 'gene' column and append to grouped_df
+  if (nrow(filtered_snps) > 0) {
+    filtered_snps$gene <- gene
+    grouped_df <- rbind(grouped_df, filtered_snps)
+  }
+}
+
+```
+
+```{r}
+plot_df <- pivot_longer(grouped_df, cols = -c(chrom, pos, gene), names_to = "Strain", values_to = "prob")
+plot_df %>% 
+```
+
