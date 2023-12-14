@@ -53,6 +53,31 @@ for (i in 1:nrow(filtered_genes)) {
 
 ```{r}
 plot_df <- pivot_longer(grouped_df, cols = -c(chrom, pos, gene), names_to = "Strain", values_to = "prob")
-plot_df %>% 
+#plot_df <- readRDS("000789972A_gene_probs.rds")
+```
+
+
+```{r}
+sampled_genes <- plot_df$gene %>% unique() %>% sample(25)
+sampled_data <- plot_df %>%
+  filter(gene %in% sampled_genes)
+plot <- ggplot(sampled_data, aes(x = pos, y = prob, fill = Strain)) +
+  geom_area() +
+  facet_wrap(~ gene, scales = "free") +  # Group by 'gene' with 2 columns
+  scale_fill_brewer(type = "qual", palette = 6) +
+  scale_x_discrete(expand = c(0, 0)) +  # Adjust x-axis
+  scale_y_continuous(expand = c(0, 0), breaks = NULL) +  # Adjust y-axis
+  theme_bw() +
+  xlab("Genes") +
+  ylab("Estimated Proportion") +
+  labs(title = "000789972A: 25 genes sampled from chr1") +
+  theme(
+    strip.text = element_blank(),  # Rotate x-axis labels
+    panel.grid = element_blank(),
+    strip.background = element_blank(),
+    legend.position = "top"
+  ) 
+print(plot)
+ggsave("000789972A_genes.png", plot = plot, width = 8, height = 6, units = "in", dpi = 300)
 ```
 
