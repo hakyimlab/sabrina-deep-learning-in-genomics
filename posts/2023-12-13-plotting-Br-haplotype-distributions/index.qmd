@@ -1,0 +1,59 @@
+---
+title: Plotting Br Rats' Haplotype Distributions
+author: Sabrina Mi, Dan Munro
+date: 12/13/2023
+engine: markdown
+---
+
+```{r libraries}
+library(ggplot2)
+library(tidyr)
+library(stringr)
+
+```
+
+
+```{r calc_genoprob to df function}
+prob <- readRDS("/Users/sabrinami/chr20-qtl2-outputs/batch0_prob.rds")
+reshape_genoprob <- function(sample) {
+  sample_prob <- as.data.frame(t(prob[[1]][sample, , ]))
+  snps <- str_split(rownames(sample_prob), ":", simplify = TRUE)
+  colnames(snps) <- c("chrom", "pos")
+  sample_prob <- cbind(sample_prob, snps)
+  plot_df <- pivot_longer(sample_prob, cols = -c(chrom, pos), names_to = "Strain", values_to = "prob")
+  plot_df$pos <- as.integer(plot_df$pos)
+  return(plot_df)
+}
+
+```
+
+
+### Samples Plots
+
+```{r}
+for (sample in sample(rownames(prob[[1]]), size = 2, replace = FALSE)) {
+  df <- reshape_genoprob(sample)
+  plot <- df %>% ggplot(aes(x = pos, y = prob, fill = Strain)) +
+    facet_wrap(~ chrom, ncol = 2, dir = "v", strip.position = "left") +
+    geom_area() +
+    scale_fill_brewer(type = "qual", palette = 6) +
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0)) +
+    theme_bw() +
+    xlab("Position (Mb)") +
+    ylab("Estimated Proportion") +
+    ggtitle(paste0("Br Sample: ", sample)) +  
+    theme(
+        axis.text.y = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.x = element_line(size = 0.25),
+        panel.border = element_blank(),
+        strip.background = element_blank(),
+        legend.position = "top",
+    )
+    print(plot)
+    ggsave(paste0(sample,".png"), plot = plot, width = 8, height = 6, units = "in", dpi = 300)
+}
+
+```

@@ -1,0 +1,6 @@
+---
+title: Plotting haplotype transitions by gene interval
+author: Sabrina Mi
+date: 12/14/2023
+---
+

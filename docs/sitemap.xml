@@ -262,7 +262,7 @@
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/index.html</loc>
-    <lastmod>2023-12-07T08:14:36.161Z</lastmod>
+    <lastmod>2023-12-14T01:52:21.647Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/about.html</loc>
@@ -270,7 +270,7 @@
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-12-07-concatenating-HS-reference-epigenomes/index.html</loc>
-    <lastmod>2023-12-07T08:13:55.968Z</lastmod>
+    <lastmod>2023-12-14T01:21:23.196Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-12-01-Den-outbred-rats-haplotypes/index.html</loc>
@@ -278,10 +278,14 @@
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-26-qtl2-probabilities-to-csv/index.html</loc>
-    <lastmod>2023-12-07T08:14:13.379Z</lastmod>
+    <lastmod>2023-12-14T01:21:23.759Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-12-06-qtl2-probabilites-to-sqlite-database/index.html</loc>
     <lastmod>2023-12-07T08:14:14.799Z</lastmod>
+  </url>
+  <url>
+    <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-12-13-plotting-Br-haplotype-distributions/index.html</loc>
+    <lastmod>2023-12-14T01:52:30.433Z</lastmod>
   </url>
 </urlset>
