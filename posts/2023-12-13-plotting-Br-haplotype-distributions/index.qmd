@@ -30,10 +30,10 @@ reshape_genoprob <- function(sample, prob) {
 ### Samples Plots
 
 ```{r}
+set.seed(6)
 chr20_prob <- readRDS("/Users/sabrinami/chr20-qtl2-outputs/batch0_prob.rds")
 chr19_prob <- readRDS("/Users/sabrinami/chr19-qtl2-outputs/batch0_prob.rds")
-samples <- sample(rownames(chr20_prob[[1]])
-for (sample in samples, size = 2, replace = FALSE)) {
+for (sample in sample(rownames(chr19_prob[[1]]), size = 2, replace = FALSE)) {
   chr20_df <- reshape_genoprob(sample, chr20_prob)
   chr19_df <- reshape_genoprob(sample, chr19_prob)
   df <- rbind(chr19_df, chr20_df)

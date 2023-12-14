@@ -11,7 +11,7 @@ library(stringr)
 library(dplyr)
 ```
 
-```{r calc_genoprob to df function}
+```{r calc_genoprob to df function, eval=FALSE}
 reshape_genoprob <- function(sample, prob) {
   sample_prob <- as.data.frame(t(prob[[1]][sample, , ]))
   snps <- str_split(rownames(sample_prob), ":", simplify = TRUE)
@@ -23,14 +23,14 @@ reshape_genoprob <- function(sample, prob) {
 
 ```
 
-```{r gene annot}
+```{r gene annot, eval=FALSE}
 intervals <- read.csv("/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/metadata/intervals.txt", header=FALSE)
 genes <- read.csv("/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/Br_expressed_genes.txt", header=FALSE)
 split <- str_split(intervals$V1, "_", simplify = TRUE)
 genes_df <- data.frame(genes = genes$V1, chrom = split[,1], tss = as.integer(split[,2]))
 ```
 
-```{r}
+```{r, eval=FALSE}
 filtered_genes <- filter(genes_df, chrom == 'chr20')
 prob <- readRDS("/home/s1mi/qtl2-outputs/chr20-qtl2-outputs/batch0_prob.rds")
 sample_prob <- reshape_genoprob("000789972A", prob)
@@ -52,8 +52,8 @@ for (i in 1:nrow(filtered_genes)) {
 ```
 
 ```{r}
-plot_df <- pivot_longer(grouped_df, cols = -c(chrom, pos, gene), names_to = "Strain", values_to = "prob")
-#plot_df <- readRDS("000789972A_gene_probs.rds")
+#plot_df <- pivot_longer(grouped_df, cols = -c(chrom, pos, gene), names_to = "Strain", values_to = "prob")
+plot_df <- readRDS("000789972A_gene_probs.rds")
 ```
 
 
@@ -70,9 +70,9 @@ plot <- ggplot(sampled_data, aes(x = pos, y = prob, fill = Strain)) +
   theme_bw() +
   xlab("Genes") +
   ylab("Estimated Proportion") +
-  labs(title = "000789972A: 25 genes sampled from chr1") +
+  labs(title = "000789972A: 25 genes sampled from chr20") +
   theme(
-    strip.text = element_blank(),  # Rotate x-axis labels
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),  # Rotate x-axis labels
     panel.grid = element_blank(),
     strip.background = element_blank(),
     legend.position = "top"

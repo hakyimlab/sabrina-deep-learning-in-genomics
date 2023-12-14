@@ -94,7 +94,7 @@
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/enformer-rat-human-analysis-overview/index.html</loc>
-    <lastmod>2023-12-07T08:14:00.181Z</lastmod>
+    <lastmod>2023-12-14T07:36:04.627Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-01-borzoi-performance-analysis/index.html</loc>
@@ -262,7 +262,7 @@
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/index.html</loc>
-    <lastmod>2023-12-14T01:52:21.647Z</lastmod>
+    <lastmod>2023-12-14T07:35:59.542Z</lastmod>
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/about.html</loc>
@@ -286,6 +286,10 @@
   </url>
   <url>
     <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-12-13-plotting-Br-haplotype-distributions/index.html</loc>
-    <lastmod>2023-12-14T01:52:30.433Z</lastmod>
+    <lastmod>2023-12-14T06:59:34.385Z</lastmod>
+  </url>
+  <url>
+    <loc>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-12-13-plotting-Br-haplotype-distributions/gene_interval_plots.html</loc>
+    <lastmod>2023-12-14T07:29:50.463Z</lastmod>
   </url>
 </urlset>

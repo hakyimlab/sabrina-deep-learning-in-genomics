@@ -5,13 +5,12 @@ format: html
 ---
 
 ## Updates this Week
-
-I had to re-run some jobs for computing genotype probabilities, but the main progress has been in **organizing data into queryable databases**.
-
-1. [Founder Rat Epigenomes](https://sabrina-dl.hakyimlab.org/posts/2023-12-07-concatenating-HS-reference-epigenomes)
-    * `/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes`, split by chromosome and model (human, mouse)
-
-2. [Br haplotype probabilities](https://sabrina-dl.hakyimlab.org/posts/2023-12-06-qtl2-probabilites-to-sqlite-database)
+1. Plot haplotype probabilities
+    * [Along chromosomes](https://sabrina-dl.hakyimlab.org/posts/2023-12-13-plotting-Br-haplotype-distributions/index)
+    ![Probabilities along Chr](0007929C19.png)
+    * [Sampled genes on chromosome 20](2023-12-13-plotting-Br-haplotype-distributions/gene_interval_plots/)
+    ![Probabilities by Gene](000789972A_genes.png)
+2. [Completed Br haplotype probabilities](https://sabrina-dl.hakyimlab.org/posts/2023-12-06-qtl2-probabilites-to-sqlite-database)
     * `/home/s1mi/Br_genotype_probabilities/chr*_probabilities.db`
     
 
