@@ -10,7 +10,478 @@
 <atom:link href="https://sabrinami.quarto.pub/deep-learning-in-genomics/index.xml" rel="self" type="application/rss+xml"/>
 <description>Sabrina&#39;s blog for Deep Learning in Genomics course</description>
 <generator>quarto-1.3.361</generator>
-<lastBuildDate>Wed, 13 Dec 2023 08:00:00 GMT</lastBuildDate>
+<lastBuildDate>Thu, 14 Dec 2023 08:00:00 GMT</lastBuildDate>
+<item>
+  <title>Plotting haplotype transitions by gene interval</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-12-13-plotting-Br-haplotype-distributions/gene_interval_plots.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<div class="cell" data-hash="gene_interval_plots_cache/html/libraries_855b786838f56081626540e59c3e37b4">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(ggplot2)</span>
+<span id="cb1-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyr)</span>
+<span id="cb1-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(stringr)</span>
+<span id="cb1-4"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(dplyr)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="gene_interval_plots_cache/html/calc_genoprob to df function_8439cc331fa4a92f6b5394ab28693a71">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">reshape_genoprob <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">function</span>(sample, prob) {</span>
+<span id="cb5-2">  sample_prob <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.data.frame</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">t</span>(prob[[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]][sample, , ]))</span>
+<span id="cb5-3">  snps <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">str_split</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(sample_prob), <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">":"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">simplify =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb5-4">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">colnames</span>(snps) <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"chrom"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pos"</span>)</span>
+<span id="cb5-5">  sample_prob <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">cbind</span>(sample_prob, snps)</span>
+<span id="cb5-6">  sample_prob<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pos <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.integer</span>(sample_prob<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pos)</span>
+<span id="cb5-7">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">return</span>(sample_prob)</span>
+<span id="cb5-8">}</span></code></pre></div>
+</div>
+<div class="cell" data-hash="gene_interval_plots_cache/html/gene annot_ac5d6bfe0a0e5620fad29e1bbf190d09">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1">intervals <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read.csv</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/metadata/intervals.txt"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">header=</span><span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>)</span>
+<span id="cb6-2">genes <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read.csv</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/Br_expressed_genes.txt"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">header=</span><span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>)</span>
+<span id="cb6-3">split <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">str_split</span>(intervals<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>V1, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"_"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">simplify =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb6-4">genes_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data.frame</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">genes =</span> genes<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>V1, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">chrom =</span> split[,<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>], <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">tss =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.integer</span>(split[,<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>]))</span></code></pre></div>
+</div>
+<div class="cell" data-hash="gene_interval_plots_cache/html/unnamed-chunk-1_82b85e205297cc4af9b57edacb6dc2a2">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1">filtered_genes <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(genes_df, chrom <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'chr20'</span>)</span>
+<span id="cb7-2">prob <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/qtl2-outputs/chr20-qtl2-outputs/batch0_prob.rds"</span>)</span>
+<span id="cb7-3">sample_prob <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">reshape_genoprob</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"000789972A"</span>, prob)</span>
+<span id="cb7-4">grouped_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data.frame</span>()</span>
+<span id="cb7-5"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> (i <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">nrow</span>(filtered_genes)) {</span>
+<span id="cb7-6">  gene <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> filtered_genes[i, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"genes"</span>]</span>
+<span id="cb7-7">  chrom <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> filtered_genes[i, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"chrom"</span>]</span>
+<span id="cb7-8">  tss <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> filtered_genes[i, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"tss"</span>]</span>
+<span id="cb7-9">  </span>
+<span id="cb7-10">  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Check for matching 'chrom' and 'pos' in sample_prob</span></span>
+<span id="cb7-11">  filtered_snps <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> sample_prob <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">between</span>(pos, tss<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">-28672</span>, tss<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">28672</span>))</span>
+<span id="cb7-12">  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># If a match is found, add a 'gene' column and append to grouped_df</span></span>
+<span id="cb7-13">  <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> (<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">nrow</span>(filtered_snps) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>) {</span>
+<span id="cb7-14">    filtered_snps<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>gene <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> gene</span>
+<span id="cb7-15">    grouped_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rbind</span>(grouped_df, filtered_snps)</span>
+<span id="cb7-16">  }</span>
+<span id="cb7-17">}</span></code></pre></div>
+</div>
+<div class="cell" data-hash="gene_interval_plots_cache/html/unnamed-chunk-2_293adbdca64c7486e1ddeced7c611cda">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#plot_df &lt;- pivot_longer(grouped_df, cols = -c(chrom, pos, gene), names_to = "Strain", values_to = "prob")</span></span>
+<span id="cb8-2">plot_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"000789972A_gene_probs.rds"</span>)</span></code></pre></div>
+</div>
+<div class="cell" data-hash="gene_interval_plots_cache/html/unnamed-chunk-3_1986b35d4ef7ea29c504874e86080dd4">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1">sampled_genes <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> plot_df<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>gene <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unique</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sample</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">25</span>)</span>
+<span id="cb9-2">sampled_data <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> plot_df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb9-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(gene <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%in%</span> sampled_genes)</span>
+<span id="cb9-4">plot <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(sampled_data, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> pos, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> prob, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">fill =</span> Strain)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb9-5">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_area</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb9-6">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">facet_wrap</span>(<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> gene, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">scales =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"free"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Group by 'gene' with 2 columns</span></span>
+<span id="cb9-7">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scale_fill_brewer</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"qual"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">palette =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb9-8">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scale_x_discrete</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">expand =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Adjust x-axis</span></span>
+<span id="cb9-9">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scale_y_continuous</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">expand =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">breaks =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Adjust y-axis</span></span>
+<span id="cb9-10">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_bw</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb9-11">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xlab</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Genes"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb9-12">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ylab</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Estimated Proportion"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb9-13">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">labs</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">title =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"000789972A: 25 genes sampled from chr20"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb9-14">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme</span>(</span>
+<span id="cb9-15">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">axis.text.x =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_text</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">angle =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">90</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">vjust =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">hjust=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>),  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Rotate x-axis labels</span></span>
+<span id="cb9-16">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">panel.grid =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_blank</span>(),</span>
+<span id="cb9-17">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">strip.background =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_blank</span>(),</span>
+<span id="cb9-18">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">legend.position =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"top"</span></span>
+<span id="cb9-19">  ) </span>
+<span id="cb9-20"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(plot)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-12-13-plotting-Br-haplotype-distributions/gene_interval_plots_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggsave</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"000789972A_genes.png"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">plot =</span> plot, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">width =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">height =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">units =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"in"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dpi =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">300</span>)</span></code></pre></div>
+</div>
+
+
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-12-13-plotting-Br-haplotype-distributions/gene_interval_plots.html</guid>
+  <pubDate>Thu, 14 Dec 2023 08:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Plotting Br Rats’ Haplotype Distributions</title>
   <dc:creator>Sabrina Mi, Dan Munro</dc:creator>
@@ -31,20 +502,13 @@ font-style: inherit;">library</span>(tidyr)</span>
 background-color: null;
 font-style: inherit;">library</span>(stringr)</span></code></pre></div>
 </div>
-<div class="cell" data-hash="index_cache/html/calc_genoprob to df function_0fefa23c377fe4368a58ca5a8bad9b56">
-<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">prob <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">readRDS</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/Users/sabrinami/chr20-qtl2-outputs/batch0_prob.rds"</span>)</span>
-<span id="cb2-2">reshape_genoprob <span class="ot" style="color: #003B4F;
+<div class="cell" data-hash="index_cache/html/calc_genoprob to df function_7163612ce7af857ca69e441c8c99b402">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">reshape_genoprob <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="cf" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">function</span>(sample) {</span>
-<span id="cb2-3">  sample_prob <span class="ot" style="color: #003B4F;
+font-style: inherit;">function</span>(sample, prob) {</span>
+<span id="cb2-2">  sample_prob <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -53,7 +517,7 @@ background-color: null;
 font-style: inherit;">t</span>(prob[[<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>]][sample, , ]))</span>
-<span id="cb2-4">  snps <span class="ot" style="color: #003B4F;
+<span id="cb2-3">  snps <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -66,7 +530,7 @@ background-color: null;
 font-style: inherit;">simplify =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">TRUE</span>)</span>
-<span id="cb2-5">  <span class="fu" style="color: #4758AB;
+<span id="cb2-4">  <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">colnames</span>(snps) <span class="ot" style="color: #003B4F;
 background-color: null;
@@ -77,12 +541,12 @@ background-color: null;
 font-style: inherit;">"chrom"</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"pos"</span>)</span>
-<span id="cb2-6">  sample_prob <span class="ot" style="color: #003B4F;
+<span id="cb2-5">  sample_prob <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">cbind</span>(sample_prob, snps)</span>
-<span id="cb2-7">  plot_df <span class="ot" style="color: #003B4F;
+<span id="cb2-6">  plot_df <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -101,7 +565,7 @@ background-color: null;
 font-style: inherit;">values_to =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"prob"</span>)</span>
-<span id="cb2-8">  plot_df<span class="sc" style="color: #5E5E5E;
+<span id="cb2-7">  plot_df<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>pos <span class="ot" style="color: #003B4F;
 background-color: null;
@@ -110,15 +574,34 @@ background-color: null;
 font-style: inherit;">as.integer</span>(plot_df<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>pos)</span>
-<span id="cb2-9">  <span class="fu" style="color: #4758AB;
+<span id="cb2-8">  <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">return</span>(plot_df)</span>
-<span id="cb2-10">}</span></code></pre></div>
+<span id="cb2-9">}</span></code></pre></div>
 </div>
 <section id="samples-plots" class="level3">
 <h3 class="anchored" data-anchor-id="samples-plots">Samples Plots</h3>
-<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_643c993f0e3e2668c4e753ee04c97584">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="cf" style="color: #003B4F;
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_d6ca36b0eb38fc076848616681ebb2cf">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">set.seed</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>)</span>
+<span id="cb3-2">chr20_prob <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/Users/sabrinami/chr20-qtl2-outputs/batch0_prob.rds"</span>)</span>
+<span id="cb3-3">chr19_prob <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/Users/sabrinami/chr19-qtl2-outputs/batch0_prob.rds"</span>)</span>
+<span id="cb3-4"><span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">for</span> (sample <span class="cf" style="color: #003B4F;
 background-color: null;
@@ -126,7 +609,7 @@ font-style: inherit;">in</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">sample</span>(<span class="fu" style="color: #4758AB;
 background-color: null;
-font-style: inherit;">rownames</span>(prob[[<span class="dv" style="color: #AD0000;
+font-style: inherit;">rownames</span>(chr19_prob[[<span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>]]), <span class="at" style="color: #657422;
 background-color: null;
@@ -137,12 +620,22 @@ background-color: null;
 font-style: inherit;">replace =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">FALSE</span>)) {</span>
-<span id="cb3-2">  df <span class="ot" style="color: #003B4F;
+<span id="cb3-5">  chr20_df <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
-font-style: inherit;">reshape_genoprob</span>(sample)</span>
-<span id="cb3-3">  plot <span class="ot" style="color: #003B4F;
+font-style: inherit;">reshape_genoprob</span>(sample, chr20_prob)</span>
+<span id="cb3-6">  chr19_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">reshape_genoprob</span>(sample, chr19_prob)</span>
+<span id="cb3-7">  df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rbind</span>(chr19_df, chr20_df)</span>
+<span id="cb3-8">  plot <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -159,7 +652,7 @@ background-color: null;
 font-style: inherit;">fill =</span> Strain)) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span></span>
-<span id="cb3-4">    <span class="fu" style="color: #4758AB;
+<span id="cb3-9">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">facet_wrap</span>(<span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -178,12 +671,12 @@ background-color: null;
 font-style: inherit;">"left"</span>) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span></span>
-<span id="cb3-5">    <span class="fu" style="color: #4758AB;
+<span id="cb3-10">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">geom_area</span>() <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span></span>
-<span id="cb3-6">    <span class="fu" style="color: #4758AB;
+<span id="cb3-11">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">scale_fill_brewer</span>(<span class="at" style="color: #657422;
 background-color: null;
@@ -196,7 +689,7 @@ background-color: null;
 font-style: inherit;">6</span>) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span></span>
-<span id="cb3-7">    <span class="fu" style="color: #4758AB;
+<span id="cb3-12">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">scale_x_continuous</span>(<span class="at" style="color: #657422;
 background-color: null;
@@ -209,7 +702,7 @@ background-color: null;
 font-style: inherit;">0</span>)) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span></span>
-<span id="cb3-8">    <span class="fu" style="color: #4758AB;
+<span id="cb3-13">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">scale_y_continuous</span>(<span class="at" style="color: #657422;
 background-color: null;
@@ -222,26 +715,26 @@ background-color: null;
 font-style: inherit;">0</span>)) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span></span>
-<span id="cb3-9">    <span class="fu" style="color: #4758AB;
+<span id="cb3-14">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">theme_bw</span>() <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span></span>
-<span id="cb3-10">    <span class="fu" style="color: #4758AB;
+<span id="cb3-15">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">xlab</span>(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"Position (Mb)"</span>) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span></span>
-<span id="cb3-11">    <span class="fu" style="color: #4758AB;
+<span id="cb3-16">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">ylab</span>(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"Estimated Proportion"</span>) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span></span>
-<span id="cb3-12">    <span class="fu" style="color: #4758AB;
+<span id="cb3-17">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">ggtitle</span>(<span class="fu" style="color: #4758AB;
 background-color: null;
@@ -250,25 +743,25 @@ background-color: null;
 font-style: inherit;">"Br Sample: "</span>, sample)) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span>  </span>
-<span id="cb3-13">    <span class="fu" style="color: #4758AB;
+<span id="cb3-18">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">theme</span>(</span>
-<span id="cb3-14">        <span class="at" style="color: #657422;
+<span id="cb3-19">        <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">axis.text.y =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">element_blank</span>(),</span>
-<span id="cb3-15">        <span class="at" style="color: #657422;
+<span id="cb3-20">        <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">panel.grid =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">element_blank</span>(),</span>
-<span id="cb3-16">        <span class="at" style="color: #657422;
+<span id="cb3-21">        <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">axis.ticks.y =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">element_blank</span>(),</span>
-<span id="cb3-17">        <span class="at" style="color: #657422;
+<span id="cb3-22">        <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">axis.line.x =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -277,26 +770,26 @@ background-color: null;
 font-style: inherit;">size =</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.25</span>),</span>
-<span id="cb3-18">        <span class="at" style="color: #657422;
+<span id="cb3-23">        <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">panel.border =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">element_blank</span>(),</span>
-<span id="cb3-19">        <span class="at" style="color: #657422;
+<span id="cb3-24">        <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">strip.background =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">element_blank</span>(),</span>
-<span id="cb3-20">        <span class="at" style="color: #657422;
+<span id="cb3-25">        <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">legend.position =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"top"</span>,</span>
-<span id="cb3-21">    )</span>
-<span id="cb3-22">    <span class="fu" style="color: #4758AB;
+<span id="cb3-26">    )</span>
+<span id="cb3-27">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">print</span>(plot)</span>
-<span id="cb3-23">    <span class="fu" style="color: #4758AB;
+<span id="cb3-28">    <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">ggsave</span>(<span class="fu" style="color: #4758AB;
 background-color: null;
@@ -321,7 +814,7 @@ background-color: null;
 font-style: inherit;">dpi =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">300</span>)</span>
-<span id="cb3-24">}</span></code></pre></div>
+<span id="cb3-29">}</span></code></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Warning: The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0.
 ℹ Please use the `linewidth` argument instead.</code></pre>
@@ -12795,786 +13288,6 @@ font-style: inherit;">.shapeit2_integrated_SNPs_v2a_27022019.GRCh38.phased.vcf.g
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-26-borzoi-personalized-test/geuvadis_personalized_test.html</guid>
   <pubDate>Wed, 27 Sep 2023 07:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Borzoi CAGE test</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-25-borzoi-CAGE-test/index.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<p>We ran the Borzoi human track models on the same genes as the GTEx track runs to compare the performance.</p>
-<div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span>
-<span id="cb1-2">annot_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/annotation/hg38.gene.txt"</span>, sep<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb1-3">gene_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>)</span>
-<span id="cb1-4">gene_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gene_list.dropna()</span>
-<span id="cb1-5">gene_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gene_list.merge(annot_df, left_on<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, right_on <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ensembl_gene_id"</span>)</span>
-<span id="cb1-6">gene_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gene_df[[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ensembl_gene_id"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"chromosome_name"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"transcription_start_site"</span>]]</span>
-<span id="cb1-7">gene_df.to_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"gene_list.csv"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>, index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>)</span></code></pre></div>
-</div>
-<section id="run-predictions" class="level1">
-<h1>Run Predictions</h1>
-<p>Each run can take anywhere from 2.5-5 GPU seconds, so allocate walltime accordingly. For my 981 gene regions, I requested <code>qsub -I -A AIHPC4EDU -l walltime=1:30:00 -l filesystems=home:grand -q preemptable</code></p>
-<pre><code>module load conda
-conda activate borzoi
-cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-09-25-borzoi-CAGE-test
-python borzoi_predict_CAGE.py --gene_df gene_list.csv --CAGE_tracks 610,611 </code></pre>
-</section>
-<section id="process-results" class="level1">
-<h1>Process Results</h1>
-<div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span>
-<span id="cb3-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> np</span>
-<span id="cb3-3"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> plt</span>
-<span id="cb3-4"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">from</span> scipy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> stats</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># read CAGE predictions</span></span>
-<span id="cb4-2">hg38_predictions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_CAGE_test_predictions.csv"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>)</span>
-<span id="cb4-3"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># read GTEx predictions</span></span>
-<span id="cb4-4">gtex_predictions <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_across_genes.csv"</span>, header<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">None</span>)</span>
-<span id="cb4-5"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># read observed gene expression</span></span>
-<span id="cb4-6">human_brain_gex <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_predicted_vs_observed_expression_all_GTEx_brain_tissues.csv"</span>, index_col<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>).dropna()</span>
-<span id="cb4-7"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># merge dataframes</span></span>
-<span id="cb4-8">merged_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gtex_predictions.merge(human_brain_gex, left_on<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, right_index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>, how<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"inner"</span>)</span>
-<span id="cb4-9">merged_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"cortex"</span>]]</span>
-<span id="cb4-10">merged_df.columns<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Gene"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (GTEx)"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer (CAGE)"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>]</span>
-<span id="cb4-11">merged_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df.merge(hg38_predictions, left_on<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Gene"</span>, right_on<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>, how <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"inner"</span>)</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">merged_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Gene"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (GTEx)"</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer (CAGE)"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>]]</span>
-<span id="cb5-2">merged_df.columns <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Gene"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (GTEx)"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (CAGE)"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer (CAGE)"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>]</span>
-<span id="cb5-3"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Write to File</span></span>
-<span id="cb5-4">merged_df.to_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/output/hg38_borzoi_vs_enformer_test_predictions.csv"</span>, header <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>,index <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">False</span>)</span></code></pre></div>
-</div>
-<p>We have 3 different prediction methods to evaluate, the outputs are combined in the following table:</p>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">merged_df</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="7">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">Gene</th>
-<th data-quarto-table-cell-role="th">Borzoi (GTEx)</th>
-<th data-quarto-table-cell-role="th">Borzoi (CAGE)</th>
-<th data-quarto-table-cell-role="th">Enformer (CAGE)</th>
-<th data-quarto-table-cell-role="th">Observed</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">0</td>
-<td>ENSG00000260286</td>
-<td>6.873438e+02</td>
-<td>0.002146</td>
-<td>0.005209</td>
-<td>0.086014</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">1</td>
-<td>ENSG00000162877</td>
-<td>3.553310e+03</td>
-<td>0.174000</td>
-<td>0.270328</td>
-<td>0.128466</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">2</td>
-<td>ENSG00000083845</td>
-<td>9.018748e+06</td>
-<td>1.906000</td>
-<td>18.964096</td>
-<td>135.113922</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">3</td>
-<td>ENSG00000143199</td>
-<td>1.511829e+03</td>
-<td>0.019640</td>
-<td>0.049658</td>
-<td>0.256258</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">4</td>
-<td>ENSG00000188522</td>
-<td>8.282543e+04</td>
-<td>0.777000</td>
-<td>0.083827</td>
-<td>0.460673</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-<td>...</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">968</td>
-<td>ENSG00000198626</td>
-<td>3.959017e+04</td>
-<td>2.357000</td>
-<td>11.577308</td>
-<td>8.737213</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">969</td>
-<td>ENSG00000184206</td>
-<td>8.352521e+03</td>
-<td>0.006187</td>
-<td>0.002583</td>
-<td>0.155200</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">970</td>
-<td>ENSG00000140043</td>
-<td>3.883056e+04</td>
-<td>0.748500</td>
-<td>5.710264</td>
-<td>7.826176</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">971</td>
-<td>ENSG00000081248</td>
-<td>3.480795e+03</td>
-<td>0.037500</td>
-<td>0.021962</td>
-<td>0.345895</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">972</td>
-<td>ENSG00000198774</td>
-<td>1.029021e+04</td>
-<td>0.293000</td>
-<td>0.156194</td>
-<td>0.116595</td>
-</tr>
-</tbody>
-</table>
-
-<p>973 rows × 5 columns</p>
-</div>
-</div>
-</div>
-</section>
-<section id="plot-correlations" class="level1">
-<h1>Plot Correlations</h1>
-<p>The correlation tables validate two key claims from the Borzoi paper:</p>
-<ol type="1">
-<li>Borzoi performs comparably, if not better, than Enformer on shared ENCODE tracks</li>
-<li>Borzoi’s RNA-seq coverage metric for gene expression correlates higher than CAGE predictions from both Borzoi and Enformer
-<ul>
-<li>This correlation is biased because Borzoi was trained on some GTEx data</li>
-<li>We need to validate on new data (GEUVADIS, HS rats, …)</li>
-</ul></li>
-</ol>
-<p>Although this experiment was tested on N=981 randomly selected genes, I believe this sample decently reflects how the Enformer/Borzoi methods would perform genome-wide. This subset has correlations similar to the full set of human genes when we look at the CAGE tracks, with Spearman R = 0.796 (subset) and R = 0.794 (all genes).</p>
-<p><strong>Pearson Correlations</strong></p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">pearson_corr_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df.corr(method<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pearson"</span>)</span>
-<span id="cb7-2">pearson_corr_df</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="8">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">Borzoi (GTEx)</th>
-<th data-quarto-table-cell-role="th">Borzoi (CAGE)</th>
-<th data-quarto-table-cell-role="th">Enformer (CAGE)</th>
-<th data-quarto-table-cell-role="th">Observed</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">Borzoi (GTEx)</td>
-<td>1.000000</td>
-<td>0.190700</td>
-<td>0.225605</td>
-<td>0.620217</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">Borzoi (CAGE)</td>
-<td>0.190700</td>
-<td>1.000000</td>
-<td>0.719421</td>
-<td>0.469197</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">Enformer (CAGE)</td>
-<td>0.225605</td>
-<td>0.719421</td>
-<td>1.000000</td>
-<td>0.593030</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">Observed</td>
-<td>0.620217</td>
-<td>0.469197</td>
-<td>0.593030</td>
-<td>1.000000</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<p>The low correlations between CAGE tracks (Enformer and Borzoi) and GTex tracks can be explained by non-linearity. We calculated RNA-seq coverage from a series of exponents, log transforms to better represent counts of transcripts, which can also explains why it has the highest correlation with observed GTEx TPM.</p>
-<p><strong>Spearman Correlations</strong></p>
-<div class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">spearman_corr_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df.corr(method<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"spearman"</span>)</span>
-<span id="cb8-2">spearman_corr_df</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="22">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">Borzoi (GTEx)</th>
-<th data-quarto-table-cell-role="th">Borzoi (CAGE)</th>
-<th data-quarto-table-cell-role="th">Enformer (CAGE)</th>
-<th data-quarto-table-cell-role="th">Observed</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">Borzoi (GTEx)</td>
-<td>1.000000</td>
-<td>0.843272</td>
-<td>0.773361</td>
-<td>0.856641</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">Borzoi (CAGE)</td>
-<td>0.843272</td>
-<td>1.000000</td>
-<td>0.888218</td>
-<td>0.806720</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">Enformer (CAGE)</td>
-<td>0.773361</td>
-<td>0.888218</td>
-<td>1.000000</td>
-<td>0.795909</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">Observed</td>
-<td>0.856641</td>
-<td>0.806720</td>
-<td>0.795909</td>
-<td>1.000000</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<section id="plot-against-observed" class="level3">
-<h3 class="anchored" data-anchor-id="plot-against-observed">Plot against Observed</h3>
-<blockquote class="blockquote">
-<p>All plots are comparing predicted and observed reference gene expression in human brain tissue, based off data from N=981 human genes. To account for outliers, we are plotting relative expression levels (rank) and the correlations shown are all Spearman R.</p>
-</blockquote>
-<div class="cell" data-execution_count="35">
-<details>
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1">x <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>]</span>
-<span id="cb9-2">y <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer (CAGE)"</span>]</span>
-<span id="cb9-3">corr <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> spearman_corr_df.loc[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer (CAGE)"</span>]</span>
-<span id="cb9-4">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb9-5">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Observed (Rank)'</span>)</span>
-<span id="cb9-6">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Enformer CAGE (Rank)'</span>)</span>
-<span id="cb9-7">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer CAGE Prediction"</span>)</span>
-<span id="cb9-8">plt.legend()</span>
-<span id="cb9-9">plt.show()</span></code></pre></div>
-</details>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-25-borzoi-CAGE-test/index_files/figure-html/cell-9-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-execution_count="36">
-<details>
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">x <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>]</span>
-<span id="cb10-2">y <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (CAGE)"</span>]</span>
-<span id="cb10-3">corr <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> spearman_corr_df.loc[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (CAGE)"</span>]</span>
-<span id="cb10-4">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb10-5">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Observed (Rank)'</span>)</span>
-<span id="cb10-6">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Borzoi CAGE (Rank)'</span>)</span>
-<span id="cb10-7">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi CAGE Prediction"</span>)</span>
-<span id="cb10-8">plt.legend()</span>
-<span id="cb10-9">plt.show()</span></code></pre></div>
-</details>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-25-borzoi-CAGE-test/index_files/figure-html/cell-10-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-execution_count="38">
-<details>
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1">x <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>]</span>
-<span id="cb11-2">y <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (GTEx)"</span>]</span>
-<span id="cb11-3">corr <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> spearman_corr_df.loc[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (GTEx)"</span>]</span>
-<span id="cb11-4">plt.scatter(stats.rankdata(x), stats.rankdata(y), s<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb11-5">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Observed (Rank)'</span>)</span>
-<span id="cb11-6">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Borzoi GTEx (Rank)'</span>)</span>
-<span id="cb11-7">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi GTEx Prediction"</span>)</span>
-<span id="cb11-8">plt.legend()</span>
-<span id="cb11-9">plt.show()</span></code></pre></div>
-</details>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-25-borzoi-CAGE-test/index_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-</section>
-<section id="extra-plots" class="level2">
-<h2 class="anchored" data-anchor-id="extra-plots">Extra Plots</h2>
-<p>Since Borzoi and Enformer CAGE tracks are measured on the same scale, it makes sense that the two have the highest pearson correlation out of all pairs. It’s not clear why the plot looks curved though.</p>
-<div class="cell" data-execution_count="10">
-<details>
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1">x <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer (CAGE)"</span>]</span>
-<span id="cb12-2">y <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (CAGE)"</span>]</span>
-<span id="cb12-3">corr <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pearson_corr_df.loc[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer (CAGE)"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (CAGE)"</span>]</span>
-<span id="cb12-4">plt.scatter(x, y, s<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb12-5">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Enformer CAGE'</span>)</span>
-<span id="cb12-6">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Borzoi CAGE'</span>)</span>
-<span id="cb12-7">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer and Borzoi CAGE Predictions"</span>)</span>
-<span id="cb12-8">plt.legend()</span>
-<span id="cb12-9">plt.show()</span></code></pre></div>
-</details>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-25-borzoi-CAGE-test/index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<p>Borzoi CAGE and GTEx had a large improvement from Pearson R = 0.191 to Spearman R = 0.843.</p>
-<div class="cell" data-execution_count="11">
-<details>
-<summary>Code</summary>
-<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1">x <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (GTEx)"</span>]</span>
-<span id="cb13-2">y <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> merged_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (CAGE)"</span>]</span>
-<span id="cb13-3">corr <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pearson_corr_df.loc[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (GTEx)"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi (CAGE)"</span>]</span>
-<span id="cb13-4">plt.scatter(x, y, s<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, alpha<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.6</span>, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'R = </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb13-5">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Borzoi GTEx'</span>)</span>
-<span id="cb13-6">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Borzoi CAGE'</span>)</span>
-<span id="cb13-7">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi CAGE and GTEx Predictions"</span>)</span>
-<span id="cb13-8">plt.legend()</span>
-<span id="cb13-9">plt.show()</span></code></pre></div>
-</details>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-25-borzoi-CAGE-test/index_files/figure-html/cell-13-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-
-
-</section>
-</section>
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-09-25-borzoi-CAGE-test/index.html</guid>
-  <pubDate>Tue, 26 Sep 2023 07:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
