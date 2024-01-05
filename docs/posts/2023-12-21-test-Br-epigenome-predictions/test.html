@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-11-26">
+<meta name="dcterms.date" content="2023-12-27">
 
-<title>deep-learning-in-genomics - Processing qtl2-founder-haps probabilies</title>
+<title>deep-learning-in-genomics - EpigenomeXcan Test</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -142,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Processing qtl2-founder-haps probabilies</h1>
+      <h1 class="title">EpigenomeXcan Test</h1>
                       </div>
   </div>
     
@@ -159,7 +159,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">November 26, 2023</p>
+        <p class="date">December 27, 2023</p>
       </div>
     </div>
     
@@ -177,54 +177,59 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<p>I eventually want to organize these probabilities indexed by position in an h5 file, so that given a genomic region, for each individual, we can query probabilities at all snps in the interval. But for now, I just combine the .rds outputs into csvs for each individual, with snp IDs as row names and the 8 founder rats as the columns.</p>
-<p>I created a new folder <code>/home/s1mi/Br_genotype_probabilities</code> with subdirectories for each chromosome to store csvs for each individual.</p>
-<section id="concatenate-probabilites-by-chromosome" class="level2">
-<h2 class="anchored" data-anchor-id="concatenate-probabilites-by-chromosome">Concatenate Probabilites by Chromosome</h2>
-<div class="cell" data-hash="index_cache/html/global variables_3388f019ced2a8f039da434304fbde4f">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>qtl2_output_dir <span class="ot">=</span> <span class="st">"/home/s1mi/qtl2-outputs/"</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>batch_size <span class="ot">=</span> <span class="dv">10</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>n_batches <span class="ot">=</span> <span class="dv">34</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tensorflow <span class="im">as</span> tf</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sqlite3</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2024-01-01 00:07:28.645287: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  SSE3 SSE4.1 SSE4.2 AVX AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2024-01-01 00:07:32.645283: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered</code></pre>
 </div>
-<div class="cell" data-hash="index_cache/html/functions_f5ce2b0bf17a6fa54fcaf88c64657fbe">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="st">"%&amp;%"</span> <span class="ot">=</span> <span class="cf">function</span>(a,b) <span class="fu">paste</span>(a,b,<span class="at">sep=</span><span class="st">""</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>split_by_sample <span class="ot">=</span> <span class="cf">function</span>(chromosome) {</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  chr <span class="ot">=</span> <span class="fu">as.character</span>(chromosome)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  prob_dir <span class="ot">&lt;-</span> qtl2_output_dir <span class="sc">%&amp;%</span> <span class="st">"chr"</span> <span class="sc">%&amp;%</span> chr <span class="sc">%&amp;%</span> <span class="st">"-qtl2-outputs/"</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  output_dir <span class="ot">=</span> <span class="st">"/home/s1mi/Br_genotype_probabilities/"</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  batches <span class="ot">&lt;-</span> <span class="fu">list.files</span>(prob_dir)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (file <span class="cf">in</span> batches) {</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    pr <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(prob_dir <span class="sc">%&amp;%</span> file)[[<span class="dv">1</span>]]</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    samples <span class="ot">&lt;-</span> <span class="fu">rownames</span>(pr)</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (sample <span class="cf">in</span> samples) {</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>      sample_dir <span class="ot">=</span> output_dir <span class="sc">%&amp;%</span> sample</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(sample_dir)) {</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">dir.create</span>(sample_dir)</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      csv <span class="ot">=</span> sample_dir <span class="sc">%&amp;%</span> <span class="st">"/chr"</span> <span class="sc">%&amp;%</span> chr <span class="sc">%&amp;%</span> <span class="st">"_probabilities.csv"</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(csv)) {</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">write.csv</span>(<span class="fu">t</span>(pr[sample, ,]), csv, <span class="at">quote=</span><span class="cn">FALSE</span>)</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-</section>
-<section id="write-csvs" class="level2">
-<h2 class="anchored" data-anchor-id="write-csvs">Write CSVs</h2>
-<div class="cell" data-hash="index_cache/html/run_edbad592ddbd8208d6a58794812e013a">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>) {</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Chromosome:"</span>, <span class="fu">as.character</span>((i)))</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">split_by_sample</span>(i)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Chromosome: 1Chromosome: 2Chromosome: 3Chromosome: 4Chromosome: 5Chromosome: 6Chromosome: 7Chromosome: 8Chromosome: 9Chromosome: 10Chromosome: 11Chromosome: 12Chromosome: 13Chromosome: 14Chromosome: 15Chromosome: 16Chromosome: 17Chromosome: 18Chromosome: 19Chromosome: 20</code></pre>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>gene <span class="op">=</span> <span class="st">"ENSRNOG00000070168"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="bu">chr</span> <span class="op">=</span> <span class="st">"chr1"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>tss <span class="op">=</span> <span class="dv">157231467</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>start <span class="op">=</span> tss<span class="op">-</span><span class="dv">57344</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>end <span class="op">=</span> tss<span class="op">+</span><span class="dv">57344</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>sample <span class="op">=</span> <span class="st">"00078A02B6"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>columns <span class="op">=</span> [<span class="st">'POS'</span>, <span class="st">'ACI'</span>, <span class="st">'BN'</span>, <span class="st">'BUF'</span>, <span class="st">'F344'</span>, <span class="st">'M520'</span>, <span class="st">'MR'</span>, <span class="st">'WKY'</span>, <span class="st">'WN'</span>]</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> query(cursor, sample, start, end):</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Execute SQL query</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    cursor.execute(<span class="ss">f'SELECT * FROM `</span><span class="sc">{</span>sample<span class="sc">}</span><span class="ss">` WHERE POS BETWEEN </span><span class="sc">{</span>start<span class="sc">}</span><span class="ss"> AND </span><span class="sc">{</span>end<span class="op">-</span><span class="dv">1</span><span class="sc">}</span><span class="ss">'</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fetch all rows</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> cursor.fetchall()</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.DataFrame(data, columns<span class="op">=</span>columns)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>conn <span class="op">=</span> sqlite3.<span class="ex">connect</span>(<span class="ss">f"/home/s1mi/Br_genotype_probabilities/</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.db"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>cursor <span class="op">=</span> conn.cursor()</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>prob <span class="op">=</span> query(cursor, sample, start, end)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>pr_mean <span class="op">=</span> prob.mean()[<span class="dv">1</span>:]</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>pr_matrix <span class="op">=</span> np.tile(pr_mean, (<span class="dv">896</span>,<span class="dv">1</span>))</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>indices <span class="op">=</span> (prob[<span class="st">'POS'</span>] <span class="op">-</span> start) <span class="op">//</span> <span class="dv">128</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>pr_matrix[indices, :] <span class="op">=</span> prob.iloc[:, <span class="dv">1</span>:].values</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(<span class="ss">f"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/human/</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_genes.h5"</span>, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    matrix <span class="op">=</span> hf[gene][:]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="13">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ref_matrix <span class="op">=</span> np.transpose(matrix, axes<span class="op">=</span>(<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>res_matrix <span class="op">=</span> np.squeeze(pr_matrix[:, np.newaxis,:] <span class="op">@</span> ref_matrix, <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 
 
-</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
