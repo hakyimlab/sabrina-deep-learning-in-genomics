@@ -3,10 +3,9 @@
     "listing": "/index.html",
     "items": [
       "/posts/borzoi-tests-overview/index.html",
-      "/posts/2024-01-01-qtl2-probabilities-to-h5-database/index.html",
-      "/posts/2023-12-21-test-Br-epigenome-predictions/index.html",
       "/posts/enformer-rat-human-analysis-overview/index.html",
       "/posts/2023-12-31-2023-scaling-up-Br-epigenome-predictions/index.html",
+      "/posts/2024-01-01-qtl2-probabilities-to-h5-database/index.html",
       "/posts/2023-12-21-test-Br-epigenome-predictions/test.html",
       "/posts/2023-12-13-plotting-Br-haplotype-distributions/gene_interval_plots.html",
       "/posts/2023-12-13-plotting-Br-haplotype-distributions/index.html",
