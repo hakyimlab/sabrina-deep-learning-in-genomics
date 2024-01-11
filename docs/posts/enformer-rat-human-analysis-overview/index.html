@@ -134,10 +134,22 @@ ul.task-list li input[type="checkbox"] {
 <section id="updates-this-week" class="level2">
 <h2 class="anchored" data-anchor-id="updates-this-week">Updates this Week</h2>
 <ol type="1">
-<li>Test run of EpigenomeXcan: 1 sample, 3190 genes
+<li><p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-12-31-2023-scaling-up-br-epigenome-predictions/">Test run of EpigenomeXcan</a>: 3 samples, chr1 genes</p>
 <ul>
-<li>Linear interpolation to estimate probabilities for 128bp bins (Numpy: 902s, Scipy: 797s)</li>
+<li>Linear interpolation to estimate probabilities for 128bp bins
+<ul>
+<li><em>CPU</em> runs on 3,000 genes (Numpy: 902s, 718s; Scipy: 797s)</li>
+<li><em>GPU</em> (Tensorflow) run on 3,000 genes is incomplete
+<ul>
+<li>Faster than CPU tests, but I wasn’t able to record them because the first time I ran on GPU node, I was disconnected. When I requested another, it didn’t go through</li>
+</ul>
+<pre><code>s1mi@polaris-login-02:~/Github/deep-learning-in-genomics/posts&gt; qsub -I -A AIHPC4EDU -l walltime=1:00:00 -l filesystems=home:eagle -q debug
+qsub: Request rejected.  Reason: No active allocation found for project AIHPC4Edu and resource polaris
+</code></pre></li>
 </ul></li>
+</ul></li>
+<li><p>Set up Expanse environment</p></li>
+<li><p>Started <a href="https://sabrina-dl.hakyimlab.org/posts/2024-01-10-epigenomexcan-vs-enformer-significant-genes/">EpigenomeXcan comparison test</a>: 340 Br rats, 868 genes with observed expression, Enformer CAGE predictions, and linear combination predictions.</p></li>
 </ol>
 </section>
 <section id="introduction" class="level2">
