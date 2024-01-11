@@ -1,0 +1,19 @@
+---
+title: Shortcuts
+author: Sabrina Mi
+---
+
+## Expanse
+
+Summary of resources: [Expanse User Guide](https://www.sdsc.edu/support/user_guides/expanse.html)
+
+** Request a GPU Node **
+
+
+
+** Start a Jupyter server **
+```
+my_ip_address=$(hostname --ip-address)
+echo $my_ip_address
+jupyter-notebook --no-browser --ip=$my_ip_address --port=15005
+```
