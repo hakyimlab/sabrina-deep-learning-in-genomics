@@ -515,14 +515,14 @@
     "href": "posts/enformer-rat-human-analysis-overview/index.html",
     "title": "Home Page for Enformer Human and Rat Cross-species Analysis",
     "section": "",
-    "text": "Test run of EpigenomeXcan: 3 samples, chr1 genes\n\nLinear interpolation to estimate probabilities for 128bp bins\n\nCPU runs on 3,000 genes (Numpy: 902s, 718s; Scipy: 797s)\nGPU (Tensorflow) run on 3,000 genes is incomplete\n\nFaster than CPU tests, but I wasn’t able to record them because the first time I ran on GPU node, I was disconnected. When I requested another, it didn’t go through\n\ns1mi@polaris-login-02:~/Github/deep-learning-in-genomics/posts&gt; qsub -I -A AIHPC4EDU -l walltime=1:00:00 -l filesystems=home:eagle -q debug\nqsub: Request rejected.  Reason: No active allocation found for project AIHPC4Edu and resource polaris\n\n\n\nSet up Expanse environment\nStarted EpigenomeXcan comparison test: 340 Br rats, 868 genes with observed expression, Enformer CAGE predictions, and linear combination predictions."
+    "text": "Test run of EpigenomeXcan on 3000 genes\n\nNumpy: 902s, 718s\nScipy: 797s\nTensorflow: 684s\n\nEpigenomeXcan comparison test: 272 Br rats, 113 genes with linear combination predictions.\n\nGenes with more significantly correlated Enformer predictions tended to have significantly correlated EpigenomeXcan predictions, although not necessarily in the same direction"
   },
   {
     "objectID": "posts/enformer-rat-human-analysis-overview/index.html#updates-this-week",
     "href": "posts/enformer-rat-human-analysis-overview/index.html#updates-this-week",
     "title": "Home Page for Enformer Human and Rat Cross-species Analysis",
     "section": "",
-    "text": "Test run of EpigenomeXcan: 3 samples, chr1 genes\n\nLinear interpolation to estimate probabilities for 128bp bins\n\nCPU runs on 3,000 genes (Numpy: 902s, 718s; Scipy: 797s)\nGPU (Tensorflow) run on 3,000 genes is incomplete\n\nFaster than CPU tests, but I wasn’t able to record them because the first time I ran on GPU node, I was disconnected. When I requested another, it didn’t go through\n\ns1mi@polaris-login-02:~/Github/deep-learning-in-genomics/posts&gt; qsub -I -A AIHPC4EDU -l walltime=1:00:00 -l filesystems=home:eagle -q debug\nqsub: Request rejected.  Reason: No active allocation found for project AIHPC4Edu and resource polaris\n\n\n\nSet up Expanse environment\nStarted EpigenomeXcan comparison test: 340 Br rats, 868 genes with observed expression, Enformer CAGE predictions, and linear combination predictions."
+    "text": "Test run of EpigenomeXcan on 3000 genes\n\nNumpy: 902s, 718s\nScipy: 797s\nTensorflow: 684s\n\nEpigenomeXcan comparison test: 272 Br rats, 113 genes with linear combination predictions.\n\nGenes with more significantly correlated Enformer predictions tended to have significantly correlated EpigenomeXcan predictions, although not necessarily in the same direction"
   },
   {
     "objectID": "posts/enformer-rat-human-analysis-overview/index.html#introduction",
