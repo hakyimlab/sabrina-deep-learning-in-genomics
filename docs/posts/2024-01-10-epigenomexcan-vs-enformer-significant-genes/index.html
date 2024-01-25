@@ -9,7 +9,7 @@
 <meta name="author" content="Sabrina Mi">
 <meta name="dcterms.date" content="2024-01-10">
 
-<title>deep-learning-in-genomics - Comparing EpigenomeXcan and Enformer gene expression prediction performance</title>
+<title>deep-learning-in-genomics - Comparing Fast Enformer gene expression prediction performance</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -144,7 +144,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Comparing EpigenomeXcan and Enformer gene expression prediction performance</h1>
+      <h1 class="title">Comparing Fast Enformer gene expression prediction performance</h1>
                       </div>
   </div>
     
@@ -181,17 +181,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <p><strong>Takeaways</strong></p>
 <ul>
-<li>I definitely need to parallelize if we want to test across 340 samples
+<li>Fast Enformer approximates Enformer pretty well</li>
+<li>I definitely need to parallelize if we want to test across 340 samples for larger gene sets
 <ul>
 <li>1 gene, 340 samples: ~ 30 seconds</li>
 <li>114 genes, 272 samples: ~ 55 minutes</li>
+<li>Roughly 0.1s per prediction</li>
 </ul></li>
 <li>Lots of bumps trying to implement parsl</li>
-<li>Genes with more significantly correlated Enformer predictions tended to have significantly correlated EpigenomeXcan predictions, although not necessarily in the same direction</li>
+<li>Genes with more significantly correlated Enformer predictions tended to have significantly correlated “Fast Enformer” predictions, although not necessarily in the same direction</li>
 </ul>
 <section id="setup" class="level2">
 <h2 class="anchored" data-anchor-id="setup">Setup</h2>
+<p><strong>Step 1</strong>: Import libraries</p>
 <div class="cell" data-execution_count="1">
+<details>
+<summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tensorflow <span class="im">as</span> tf</span>
@@ -199,205 +204,312 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>columns <span class="op">=</span> [<span class="st">'POS'</span>, <span class="st">'ACI'</span>, <span class="st">'BN'</span>, <span class="st">'BUF'</span>, <span class="st">'F344'</span>, <span class="st">'M520'</span>, <span class="st">'MR'</span>, <span class="st">'WKY'</span>, <span class="st">'WN'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>2024-01-18 06:58:38.584477: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
-To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2024-01-18 06:58:44.538569: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/opt/cray/pe/gcc/11.2.0/snos/lib64:/opt/cray/pe/papi/6.0.0.14/lib64:/opt/cray/libfabric/1.11.0.4.125/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32:${LD_LIBRARY_PATH}
-2024-01-18 06:58:44.539800: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/opt/cray/pe/gcc/11.2.0/snos/lib64:/opt/cray/pe/papi/6.0.0.14/lib64:/opt/cray/libfabric/1.11.0.4.125/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32:${LD_LIBRARY_PATH}
-2024-01-18 06:58:44.539814: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.</code></pre>
+</details>
 </div>
-</div>
+<p><strong>Step 2:</strong> Read samples, genes and define paths</p>
 <div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pred_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_human_predicted_expression.csv"</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> <span class="bu">list</span>(pred_expr.index)</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>gene_annot <span class="op">=</span> pd.read_csv(<span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/gene_mapping.txt"</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>genes_df <span class="op">=</span> gene_annot[gene_annot[<span class="st">'gene'</span>].isin(pred_expr.columns)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pred_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_human_predicted_expression.csv"</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> <span class="bu">list</span>(pred_expr.index)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>gene_annot <span class="op">=</span> pd.read_csv(<span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/gene_mapping.txt"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>genes_df <span class="op">=</span> gene_annot[gene_annot[<span class="st">'gene'</span>].isin(pred_expr.columns)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>probabilities_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_genotype_probabilities"</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>reference_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/human"</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_prediction_from_founders"</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>run_dir <span class="op">=</span> <span class="st">"/home/s1mi/Github/deep-learning-in-genomics/posts/2024-01-10-epigenomexcan-vs-enformer-significant-genes"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>probabilities_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_genotype_probabilities"</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>reference_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/human"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_prediction_from_founders"</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>run_dir <span class="op">=</span> <span class="st">"/home/s1mi/Github/deep-learning-in-genomics/posts/2024-01-10-epigenomexcan-vs-enformer-significant-genes"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
+<p><strong>Step 4:</strong> Define interpolation algorithm, matrix operations, and gene looping</p>
 <div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> interpolate(x, xi, y):</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    j   <span class="op">=</span>   tf.argsort(tf.concat((x, xi), axis<span class="op">=-</span><span class="dv">1</span>))</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    k   <span class="op">=</span>   tf.<span class="bu">range</span>(<span class="bu">len</span>(j))</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    q   <span class="op">=</span>   tf.scatter_nd(j[:, tf.newaxis], k, k.shape)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    lxi <span class="op">=</span>   <span class="bu">len</span>(xi)</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   q[<span class="op">-</span>lxi:]<span class="op">-</span>tf.<span class="bu">range</span>(<span class="dv">0</span>, lxi)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   tf.where(xi <span class="op">==</span> x[<span class="op">-</span><span class="dv">1</span>], q[<span class="op">-</span><span class="dv">1</span>:] <span class="op">-</span> lxi, r)</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    x2  <span class="op">=</span>   tf.gather(x, r)</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    x1  <span class="op">=</span>   tf.gather(x, r<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    y2  <span class="op">=</span>   tf.gather(y, r)</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    y1  <span class="op">=</span>   tf.gather(y, r<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    u   <span class="op">=</span>   (xi<span class="op">-</span>x1)<span class="op">/</span>(x2<span class="op">-</span>x1)</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> tf.rank(u) <span class="op">==</span> tf.rank(y1):</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        u   <span class="op">=</span>   tf.expand_dims(u, axis<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    yi  <span class="op">=</span>   (<span class="fl">1.0</span><span class="op">-</span>u)<span class="op">*</span>y1 <span class="op">+</span> u<span class="op">*</span>y2</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tf.where(y1 <span class="op">==</span> y2, y1, yi)</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_epigenome(reference_file, gene, start, end, prob):</span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> tf.constant(prob[<span class="st">'POS'</span>].values)</span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> tf.constant(prob.drop(columns<span class="op">=</span>[<span class="st">'POS'</span>]).values)</span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    bins <span class="op">=</span> tf.linspace(start, end, <span class="dv">896</span>)</span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    pr_tensor <span class="op">=</span> tf.expand_dims(tf.cast(interpolate(x, bins, y), dtype<span class="op">=</span>tf.float32), axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(reference_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>        matrix <span class="op">=</span> hf[gene][:]</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>    ref_tensor <span class="op">=</span> tf.transpose(matrix, perm<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>])</span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># pr_tensor = tf.cast(pr_tensor, dtype=tf.float16)</span></span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ref_tensor = tf.cast(ref_tensor, dtype=tf.float16)</span></span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> tf.squeeze(tf.matmul(pr_tensor, ref_tensor), axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_sample_predictions(prob, reference_file, gene_annot):</span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> []</span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> index, row <span class="kw">in</span> gene_annot.iterrows():</span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>        gene <span class="op">=</span> row[<span class="st">'gene'</span>]</span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>        tss <span class="op">=</span> row[<span class="st">'tss'</span>]</span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>        start <span class="op">=</span> tss <span class="op">-</span> <span class="dv">57344</span></span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> tss <span class="op">+</span> <span class="dv">57344</span></span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (start <span class="op">&gt;=</span> prob.iloc[<span class="dv">0</span>,<span class="dv">0</span>] <span class="kw">and</span> end <span class="op">&lt;=</span> prob.iloc[<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]):</span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>            output <span class="op">=</span> compute_epigenome(reference_file, gene, start, end, prob)</span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Process genotype probabilities</span></span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>            predictions.append(np.average(output[<span class="dv">446</span>:<span class="dv">450</span>]))</span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> predictions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> interpolate(x, xi, y):</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    j   <span class="op">=</span>   tf.argsort(tf.concat((x, xi), axis<span class="op">=-</span><span class="dv">1</span>))</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    k   <span class="op">=</span>   tf.<span class="bu">range</span>(<span class="bu">len</span>(j))</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    q   <span class="op">=</span>   tf.scatter_nd(j[:, tf.newaxis], k, k.shape)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    lxi <span class="op">=</span>   <span class="bu">len</span>(xi)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   q[<span class="op">-</span>lxi:]<span class="op">-</span>tf.<span class="bu">range</span>(<span class="dv">0</span>, lxi)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   tf.where(xi <span class="op">==</span> x[<span class="op">-</span><span class="dv">1</span>], q[<span class="op">-</span><span class="dv">1</span>:] <span class="op">-</span> lxi, r)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    x2  <span class="op">=</span>   tf.gather(x, r)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    x1  <span class="op">=</span>   tf.gather(x, r<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    y2  <span class="op">=</span>   tf.gather(y, r)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    y1  <span class="op">=</span>   tf.gather(y, r<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    u   <span class="op">=</span>   (xi<span class="op">-</span>x1)<span class="op">/</span>(x2<span class="op">-</span>x1)</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> tf.rank(u) <span class="op">==</span> tf.rank(y1):</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        u   <span class="op">=</span>   tf.expand_dims(u, axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>    yi  <span class="op">=</span>   (<span class="fl">1.0</span><span class="op">-</span>u)<span class="op">*</span>y1 <span class="op">+</span> u<span class="op">*</span>y2</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tf.where(y1 <span class="op">==</span> y2, y1, yi)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_epigenome(ref_matrix, start, end, prob):</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> tf.constant(prob[<span class="st">'POS'</span>].values)</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> tf.constant(prob.drop(columns<span class="op">=</span>[<span class="st">'POS'</span>]).values)</span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>    bins <span class="op">=</span> tf.linspace(start, end, <span class="dv">896</span>)</span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>    pr_tensor <span class="op">=</span> tf.expand_dims(tf.cast(interpolate(x, bins, y), dtype<span class="op">=</span>tf.float32), axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>    ref_tensor <span class="op">=</span> tf.transpose(ref_matrix, perm<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>])</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a>    <span class="co"># pr_tensor = tf.cast(pr_tensor, dtype=tf.float16)</span></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ref_tensor = tf.cast(ref_tensor, dtype=tf.float16)</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> tf.squeeze(tf.matmul(pr_tensor, ref_tensor), axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_sample_predictions(prob, reference_file, gene_annot):</span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> []</span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> index, row <span class="kw">in</span> gene_annot.iterrows():</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>        gene <span class="op">=</span> row[<span class="st">'gene'</span>]</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>        tss <span class="op">=</span> row[<span class="st">'tss'</span>]</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a>        start <span class="op">=</span> tss <span class="op">-</span> <span class="dv">57344</span></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> tss <span class="op">+</span> <span class="dv">57344</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (start <span class="op">&gt;=</span> prob.iloc[<span class="dv">0</span>,<span class="dv">0</span>] <span class="kw">and</span> end <span class="op">&lt;=</span> prob.iloc[<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]):</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> h5py.File(reference_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>                ref_matrix <span class="op">=</span> hf[gene][:]</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>            output <span class="op">=</span> compute_epigenome(ref_matrix, start, end, prob)</span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Process genotype probabilities</span></span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>            predictions.append(np.average(output[<span class="dv">446</span>:<span class="dv">450</span>,<span class="dv">4980</span>]))</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> predictions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
+<section id="compute-haplotype-combination-gene-expression" class="level3">
+<h3 class="anchored" data-anchor-id="compute-haplotype-combination-gene-expression">Compute Haplotype-Combination Gene Expression</h3>
+<p>I split genes by chromosome for the computations. As it ran for each gene group, I recorded runtimes for batches of 20 individuals.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span>, group <span class="kw">in</span> genes_df.groupby(<span class="st">"chromosome"</span>):</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    start_time <span class="op">=</span> time.perf_counter()</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    reference_file <span class="op">=</span> os.path.join(reference_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    probabilities_file <span class="op">=</span> os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    output_file <span class="op">=</span> os.path.join(output_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_selected_genes.csv"</span>)</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    haplo_expr <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>group[<span class="st">'gene'</span>], index<span class="op">=</span>pred_expr.index)</span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> os.path.exists(output_file):</span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>), <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">input</span>:</span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> individual <span class="kw">in</span> haplo_expr.index:</span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>            prob <span class="op">=</span> pd.DataFrame(<span class="bu">input</span>[individual][:], columns<span class="op">=</span>columns)</span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>            predictions <span class="op">=</span> run_sample_predictions(prob, reference_file, group)</span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>            haplo_expr.loc[individual] <span class="op">=</span> predictions</span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>            <span class="co"># print(individual, "...", toc - tic, "sec")</span></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    end_time <span class="op">=</span> time.perf_counter()</span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">:"</span>, start_time <span class="op">-</span> end_time, <span class="st">"seconds"</span>)</span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    haplo_expr.to_csv(output_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Split into batches by chromosome</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span>, group <span class="kw">in</span> genes_df.groupby(<span class="st">"chromosome"</span>):</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">len</span>(group)<span class="sc">}</span><span class="ss"> genes"</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    reference_file <span class="op">=</span> os.path.join(reference_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    probabilities_file <span class="op">=</span> os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    output_file <span class="op">=</span> os.path.join(output_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_selected_genes.csv"</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># If individual has gene expression data, remove from list</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> os.path.exists(output_file):</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        haplo_expr <span class="op">=</span> pd.read_csv(output_file, index_col<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        completed_individuals <span class="op">=</span> haplo_expr.dropna().index</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        individuals <span class="op">=</span> pred_expr.index.difference(completed_individuals)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        haplo_expr <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>group[<span class="st">'gene'</span>], index<span class="op">=</span>pred_expr.index)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        individuals <span class="op">=</span> haplo_expr.index</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>), <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">input</span>:</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        tic <span class="op">=</span> time.perf_counter()</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> index, individual <span class="kw">in</span> <span class="bu">enumerate</span>(individuals):</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>            prob <span class="op">=</span> pd.DataFrame(<span class="bu">input</span>[individual][:], columns<span class="op">=</span>columns)</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>            predictions <span class="op">=</span> run_sample_predictions(prob, reference_file, group)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> ((index <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> <span class="dv">20</span> <span class="op">==</span> <span class="dv">0</span>):</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>                toc <span class="op">=</span> time.perf_counter()</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f"Batch </span><span class="sc">{</span>(index <span class="op">+</span> <span class="dv">1</span>)<span class="op">//</span><span class="dv">20</span><span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>(toc <span class="op">-</span> tic)<span class="op">/</span><span class="dv">60</span><span class="sc">}</span><span class="ss"> minutes"</span>)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>            haplo_expr.loc[individual] <span class="op">=</span> predictions</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    haplo_expr.to_csv(output_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Write partial results if walltime is about to run out.</p>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>haplo_expr.to_csv(output_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Error in atexit._run_exitfuncs:
+Traceback (most recent call last):
+  File "/soft/datascience/conda/2022-09-08/mconda3/lib/python3.8/site-packages/IPython/core/history.py", line 831, in writeout_cache
+    self._writeout_input_cache(conn)
+  File "/soft/datascience/conda/2022-09-08/mconda3/lib/python3.8/site-packages/IPython/core/history.py", line 814, in _writeout_input_cache
+    conn.execute("INSERT INTO history VALUES (?, ?, ?, ?)",
+sqlite3.OperationalError: disk I/O error</code></pre>
+</div>
 </div>
 </section>
-<section id="sampling-genes-for-evaluation" class="level2">
-<h2 class="anchored" data-anchor-id="sampling-genes-for-evaluation">Sampling Genes for Evaluation</h2>
+</section>
+<section id="analysis" class="level2">
+<h2 class="anchored" data-anchor-id="analysis">Analysis</h2>
+<p><strong>Step 1:</strong> Import libraries</p>
+<div class="cell" data-execution_count="2">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> sns.color_palette(<span class="st">"pastel"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p><strong>Step 2:</strong> Reformat observed, Enformer, and Fast Enformer expression data</p>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> sns.color_palette(<span class="st">"pastel"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># read observed, Enformer predicted expression and cross-population correlation by gene</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>pred_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_human_predicted_expression.csv"</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>cors <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_pearson_corr_human.csv"</span>, index_col <span class="op">=</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_213776/3280649170.py:3: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+  tpm = pd.read_csv("/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed", sep="\t", header=0, index_col='gene_id')</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="4">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># concatenate fast enformer predictions from all chromosomes</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_prediction_from_founders"</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>outputs <span class="op">=</span> []</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> os.listdir(output_dir):</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.read_csv(os.path.join(output_dir, <span class="bu">file</span>), index_col<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    outputs.append(df)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>haplo_expr <span class="op">=</span> pd.concat(outputs, axis<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
 <div class="cell" data-execution_count="5">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_prediction_from_founders"</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> pd.read_csv(os.path.join(output_dir, <span class="st">"chr1_selected_genes.csv"</span>), index_col<span class="op">=</span><span class="dv">0</span>).dropna()</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>obs_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>cors <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_spearman_corr_human.csv"</span>, index_col <span class="op">=</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_126730/2310328556.py:3: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
-  obs_expr = pd.read_csv("/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed", sep="\t", header=0, index_col='gene_id')</code></pre>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># subset to genes with fast enformer predictions</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> haplo_expr.columns.intersection(cors.index)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>cors <span class="op">=</span> cors.loc[gene_list]</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>obs_expr <span class="op">=</span> tpm.loc[gene_list].drop(columns<span class="op">=</span>[<span class="st">"#chr"</span>, <span class="st">"start"</span>, <span class="st">"end"</span>]).transpose()</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>pred_expr <span class="op">=</span> pred_expr[gene_list]</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>haplo_expr <span class="op">=</span> haplo_expr[gene_list]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 </div>
-</div>
+<section id="evaluating-fast-enformer-against-traditional-enformer" class="level3">
+<h3 class="anchored" data-anchor-id="evaluating-fast-enformer-against-traditional-enformer">Evaluating Fast Enformer against traditional Enformer</h3>
+<p><strong>Scatter Plot of predicted expression for individua-gene pairs</strong></p>
+<p>Each dot represents a individual-gene pair</p>
 <div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">## subset obs</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> output.columns.intersection(cors.index)</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>samples <span class="op">=</span> output.index</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>cors <span class="op">=</span> cors.loc[gene_list]</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>obs_expr <span class="op">=</span> obs_expr.loc[gene_list, samples]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>output_cors <span class="op">=</span> pd.DataFrame(columns <span class="op">=</span> [<span class="st">"r"</span>, <span class="st">"pval"</span>], index <span class="op">=</span> gene_list)</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    corr, pval <span class="op">=</span> stats.spearmanr(obs_expr.loc[gene].values, output[gene])</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    output_cors.loc[gene] <span class="op">=</span> [corr, pval]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<section id="distribution-of-spearman-r-p-value" class="level3">
-<h3 class="anchored" data-anchor-id="distribution-of-spearman-r-p-value">Distribution of Spearman R, P-value</h3>
-<p>To plot the performance of gene expression derived from the EpigenomeXcan method (haplotype probabilities <span class="math display">\[x\]</span> founder epigenomes) compared to ground truth.</p>
-<div class="cell" data-execution_count="50">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot a pearson_corr_by_gene["human"]histogram</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>plt.hist(output_cors[<span class="st">"r"</span>], bins<span class="op">=</span><span class="dv">25</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])  <span class="co"># 'bins' determines the number of bins or bars</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'EpigenomeXcan correlations (across n = 272) for 113 genes'</span>)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Spearman Correlations'</span>)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Frequency'</span>)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>mean <span class="op">=</span> np.mean(output_cors[<span class="st">"r"</span>])</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>plt.axvline(mean, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'dashed'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean: </span><span class="sc">{</span>mean<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the plot</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="index_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot a pearson_corr_by_gene["human"]histogram</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>plt.hist(output_cors[<span class="st">"pval"</span>], bins<span class="op">=</span><span class="dv">25</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])  <span class="co"># 'bins' determines the number of bins or bars</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'EpigenomeXcan p-values (across n = 272) for 113 genes'</span>)</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Spearman Correlations'</span>)</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Frequency'</span>)</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>mean <span class="op">=</span> np.mean(output_cors[<span class="st">"r"</span>])</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>plt.axvline(mean, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'dashed'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean: </span><span class="sc">{</span>mean<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the plot</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> pred_expr.values.flatten()</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> haplo_expr.values.flatten()</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>corr, _ <span class="op">=</span> stats.pearsonr(x,y)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>plt.scatter(x, y, label<span class="op">=</span><span class="ss">f'Pearson R: </span><span class="sc">{</span>corr<span class="sc">:.3f}</span><span class="ss">'</span>, marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co"># sns.regplot(x=x, y=y, ci=None, line_kws={'label': f'Correlation: {corr:.3f}'})</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Enformer'</span>)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Fast Enformer'</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">'Scatter plot of individual-gene predictions from Enformer and Fast Enformer'</span>)</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="co"># plt.plot(x, slope * x + intercept, '--', color="black", label=f'Best Fit Line: y = {slope:.3f}x + {intercept:.3f}')</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>plt.plot(x, x, <span class="st">'--'</span>, color<span class="op">=</span><span class="st">"grey"</span>, label<span class="op">=</span><span class="ss">f'One-to-One Line'</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
 </div>
 </div>
-</section>
-<section id="comparing-methods-enformer-vs-epigenomexcan" class="level3">
-<h3 class="anchored" data-anchor-id="comparing-methods-enformer-vs-epigenomexcan">Comparing Methods: Enformer vs EpigenomeXcan</h3>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit a linear regression line to the data (calculate slope)</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> cors[<span class="st">"spearman r"</span>].values.astype(np.float32)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> output_cors[<span class="st">"r"</span>].values.astype(np.float32)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  slope, intercept = np.polyfit(x, y, 1)</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the plot</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>plt.scatter(x, y, label<span class="op">=</span><span class="st">'Genes'</span>, marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="co"># plt.plot(x, slope * x + intercept, '--', color="black", label=f'Best Fit Line: y = {slope:.3f}x + {intercept:.3f}')</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>plt.plot(x, x, <span class="st">'--'</span>, color<span class="op">=</span><span class="st">"grey"</span>, label<span class="op">=</span><span class="ss">f'One-to-One Line'</span>)</span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Enformer vs EpigenomeXcan Spearman Correlations"</span>)</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels and legend</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Enformer'</span>)</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'EpigenomeXcan'</span>)</span>
+<p><strong>Histogram of Fast Enformer correlation to Enformer expression</strong></p>
+<p>::: {.cell 0=‘c’ 1=‘o’ 2=‘d’ 3=‘e’ 4=‘-’ 5=‘f’ 6=‘o’ 7=‘l’ 8=‘d’ 9=‘:’ 10=‘t’ 11=‘r’ 12=‘u’ 13=‘e’ execution_count=7}</p>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>output_cors <span class="op">=</span> pd.DataFrame(columns <span class="op">=</span> [<span class="st">"r"</span>, <span class="st">"pval"</span>], index <span class="op">=</span> gene_list)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    individuals <span class="op">=</span> haplo_expr[gene].dropna().index</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    corr, pval <span class="op">=</span> stats.pearsonr(pred_expr.loc[individuals, gene].values, haplo_expr.loc[individuals, gene].values)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    output_cors.loc[gene] <span class="op">=</span> [corr, pval]</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot a pearson_corr_by_gene["human"]histogram</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>plt.hist(output_cors[<span class="st">"r"</span>], bins<span class="op">=</span><span class="dv">25</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])  <span class="co"># 'bins' determines the number of bins or bars</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f'Correlation between Fast Enformer and Enformer on </span><span class="sc">{</span><span class="bu">len</span>(gene_list)<span class="sc">}</span><span class="ss"> genes'</span>)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Pearson Correlations'</span>)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>mean <span class="op">=</span> np.mean(output_cors[<span class="st">"r"</span>])</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>plt.axvline(mean, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'dashed'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean: </span><span class="sc">{</span>mean<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
 <span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
 <span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the plot</span></span>
 <span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display">
 <p><img src="index_files/figure-html/cell-13-output-1.png" class="img-fluid"></p>
+</div>
+<p>:::</p>
+</section>
+<section id="evaluating-fast-enformer-against-ground-truth" class="level3">
+<h3 class="anchored" data-anchor-id="evaluating-fast-enformer-against-ground-truth">Evaluating Fast Enformer against ground truth</h3>
+<p><strong>Distribution of Pearson R, P-value</strong></p>
+<p>To plot the performance of gene expression derived from fast Enformer (haplotype probabilities <span class="math inline">\(\times\)</span> founder epigenomes) compared to observed expression.</p>
+<div class="cell" data-execution_count="8">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>output_cors <span class="op">=</span> pd.DataFrame(columns <span class="op">=</span> [<span class="st">"r"</span>, <span class="st">"pval"</span>], index <span class="op">=</span> gene_list)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    individuals <span class="op">=</span> haplo_expr[gene].dropna().index</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    corr, pval <span class="op">=</span> stats.pearsonr(obs_expr.loc[individuals, gene].values, haplo_expr.loc[individuals, gene].values)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    output_cors.loc[gene] <span class="op">=</span> [corr, pval]</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot a pearson_corr_by_gene["human"]histogram</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>plt.hist(output_cors[<span class="st">"r"</span>], bins<span class="op">=</span><span class="dv">25</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])  <span class="co"># 'bins' determines the number of bins or bars</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f'Correlation between Fast Enformer and Observed on </span><span class="sc">{</span><span class="bu">len</span>(gene_list)<span class="sc">}</span><span class="ss"> genes'</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Pearson Correlations'</span>)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>mean <span class="op">=</span> np.mean(output_cors[<span class="st">"r"</span>])</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>plt.axvline(mean, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'dashed'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean: </span><span class="sc">{</span>mean<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the plot</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-14-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="9">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot a pearson_corr_by_gene["human"]histogram</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>plt.hist(output_cors[<span class="st">"pval"</span>], bins<span class="op">=</span><span class="dv">25</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])  <span class="co"># 'bins' determines the number of bins or bars</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f'Fast Enformer P-values for </span><span class="sc">{</span><span class="bu">len</span>(gene_list)<span class="sc">}</span><span class="ss"> genes'</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'P-value'</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>mean <span class="op">=</span> np.mean(output_cors[<span class="st">"r"</span>])</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>plt.axvline(mean, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'dashed'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean: </span><span class="sc">{</span>mean<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the plot</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-15-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<p><strong>Comparing Gene Performance between Enformer and Fast Enformer</strong></p>
+<div class="cell" data-execution_count="10">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Fit a linear regression line to the data (calculate slope)</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> cors[<span class="st">"pearson r"</span>].values.astype(np.float32)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> output_cors[<span class="st">"r"</span>].values.astype(np.float32)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="co">#  slope, intercept = np.polyfit(x, y, 1)</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the plot</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>plt.scatter(x, y, label<span class="op">=</span><span class="st">'Genes'</span>, marker<span class="op">=</span><span class="st">'o'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co"># plt.plot(x, slope * x + intercept, '--', color="black", label=f'Best Fit Line: y = {slope:.3f}x + {intercept:.3f}')</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>plt.plot(x, x, <span class="st">'--'</span>, color<span class="op">=</span><span class="st">"grey"</span>, label<span class="op">=</span><span class="ss">f'One-to-One Line'</span>)</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="st">"Pearson Correlations from Enformer and Fast Enformer methods"</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Add labels and legend</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Enformer'</span>)</span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Fast Enformer'</span>)</span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Show the plot</span></span>
+<span id="cb17-16"><a href="#cb17-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-16-output-1.png" class="img-fluid"></p>
 </div>
 </div>
 <div class="cell" data-execution_count="19">
 <details>
 <summary>Code</summary>
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> qqR(corvec, nn, title):</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># nn is the sample size, the number of individuals used to compute correlation</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># corvec is the correlation vector</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    mm <span class="op">=</span> <span class="bu">len</span>(corvec)</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    nullcorvec <span class="op">=</span> np.tanh(np.random.normal(size<span class="op">=</span>mm) <span class="op">/</span> np.sqrt(nn <span class="op">-</span> <span class="dv">3</span>))  <span class="co"># null correlation vector</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    sm.qqplot_2samples(nullcorvec, corvec)</span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    plt.plot([<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, <span class="dv">1</span>], color<span class="op">=</span><span class="st">'grey'</span>)  <span class="co"># Diagonal line</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    plt.title(title)</span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    plt.grid()</span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> qqR(corvec, nn, title):</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># nn is the sample size, the number of individuals used to compute correlation</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># corvec is the correlation vector</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    mm <span class="op">=</span> <span class="bu">len</span>(corvec)</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    nullcorvec <span class="op">=</span> np.tanh(np.random.normal(size<span class="op">=</span>mm) <span class="op">/</span> np.sqrt(nn <span class="op">-</span> <span class="dv">3</span>))  <span class="co"># null correlation vector</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    sm.qqplot_2samples(nullcorvec, corvec)</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    plt.plot([<span class="dv">0</span>, <span class="dv">1</span>], [<span class="dv">0</span>, <span class="dv">1</span>], color<span class="op">=</span><span class="st">'grey'</span>)  <span class="co"># Diagonal line</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    plt.title(title)</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    plt.grid()</span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -405,172 +517,172 @@ To enable them in other operations, rebuild TensorFlow with the appropriate comp
 <section id="parsl-test" class="level2">
 <h2 class="anchored" data-anchor-id="parsl-test">Parsl Test</h2>
 <div class="cell" data-execution_count="2">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> parsl</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> parsl.configs.htex_local <span class="im">import</span> config</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> parsl <span class="im">import</span> python_app</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>parsl.load(config)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> parsl</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> parsl.configs.htex_local <span class="im">import</span> config</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> parsl <span class="im">import</span> python_app</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>parsl.load(config)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-display" data-execution_count="2">
 <pre><code>&lt;parsl.dataflow.dflow.DataFlowKernel at 0x7ff447dc34f0&gt;</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="3">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> interpolate(x, xi, y):</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>    j   <span class="op">=</span>   tf.argsort(tf.concat((x, xi), axis<span class="op">=-</span><span class="dv">1</span>))</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    k   <span class="op">=</span>   tf.<span class="bu">range</span>(<span class="bu">len</span>(j))</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>    q   <span class="op">=</span>   tf.scatter_nd(j[:, tf.newaxis], k, k.shape)</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    lxi <span class="op">=</span>   <span class="bu">len</span>(xi)</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   q[<span class="op">-</span>lxi:]<span class="op">-</span>tf.<span class="bu">range</span>(<span class="dv">0</span>, lxi)</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   tf.where(xi <span class="op">==</span> x[<span class="op">-</span><span class="dv">1</span>], q[<span class="op">-</span><span class="dv">1</span>:] <span class="op">-</span> lxi, r)</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>    x2  <span class="op">=</span>   tf.gather(x, r)</span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>    x1  <span class="op">=</span>   tf.gather(x, r<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>    y2  <span class="op">=</span>   tf.gather(y, r)</span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>    y1  <span class="op">=</span>   tf.gather(y, r<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>    u   <span class="op">=</span>   (xi<span class="op">-</span>x1)<span class="op">/</span>(x2<span class="op">-</span>x1)</span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> tf.rank(u) <span class="op">==</span> tf.rank(y1):</span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>        u   <span class="op">=</span>   tf.expand_dims(u, axis<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>    yi  <span class="op">=</span>   (<span class="fl">1.0</span><span class="op">-</span>u)<span class="op">*</span>y1 <span class="op">+</span> u<span class="op">*</span>y2</span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tf.where(y1 <span class="op">==</span> y2, y1, yi)</span>
-<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_epigenome(reference_file, gene, start, end, prob):</span>
-<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> tf.constant(prob[<span class="st">'POS'</span>].values)</span>
-<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> tf.constant(prob.drop(columns<span class="op">=</span>[<span class="st">'POS'</span>]).values)</span>
-<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>    bins <span class="op">=</span> tf.linspace(start, end, <span class="dv">896</span>)</span>
-<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>    pr_tensor <span class="op">=</span> tf.expand_dims(interpolate(x, bins, y), axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(reference_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
-<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>        matrix <span class="op">=</span> hf[gene][:]</span>
-<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>    ref_tensor <span class="op">=</span> tf.transpose(matrix, perm<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>])</span>
-<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>    pr_tensor <span class="op">=</span> tf.cast(pr_tensor, dtype<span class="op">=</span>tf.float16)</span>
-<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a>    ref_tensor <span class="op">=</span> tf.cast(ref_tensor, dtype<span class="op">=</span>tf.float16)</span>
-<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> tf.squeeze(tf.matmul(pr_tensor, ref_tensor), axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span>
-<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_sample_predictions(prob, reference_file, gene_annot):</span>
-<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> []</span>
-<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> index, row <span class="kw">in</span> gene_annot.iterrows():</span>
-<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a>        gene <span class="op">=</span> row[<span class="st">'gene'</span>]</span>
-<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>        tss <span class="op">=</span> row[<span class="st">'tss'</span>]</span>
-<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>        start <span class="op">=</span> tss <span class="op">-</span> <span class="dv">57344</span></span>
-<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> tss <span class="op">+</span> <span class="dv">57344</span></span>
-<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (start <span class="op">&gt;=</span> prob.iloc[<span class="dv">0</span>,<span class="dv">0</span>] <span class="kw">and</span> end <span class="op">&lt;=</span> prob.iloc[<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]):</span>
-<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>            output <span class="op">=</span> compute_epigenome(reference_file, gene, start, end, prob)</span>
-<span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Process genotype probabilities</span></span>
-<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>            predictions.append(np.average(output[<span class="dv">446</span>:<span class="dv">450</span>]))</span>
-<span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> predictions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> interpolate(x, xi, y):</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>    j   <span class="op">=</span>   tf.argsort(tf.concat((x, xi), axis<span class="op">=-</span><span class="dv">1</span>))</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>    k   <span class="op">=</span>   tf.<span class="bu">range</span>(<span class="bu">len</span>(j))</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>    q   <span class="op">=</span>   tf.scatter_nd(j[:, tf.newaxis], k, k.shape)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    lxi <span class="op">=</span>   <span class="bu">len</span>(xi)</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   q[<span class="op">-</span>lxi:]<span class="op">-</span>tf.<span class="bu">range</span>(<span class="dv">0</span>, lxi)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   tf.where(xi <span class="op">==</span> x[<span class="op">-</span><span class="dv">1</span>], q[<span class="op">-</span><span class="dv">1</span>:] <span class="op">-</span> lxi, r)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    x2  <span class="op">=</span>   tf.gather(x, r)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    x1  <span class="op">=</span>   tf.gather(x, r<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    y2  <span class="op">=</span>   tf.gather(y, r)</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    y1  <span class="op">=</span>   tf.gather(y, r<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>    u   <span class="op">=</span>   (xi<span class="op">-</span>x1)<span class="op">/</span>(x2<span class="op">-</span>x1)</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> tf.rank(u) <span class="op">==</span> tf.rank(y1):</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>        u   <span class="op">=</span>   tf.expand_dims(u, axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    yi  <span class="op">=</span>   (<span class="fl">1.0</span><span class="op">-</span>u)<span class="op">*</span>y1 <span class="op">+</span> u<span class="op">*</span>y2</span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tf.where(y1 <span class="op">==</span> y2, y1, yi)</span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_epigenome(reference_file, gene, start, end, prob):</span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> tf.constant(prob[<span class="st">'POS'</span>].values)</span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> tf.constant(prob.drop(columns<span class="op">=</span>[<span class="st">'POS'</span>]).values)</span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>    bins <span class="op">=</span> tf.linspace(start, end, <span class="dv">896</span>)</span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>    pr_tensor <span class="op">=</span> tf.expand_dims(interpolate(x, bins, y), axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(reference_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a>        matrix <span class="op">=</span> hf[gene][:]</span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>    ref_tensor <span class="op">=</span> tf.transpose(matrix, perm<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>])</span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a>    pr_tensor <span class="op">=</span> tf.cast(pr_tensor, dtype<span class="op">=</span>tf.float16)</span>
+<span id="cb21-33"><a href="#cb21-33" aria-hidden="true" tabindex="-1"></a>    ref_tensor <span class="op">=</span> tf.cast(ref_tensor, dtype<span class="op">=</span>tf.float16)</span>
+<span id="cb21-34"><a href="#cb21-34" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> tf.squeeze(tf.matmul(pr_tensor, ref_tensor), axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb21-35"><a href="#cb21-35" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span>
+<span id="cb21-36"><a href="#cb21-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-37"><a href="#cb21-37" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_sample_predictions(prob, reference_file, gene_annot):</span>
+<span id="cb21-38"><a href="#cb21-38" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> []</span>
+<span id="cb21-39"><a href="#cb21-39" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> index, row <span class="kw">in</span> gene_annot.iterrows():</span>
+<span id="cb21-40"><a href="#cb21-40" aria-hidden="true" tabindex="-1"></a>        gene <span class="op">=</span> row[<span class="st">'gene'</span>]</span>
+<span id="cb21-41"><a href="#cb21-41" aria-hidden="true" tabindex="-1"></a>        tss <span class="op">=</span> row[<span class="st">'tss'</span>]</span>
+<span id="cb21-42"><a href="#cb21-42" aria-hidden="true" tabindex="-1"></a>        start <span class="op">=</span> tss <span class="op">-</span> <span class="dv">57344</span></span>
+<span id="cb21-43"><a href="#cb21-43" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> tss <span class="op">+</span> <span class="dv">57344</span></span>
+<span id="cb21-44"><a href="#cb21-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (start <span class="op">&gt;=</span> prob.iloc[<span class="dv">0</span>,<span class="dv">0</span>] <span class="kw">and</span> end <span class="op">&lt;=</span> prob.iloc[<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]):</span>
+<span id="cb21-45"><a href="#cb21-45" aria-hidden="true" tabindex="-1"></a>            output <span class="op">=</span> compute_epigenome(reference_file, gene, start, end, prob)</span>
+<span id="cb21-46"><a href="#cb21-46" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Process genotype probabilities</span></span>
+<span id="cb21-47"><a href="#cb21-47" aria-hidden="true" tabindex="-1"></a>            predictions.append(np.average(output[<span class="dv">446</span>:<span class="dv">450</span>]))</span>
+<span id="cb21-48"><a href="#cb21-48" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> predictions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="at">@python_app</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_predictions(probabilities_file, reference_file, group, individuals, output_file, log_file, module_path <span class="op">=</span> run_dir):</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> time</span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> h5py</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> sys</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>    sys.path.append(module_path)</span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>    <span class="im">from</span> tensor_helpers <span class="im">import</span> run_sample_predictions</span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>    start_time <span class="op">=</span> time.perf_counter()</span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>    haplo_expr <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>group[<span class="st">'gene'</span>], index<span class="op">=</span>individuals)</span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="bu">open</span>(log_file, <span class="st">"w"</span>)</span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(probabilities_file, <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">input</span>:</span>
-<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>            tic <span class="op">=</span> time.perf_counter()</span>
-<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>            columns <span class="op">=</span> [<span class="st">'POS'</span>, <span class="st">'ACI'</span>, <span class="st">'BN'</span>, <span class="st">'BUF'</span>, <span class="st">'F344'</span>, <span class="st">'M520'</span>, <span class="st">'MR'</span>, <span class="st">'WKY'</span>, <span class="st">'WN'</span>]</span>
-<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>            prob <span class="op">=</span> pd.DataFrame(<span class="bu">input</span>[individual][:], columns<span class="op">=</span>columns)</span>
-<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>            predictions <span class="op">=</span> run_sample_predictions(prob, reference_file, group)</span>
-<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>            haplo_expr.loc[individual] <span class="op">=</span> predictions</span>
-<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>            toc <span class="op">=</span> time.perf_counter()</span>
-<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>            f.write(individual, <span class="st">"..."</span>, toc <span class="op">-</span> tic, <span class="st">"sec</span><span class="ch">\n</span><span class="st">"</span>)</span>
-<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>    end_time <span class="op">=</span> time.perf_counter()</span>
-<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>    haplo_expr.to_csv(output_file)</span>
-<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>    f.write(<span class="st">'Completed job in'</span>, (end_time <span class="op">-</span> start_time) <span class="op">/</span> <span class="dv">60</span> ,<span class="st">'minutes.'</span>)</span>
-<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>    f.close()</span>
-<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> haplo_expr</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="at">@python_app</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_predictions(probabilities_file, reference_file, group, individuals, output_file, log_file, module_path <span class="op">=</span> run_dir):</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> time</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> h5py</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>    <span class="im">import</span> sys</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    sys.path.append(module_path)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    <span class="im">from</span> tensor_helpers <span class="im">import</span> run_sample_predictions</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    start_time <span class="op">=</span> time.perf_counter()</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    haplo_expr <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>group[<span class="st">'gene'</span>], index<span class="op">=</span>individuals)</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    f <span class="op">=</span> <span class="bu">open</span>(log_file, <span class="st">"w"</span>)</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(probabilities_file, <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">input</span>:</span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>            tic <span class="op">=</span> time.perf_counter()</span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>            columns <span class="op">=</span> [<span class="st">'POS'</span>, <span class="st">'ACI'</span>, <span class="st">'BN'</span>, <span class="st">'BUF'</span>, <span class="st">'F344'</span>, <span class="st">'M520'</span>, <span class="st">'MR'</span>, <span class="st">'WKY'</span>, <span class="st">'WN'</span>]</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>            prob <span class="op">=</span> pd.DataFrame(<span class="bu">input</span>[individual][:], columns<span class="op">=</span>columns)</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>            predictions <span class="op">=</span> run_sample_predictions(prob, reference_file, group)</span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>            haplo_expr.loc[individual] <span class="op">=</span> predictions</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>            toc <span class="op">=</span> time.perf_counter()</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>            f.write(individual, <span class="st">"..."</span>, toc <span class="op">-</span> tic, <span class="st">"sec</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>    end_time <span class="op">=</span> time.perf_counter()</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a>    haplo_expr.to_csv(output_file)</span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>    f.write(<span class="st">'Completed job in'</span>, (end_time <span class="op">-</span> start_time) <span class="op">/</span> <span class="dv">60</span> ,<span class="st">'minutes.'</span>)</span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>    f.close()</span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> haplo_expr</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="9">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>app_futures <span class="op">=</span> []</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span>, group <span class="kw">in</span> genes_df.groupby(<span class="st">"chromosome"</span>):</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    reference_file <span class="op">=</span> os.path.join(reference_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>    probabilities_file <span class="op">=</span> os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>)</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>    output_file <span class="op">=</span> os.path.join(output_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_selected_genes.csv"</span>)</span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>    log_file <span class="op">=</span> os.path.join(output_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_selected_genes.log"</span>)</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>    app_futures.append(run_predictions(probabilities_file, reference_file, group, individuals, output_file, log_file, module_path <span class="op">=</span> run_dir))</span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>exec_futures <span class="op">=</span> [q.result() <span class="cf">for</span> q <span class="kw">in</span> app_futures]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>app_futures <span class="op">=</span> []</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span>, group <span class="kw">in</span> genes_df.groupby(<span class="st">"chromosome"</span>):</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    reference_file <span class="op">=</span> os.path.join(reference_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>    probabilities_file <span class="op">=</span> os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>)</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    output_file <span class="op">=</span> os.path.join(output_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_selected_genes.csv"</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    log_file <span class="op">=</span> os.path.join(output_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_selected_genes.log"</span>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    app_futures.append(run_predictions(probabilities_file, reference_file, group, individuals, output_file, log_file, module_path <span class="op">=</span> run_dir))</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>exec_futures <span class="op">=</span> [q.result() <span class="cf">for</span> q <span class="kw">in</span> app_futures]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="10">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>reference_file <span class="op">=</span> os.path.join(reference_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>probabilities_file <span class="op">=</span> os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>)</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> pred_expr.index</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>reference_file <span class="op">=</span> os.path.join(reference_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>probabilities_file <span class="op">=</span> os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>)</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> pred_expr.index</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="23">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tensorflow <span class="im">as</span> tf</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> interpolate(x, xi, y):</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>    j   <span class="op">=</span>   tf.argsort(tf.concat((x, xi), axis<span class="op">=-</span><span class="dv">1</span>))</span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>    k   <span class="op">=</span>   tf.<span class="bu">range</span>(<span class="bu">len</span>(j))</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>    q   <span class="op">=</span>   tf.scatter_nd(j[:, tf.newaxis], k, k.shape)</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>    lxi <span class="op">=</span>   <span class="bu">len</span>(xi)</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   q[<span class="op">-</span>lxi:]<span class="op">-</span>tf.<span class="bu">range</span>(<span class="dv">0</span>, lxi)</span>
-<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   tf.where(xi <span class="op">==</span> x[<span class="op">-</span><span class="dv">1</span>], q[<span class="op">-</span><span class="dv">1</span>:] <span class="op">-</span> lxi, r)</span>
-<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>    x2  <span class="op">=</span>   tf.gather(x, r)</span>
-<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>    x1  <span class="op">=</span>   tf.gather(x, r<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>    y2  <span class="op">=</span>   tf.gather(y, r)</span>
-<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a>    y1  <span class="op">=</span>   tf.gather(y, r<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>    u   <span class="op">=</span>   (xi<span class="op">-</span>x1)<span class="op">/</span>(x2<span class="op">-</span>x1)</span>
-<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> tf.rank(u) <span class="op">==</span> tf.rank(y1):</span>
-<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>        u   <span class="op">=</span>   tf.expand_dims(u, axis<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>    yi  <span class="op">=</span>   (<span class="fl">1.0</span><span class="op">-</span>u)<span class="op">*</span>y1 <span class="op">+</span> u<span class="op">*</span>y2</span>
-<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tf.where(y1 <span class="op">==</span> y2, y1, yi)</span>
-<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_epigenome(reference_file, gene, start, end, prob):</span>
-<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> tf.constant(prob[<span class="st">'POS'</span>].values)</span>
-<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> tf.constant(prob.drop(columns<span class="op">=</span>[<span class="st">'POS'</span>]).values)</span>
-<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>    bins <span class="op">=</span> tf.linspace(start, end, <span class="dv">896</span>)</span>
-<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>    pr_tensor <span class="op">=</span> tf.expand_dims(tf.cast(interpolate(x, bins, y), dtype<span class="op">=</span>tf.float32), axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(reference_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
-<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>        matrix <span class="op">=</span> hf[gene][:]</span>
-<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>    ref_tensor <span class="op">=</span> tf.transpose(matrix, perm<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>])</span>
-<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> tf.squeeze(tf.matmul(pr_tensor, ref_tensor), axis<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span>
-<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_sample_predictions(prob, reference_file, gene_annot):</span>
-<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> []</span>
-<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> index, row <span class="kw">in</span> gene_annot.iterrows():</span>
-<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a>        gene <span class="op">=</span> row[<span class="st">'gene'</span>]</span>
-<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a>        tss <span class="op">=</span> row[<span class="st">'tss'</span>]</span>
-<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a>        start <span class="op">=</span> tss <span class="op">-</span> <span class="dv">57344</span></span>
-<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> tss <span class="op">+</span> <span class="dv">57344</span></span>
-<span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (start <span class="op">&gt;=</span> prob.iloc[<span class="dv">0</span>,<span class="dv">0</span>] <span class="kw">and</span> end <span class="op">&lt;=</span> prob.iloc[<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]):</span>
-<span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>            output <span class="op">=</span> compute_epigenome(reference_file, gene, start, end, prob)</span>
-<span id="cb22-45"><a href="#cb22-45" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Process genotype probabilities</span></span>
-<span id="cb22-46"><a href="#cb22-46" aria-hidden="true" tabindex="-1"></a>            predictions.append(np.average(output[<span class="dv">446</span>:<span class="dv">450</span>]))</span>
-<span id="cb22-47"><a href="#cb22-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> predictions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tensorflow <span class="im">as</span> tf</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> interpolate(x, xi, y):</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>    j   <span class="op">=</span>   tf.argsort(tf.concat((x, xi), axis<span class="op">=-</span><span class="dv">1</span>))</span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>    k   <span class="op">=</span>   tf.<span class="bu">range</span>(<span class="bu">len</span>(j))</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    q   <span class="op">=</span>   tf.scatter_nd(j[:, tf.newaxis], k, k.shape)</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    lxi <span class="op">=</span>   <span class="bu">len</span>(xi)</span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   q[<span class="op">-</span>lxi:]<span class="op">-</span>tf.<span class="bu">range</span>(<span class="dv">0</span>, lxi)</span>
+<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    r   <span class="op">=</span>   tf.where(xi <span class="op">==</span> x[<span class="op">-</span><span class="dv">1</span>], q[<span class="op">-</span><span class="dv">1</span>:] <span class="op">-</span> lxi, r)</span>
+<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    x2  <span class="op">=</span>   tf.gather(x, r)</span>
+<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    x1  <span class="op">=</span>   tf.gather(x, r<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    y2  <span class="op">=</span>   tf.gather(y, r)</span>
+<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    y1  <span class="op">=</span>   tf.gather(y, r<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>    u   <span class="op">=</span>   (xi<span class="op">-</span>x1)<span class="op">/</span>(x2<span class="op">-</span>x1)</span>
+<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> tf.rank(u) <span class="op">==</span> tf.rank(y1):</span>
+<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>        u   <span class="op">=</span>   tf.expand_dims(u, axis<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>    yi  <span class="op">=</span>   (<span class="fl">1.0</span><span class="op">-</span>u)<span class="op">*</span>y1 <span class="op">+</span> u<span class="op">*</span>y2</span>
+<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tf.where(y1 <span class="op">==</span> y2, y1, yi)</span>
+<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_epigenome(reference_file, gene, start, end, prob):</span>
+<span id="cb25-26"><a href="#cb25-26" aria-hidden="true" tabindex="-1"></a>    x <span class="op">=</span> tf.constant(prob[<span class="st">'POS'</span>].values)</span>
+<span id="cb25-27"><a href="#cb25-27" aria-hidden="true" tabindex="-1"></a>    y <span class="op">=</span> tf.constant(prob.drop(columns<span class="op">=</span>[<span class="st">'POS'</span>]).values)</span>
+<span id="cb25-28"><a href="#cb25-28" aria-hidden="true" tabindex="-1"></a>    bins <span class="op">=</span> tf.linspace(start, end, <span class="dv">896</span>)</span>
+<span id="cb25-29"><a href="#cb25-29" aria-hidden="true" tabindex="-1"></a>    pr_tensor <span class="op">=</span> tf.expand_dims(tf.cast(interpolate(x, bins, y), dtype<span class="op">=</span>tf.float32), axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb25-30"><a href="#cb25-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(reference_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb25-31"><a href="#cb25-31" aria-hidden="true" tabindex="-1"></a>        matrix <span class="op">=</span> hf[gene][:]</span>
+<span id="cb25-32"><a href="#cb25-32" aria-hidden="true" tabindex="-1"></a>    ref_tensor <span class="op">=</span> tf.transpose(matrix, perm<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">2</span>])</span>
+<span id="cb25-33"><a href="#cb25-33" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> tf.squeeze(tf.matmul(pr_tensor, ref_tensor), axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb25-34"><a href="#cb25-34" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span>
+<span id="cb25-35"><a href="#cb25-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-36"><a href="#cb25-36" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_sample_predictions(prob, reference_file, gene_annot):</span>
+<span id="cb25-37"><a href="#cb25-37" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> []</span>
+<span id="cb25-38"><a href="#cb25-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> index, row <span class="kw">in</span> gene_annot.iterrows():</span>
+<span id="cb25-39"><a href="#cb25-39" aria-hidden="true" tabindex="-1"></a>        gene <span class="op">=</span> row[<span class="st">'gene'</span>]</span>
+<span id="cb25-40"><a href="#cb25-40" aria-hidden="true" tabindex="-1"></a>        tss <span class="op">=</span> row[<span class="st">'tss'</span>]</span>
+<span id="cb25-41"><a href="#cb25-41" aria-hidden="true" tabindex="-1"></a>        start <span class="op">=</span> tss <span class="op">-</span> <span class="dv">57344</span></span>
+<span id="cb25-42"><a href="#cb25-42" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> tss <span class="op">+</span> <span class="dv">57344</span></span>
+<span id="cb25-43"><a href="#cb25-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (start <span class="op">&gt;=</span> prob.iloc[<span class="dv">0</span>,<span class="dv">0</span>] <span class="kw">and</span> end <span class="op">&lt;=</span> prob.iloc[<span class="op">-</span><span class="dv">1</span>,<span class="dv">0</span>]):</span>
+<span id="cb25-44"><a href="#cb25-44" aria-hidden="true" tabindex="-1"></a>            output <span class="op">=</span> compute_epigenome(reference_file, gene, start, end, prob)</span>
+<span id="cb25-45"><a href="#cb25-45" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Process genotype probabilities</span></span>
+<span id="cb25-46"><a href="#cb25-46" aria-hidden="true" tabindex="-1"></a>            predictions.append(np.average(output[<span class="dv">446</span>:<span class="dv">450</span>]))</span>
+<span id="cb25-47"><a href="#cb25-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> predictions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="25">
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>haplo_expr <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>group[<span class="st">'gene'</span>], index<span class="op">=</span>individuals)</span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(probabilities_file, <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">input</span>:</span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>        tic <span class="op">=</span> time.perf_counter()</span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>        columns <span class="op">=</span> [<span class="st">'POS'</span>, <span class="st">'ACI'</span>, <span class="st">'BN'</span>, <span class="st">'BUF'</span>, <span class="st">'F344'</span>, <span class="st">'M520'</span>, <span class="st">'MR'</span>, <span class="st">'WKY'</span>, <span class="st">'WN'</span>]</span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>        prob <span class="op">=</span> pd.DataFrame(<span class="bu">input</span>[individual][:], columns<span class="op">=</span>columns)</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>        predictions <span class="op">=</span> run_sample_predictions(prob, reference_file, group)</span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>        haplo_expr.loc[individual] <span class="op">=</span> predictions</span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>        toc <span class="op">=</span> time.perf_counter()</span>
-<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(individual, <span class="st">"..."</span>, toc <span class="op">-</span> tic, <span class="st">"sec"</span>)</span>
-<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>haplo_expr <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>group[<span class="st">'gene'</span>], index<span class="op">=</span>individuals)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> h5py.File(probabilities_file, <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">input</span>:</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>        tic <span class="op">=</span> time.perf_counter()</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>        columns <span class="op">=</span> [<span class="st">'POS'</span>, <span class="st">'ACI'</span>, <span class="st">'BN'</span>, <span class="st">'BUF'</span>, <span class="st">'F344'</span>, <span class="st">'M520'</span>, <span class="st">'MR'</span>, <span class="st">'WKY'</span>, <span class="st">'WN'</span>]</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>        prob <span class="op">=</span> pd.DataFrame(<span class="bu">input</span>[individual][:], columns<span class="op">=</span>columns)</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>        predictions <span class="op">=</span> run_sample_predictions(prob, reference_file, group)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>        haplo_expr.loc[individual] <span class="op">=</span> predictions</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>        toc <span class="op">=</span> time.perf_counter()</span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(individual, <span class="st">"..."</span>, toc <span class="op">-</span> tic, <span class="st">"sec"</span>)</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>000789972A ... 13.396942946012132 sec</code></pre>
 </div>

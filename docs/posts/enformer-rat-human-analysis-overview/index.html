@@ -134,18 +134,23 @@ ul.task-list li input[type="checkbox"] {
 <section id="updates-this-week" class="level2">
 <h2 class="anchored" data-anchor-id="updates-this-week">Updates this Week</h2>
 <ol type="1">
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2023-12-31-scaling-up-br-epigenome-predictions/">Test run of EpigenomeXcan</a> on 3000 genes
+<li><p><a href="https://sabrina-dl.hakyimlab.org/posts/2024-01-10-epigenomexcan-vs-enformer-significant-genes/">Fast Enformer comparison test</a></p>
 <ul>
-<li>Numpy: 902s, 718s</li>
-<li>Scipy: 797s</li>
-<li>Tensorflow: 684s</li>
+<li>340 Br rats, 451 genes with linear combination predictions</li>
+<li>Compared to Enformer:
+<ul>
+<li>R = 0.998 when comparing predicted gene expression for each individual-gene pair</li>
+<li>Distribution of cross-population correlation for each gene skews right, mean R = 0.554</li>
 </ul></li>
-<li><a href="https://sabrina-dl.hakyimlab.org/posts/2024-01-10-epigenomexcan-vs-enformer-significant-genes/">EpigenomeXcan comparison test</a>: 272 Br rats, 113 genes with linear combination predictions.
+<li>Compared to ground truth:
 <ul>
+<li>Fast Enformer has similar distribution of correlations against observed expression</li>
 <li>Genes with more significantly correlated Enformer predictions tended to have significantly correlated EpigenomeXcan predictions, although not necessarily in the same direction</li>
 </ul></li>
+</ul></li>
+<li><p><a href="https://sabrina-dl.hakyimlab.org/posts/2024-01-23-uniform-haplotype-enformer-analysis/">Faster Enformer comparison test</a></p></li>
+<li><p><a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-02-br-personalized-prediction-additional-genes/pipeline">Run Personalized Enformer across Br rats for 490 more genes, 1358 in total</a></p></li>
 </ol>
-<p><img src="methods_comp.png" class="img-fluid"></p>
 </section>
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
