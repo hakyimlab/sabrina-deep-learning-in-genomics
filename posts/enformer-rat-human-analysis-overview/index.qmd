@@ -5,9 +5,21 @@ format: html
 ---
 
 ## Updates this Week
-1. Test run of EpigenomeXcan: 1 sample, 3190 genes
-    * Linear interpolation to estimate probabilities for 128bp bins (Numpy: 902s, Scipy: 797s)
-    
+
+1. [Fast Enformer comparison test](https://sabrina-dl.hakyimlab.org/posts/2024-01-10-epigenomexcan-vs-enformer-significant-genes/)
+
+    * 340 Br rats, 451 genes with linear combination predictions
+    * Compared to Enformer:
+        * R = 0.998 when comparing predicted gene expression for each individual-gene pair
+        * Distribution of cross-population correlation for each gene skews right, mean R = 0.554
+    * Compared to ground truth:
+        * Fast Enformer has similar distribution of correlations against observed expression
+        * Genes with more significantly correlated Enformer predictions tended to have significantly correlated EpigenomeXcan predictions, although not necessarily in the same direction
+
+2. [Faster Enformer comparison test](https://sabrina-dl.hakyimlab.org/posts/2024-01-23-uniform-haplotype-enformer-analysis/)
+
+3. [Run Personalized Enformer across Br rats for 490 more genes, 1358 in total](https://sabrina-dl.hakyimlab.org/posts/2023-11-02-br-personalized-prediction-additional-genes/pipeline)
+
     
 
 
