@@ -179,7 +179,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="setup" class="level2">
 <h2 class="anchored" data-anchor-id="setup">Setup</h2>
-<div class="cell" data-execution_count="10">
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tensorflow <span class="im">as</span> tf</span>
@@ -187,68 +187,146 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>columns <span class="op">=</span> [<span class="st">'POS'</span>, <span class="st">'ACI'</span>, <span class="st">'BN'</span>, <span class="st">'BUF'</span>, <span class="st">'F344'</span>, <span class="st">'M520'</span>, <span class="st">'MR'</span>, <span class="st">'WKY'</span>, <span class="st">'WN'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2024-02-08 04:28:02.993273: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2024-02-08 04:28:08.883423: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/opt/cray/libfabric/1.15.2.0/lib64:/opt/cray/pe/papi/7.0.0.1/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/comm_libs/nvshmem/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/comm_libs/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/math_libs/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/compilers/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/compilers/extras/qd/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/cuda/extras/CUPTI/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/cuda/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32
+2024-02-08 04:28:08.884830: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/opt/cray/libfabric/1.15.2.0/lib64:/opt/cray/pe/papi/7.0.0.1/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/comm_libs/nvshmem/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/comm_libs/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/math_libs/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/compilers/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/compilers/extras/qd/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/cuda/extras/CUPTI/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/22.11/cuda/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32
+2024-02-08 04:28:08.884850: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.</code></pre>
 </div>
-<div class="cell" data-execution_count="11">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pred_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_human_predicted_expression.csv"</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> <span class="bu">list</span>(pred_expr.index)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>gene_annot <span class="op">=</span> pd.read_csv(<span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/gene_mapping.txt"</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>genes_df <span class="op">=</span> gene_annot[gene_annot[<span class="st">'gene'</span>].isin(pred_expr.columns)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="1">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>probabilities_dir <span class="op">=</span> <span class="st">"/home/s1mi/Br_genotype_probabilities"</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>reference_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/human"</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_prediction_from_founders_v2"</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>run_dir <span class="op">=</span> <span class="st">"/home/s1mi/Github/deep-learning-in-genomics/posts/2024-01-10-epigenomexcan-vs-enformer-significant-genes"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pred_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_human_predicted_expression.csv"</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> <span class="bu">list</span>(pred_expr.index)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>gene_annot <span class="op">=</span> pd.read_csv(<span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/gene_mapping.txt"</span>)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>genes_df <span class="op">=</span> gene_annot[gene_annot[<span class="st">'gene'</span>].isin(pred_expr.columns)]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="21">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_epigenome(ref_matrix, start, end, prob):</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    pr <span class="op">=</span> prob.drop(columns<span class="op">=</span>[<span class="st">'POS'</span>]).mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    pr_tensor <span class="op">=</span> tf.cast(pr, dtype<span class="op">=</span>tf.float16)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    ref_tensor <span class="op">=</span> tf.cast(ref_matrix, dtype<span class="op">=</span>tf.float16)</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> tf.tensordot(pr_tensor, ref_tensor, axes<span class="op">=</span><span class="dv">1</span>)</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> output</span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_sample_predictions(prob, reference_file, gene_annot):</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> []</span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> index, row <span class="kw">in</span> gene_annot.iterrows():</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        gene <span class="op">=</span> row[<span class="st">'gene'</span>]</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        tss <span class="op">=</span> row[<span class="st">'tss'</span>]</span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        start <span class="op">=</span> tss <span class="op">-</span> <span class="dv">57344</span></span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> tss <span class="op">+</span> <span class="dv">57344</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> h5py.File(reference_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>            ref_matrix <span class="op">=</span> hf[gene][:]</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> compute_epigenome(ref_matrix, start, end, prob)</span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>        predictions.append(np.average(output[<span class="dv">446</span>:<span class="dv">450</span>, <span class="dv">4980</span>]))</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> predictions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>probabilities_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_genotype_probabilities"</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>reference_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/human"</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_prediction_from_founders_v2"</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>run_dir <span class="op">=</span> <span class="st">"/home/s1mi/Github/deep-learning-in-genomics/posts/2024-01-10-epigenomexcan-vs-enformer-significant-genes"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="100">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> run_sample_predictions(prob, reference_file, gene_annot):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    predictions <span class="op">=</span> []</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> index, row <span class="kw">in</span> gene_annot.iterrows():</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        gene <span class="op">=</span> row[<span class="st">'gene'</span>]</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        tss <span class="op">=</span> row[<span class="st">'tss'</span>]</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        start <span class="op">=</span> tss <span class="op">-</span> <span class="dv">256</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        end <span class="op">=</span> tss <span class="op">+</span> <span class="dv">256</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        indices <span class="op">=</span> (prob[<span class="st">'POS'</span>] <span class="op">&gt;=</span> start) <span class="op">&amp;</span> (prob[<span class="st">'POS'</span>] <span class="op">&lt;=</span> end)</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        <span class="co"># if there are no snps within 256 bp of the tss</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> (<span class="bu">sum</span>(indices) <span class="op">==</span> <span class="dv">0</span>):</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>            end_index <span class="op">=</span> (prob[<span class="st">'POS'</span>] <span class="op">&gt;</span> tss).idxmax()</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>            pr <span class="op">=</span> prob.iloc[[end_index<span class="op">-</span><span class="dv">1</span>,end_index],:]</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># otherwise average haplotype probabilities in region</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>            pr <span class="op">=</span> prob[(prob[<span class="st">'POS'</span>] <span class="op">&gt;=</span> start) <span class="op">&amp;</span> (prob[<span class="st">'POS'</span>] <span class="op">&lt;=</span> end)]</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        pr <span class="op">=</span> pr.drop(columns<span class="op">=</span><span class="st">'POS'</span>).mean(axis<span class="op">=</span><span class="dv">0</span>).values</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">with</span> h5py.File(reference_file, <span class="st">"r"</span>) <span class="im">as</span> hf:</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>            ref_matrix <span class="op">=</span> hf[gene][:, <span class="dv">446</span>:<span class="dv">450</span>, <span class="dv">4980</span>]</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> pr <span class="op">@</span> ref_matrix</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        predictions.append(np.average(output))</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> predictions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="compute-haplotype-combination-gene-expression" class="level3">
 <h3 class="anchored" data-anchor-id="compute-haplotype-combination-gene-expression">Compute Haplotype-Combination Gene Expression</h3>
-<div class="cell" data-execution_count="22">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span>, group <span class="kw">in</span> genes_df.groupby(<span class="st">"chromosome"</span>):</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    start_time <span class="op">=</span> time.perf_counter()</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    reference_file <span class="op">=</span> os.path.join(reference_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    probabilities_file <span class="op">=</span> os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>)</span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    output_file <span class="op">=</span> os.path.join(output_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_selected_genes.csv"</span>)</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> os.path.exists(output_file):</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>        haplo_expr <span class="op">=</span> pd.read_csv(output_file, index_col<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>        completed_individuals <span class="op">=</span> haplo_expr.dropna().index</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>        individuals <span class="op">=</span> pred_expr.index.difference(completed_individuals)</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>        haplo_expr <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>group[<span class="st">'gene'</span>], index<span class="op">=</span>pred_expr.index)</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>        individuals <span class="op">=</span> haplo_expr.index</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>), <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">input</span>:</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>            prob <span class="op">=</span> pd.DataFrame(<span class="bu">input</span>[individual][:], columns<span class="op">=</span>columns)</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>            predictions <span class="op">=</span> run_sample_predictions(prob, reference_file, group)</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>            haplo_expr.loc[individual] <span class="op">=</span> predictions</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    end_time <span class="op">=</span> time.perf_counter()</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="bu">len</span>(group), (start_time <span class="op">-</span> end_time) <span class="op">/</span> <span class="dv">60</span>, <span class="st">"minutes"</span>)</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co">#    </span></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    haplo_expr.to_csv(output_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Split into batches by chromosome</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span>, group <span class="kw">in</span> genes_df.groupby(<span class="st">"chromosome"</span>):</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">: </span><span class="sc">{</span><span class="bu">len</span>(group)<span class="sc">}</span><span class="ss"> genes"</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    reference_file <span class="op">=</span> os.path.join(reference_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_genes.h5"</span>)</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    probabilities_file <span class="op">=</span> os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    output_file <span class="op">=</span> os.path.join(output_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_selected_genes.csv"</span>)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># If individual has gene expression data, remove from list</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> os.path.exists(output_file):</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        haplo_expr <span class="op">=</span> pd.read_csv(output_file, index_col<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        completed_individuals <span class="op">=</span> haplo_expr.dropna().index</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        individuals <span class="op">=</span> pred_expr.index.difference(completed_individuals)</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        haplo_expr <span class="op">=</span> pd.DataFrame(columns<span class="op">=</span>group[<span class="st">'gene'</span>], index<span class="op">=</span>pred_expr.index)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        individuals <span class="op">=</span> haplo_expr.index</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(os.path.join(probabilities_dir, <span class="ss">f"</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_probabilities.h5"</span>), <span class="st">"r"</span>) <span class="im">as</span> <span class="bu">input</span>:</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        tic <span class="op">=</span> time.perf_counter()</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> index, individual <span class="kw">in</span> <span class="bu">enumerate</span>(individuals):</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>            prob <span class="op">=</span> pd.DataFrame(<span class="bu">input</span>[individual][:], columns<span class="op">=</span>columns)</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>            predictions <span class="op">=</span> run_sample_predictions(prob, reference_file, group)</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>            haplo_expr.loc[individual] <span class="op">=</span> predictions</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> ((index <span class="op">+</span> <span class="dv">1</span>) <span class="op">%</span> <span class="dv">20</span> <span class="op">==</span> <span class="dv">0</span>):</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>                toc <span class="op">=</span> time.perf_counter()</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f"Batch </span><span class="sc">{</span>(index <span class="op">+</span> <span class="dv">1</span>)<span class="op">//</span><span class="dv">20</span><span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>(toc <span class="op">-</span> tic)<span class="op">/</span><span class="dv">60</span><span class="sc">}</span><span class="ss"> minutes"</span>)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>                haplo_expr.to_csv(output_file)</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    haplo_expr.to_csv(output_file)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="analysis" class="level2">
+<h2 class="anchored" data-anchor-id="analysis">Analysis</h2>
+<p><strong>Import Libraries</strong></p>
+<div class="cell" data-execution_count="102">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> statsmodels.api <span class="im">as</span> sm</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> sns.color_palette(<span class="st">"pastel"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p><strong>Reformat Data</strong></p>
+<div class="cell" data-execution_count="103">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># read observed, Enformer predicted expression and cross-population correlation by gene</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>tpm <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span>, sep<span class="op">=</span><span class="st">"</span><span class="ch">\t</span><span class="st">"</span>, header<span class="op">=</span><span class="dv">0</span>, index_col<span class="op">=</span><span class="st">'gene_id'</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>pred_expr <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_human_predicted_expression.csv"</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>cors <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/output/Br_personalized_pearson_corr_human.csv"</span>, index_col <span class="op">=</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_144042/3001682009.py:2: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+  tpm = pd.read_csv("/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed", sep="\t", header=0, index_col='gene_id')</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="108">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_prediction_from_founders_v2"</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>outputs <span class="op">=</span> []</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">file</span> <span class="kw">in</span> os.listdir(output_dir):</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.read_csv(os.path.join(output_dir, <span class="bu">file</span>), index_col<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    outputs.append(df)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>haplo_expr <span class="op">=</span> pd.concat(outputs, axis<span class="op">=</span><span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="109">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># subset to genes with fast enformer predictions</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>gene_list <span class="op">=</span> haplo_expr.columns.intersection(cors.index)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>cors <span class="op">=</span> cors.loc[gene_list]</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>obs_expr <span class="op">=</span> tpm.loc[gene_list].drop(columns<span class="op">=</span>[<span class="st">"#chr"</span>, <span class="st">"start"</span>, <span class="st">"end"</span>]).transpose()</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>pred_expr <span class="op">=</span> pred_expr[gene_list]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>haplo_expr <span class="op">=</span> haplo_expr[gene_list]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="evaluating-mean-haplotype-probability-enformer-against-enformer" class="level2">
+<h2 class="anchored" data-anchor-id="evaluating-mean-haplotype-probability-enformer-against-enformer">Evaluating Mean Haplotype Probability Enformer against Enformer</h2>
+<div class="cell" data-execution_count="110">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>output_cors <span class="op">=</span> pd.DataFrame(columns <span class="op">=</span> [<span class="st">"r"</span>, <span class="st">"pval"</span>], index <span class="op">=</span> gene_list)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> gene <span class="kw">in</span> gene_list:</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    individuals <span class="op">=</span> haplo_expr[gene].dropna().index</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    corr, pval <span class="op">=</span> stats.pearsonr(pred_expr.loc[individuals, gene].values, haplo_expr.loc[individuals, gene].values)</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    output_cors.loc[gene] <span class="op">=</span> [corr, pval]</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot a pearson_corr_by_gene["human"]</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>plt.hist(output_cors[<span class="st">"r"</span>], bins<span class="op">=</span><span class="dv">25</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>, color<span class="op">=</span>colors[<span class="dv">0</span>])  <span class="co"># 'bins' determines the number of bins or bars</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>plt.title(<span class="ss">f'Correlation between Fast Enformer and Enformer on </span><span class="sc">{</span><span class="bu">len</span>(gene_list)<span class="sc">}</span><span class="ss"> genes'</span>)</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>plt.xlabel(<span class="st">'Pearson Correlations'</span>)</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>plt.ylabel(<span class="st">'Frequency'</span>)</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>mean <span class="op">=</span> np.mean(output_cors[<span class="st">"r"</span>])</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>plt.axvline(mean, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'dashed'</span>, linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean: </span><span class="sc">{</span>mean<span class="sc">:.3f}</span><span class="ss">'</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>plt.legend()</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the plot</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="index_files/figure-html/cell-11-output-1.png" class="img-fluid"></p>
+</div>
 </div>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
