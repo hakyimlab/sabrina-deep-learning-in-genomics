@@ -212,45 +212,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <p>It’s very puzzling to me why this cross object is causing issues that didn’t appear when we marked the whole genome.</p>
-<div class="cell" data-hash="index_cache/html/unnamed-chunk-2_d1a2559addc989cf19e5ac6e795766ce">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(cross)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Object of class cross2 (crosstype "hs")
-
-Total individuals               340
-No. genotyped individuals       340
-No. phenotyped individuals        0
-No. with both geno &amp; pheno        0
-No. covariates                    1
-No. phenotype covariates          0
-
-No. chromosomes                   1
-Total markers                202387
-
-No. markers by chr:
-    20 
-202387 </code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">readRDS</span>(<span class="st">"/Users/sabrinami/Github/qtl2-founder-haps/tmp-qtl2-founder-haps/cross.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Object of class cross2 (crosstype "hs")
-
-Total individuals                340
-No. genotyped individuals        340
-No. phenotyped individuals         0
-No. with both geno &amp; pheno         0
-No. covariates                     1
-No. phenotype covariates           0
-
-No. chromosomes                   20
-Total markers                7144158
-
-No. markers by chr:
-     1      2      3      4      5      6      7      8      9     10     11 
-720616 810342 423788 503477 532683 378129 398571 345747 328200 285406 239651 
-    12     13     14     15     16     17     18     19     20 
-133178 377791 324143 273548 271191 228981 226616 139713 202387 </code></pre>
-</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-2_df4e966759b875f3a769136ad03a3a94">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">readRDS</span>(<span class="st">"/Users/sabrinami/Github/qtl2-founder-haps/tmp-qtl2-founder-haps/cross.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="original-code" class="level3">
