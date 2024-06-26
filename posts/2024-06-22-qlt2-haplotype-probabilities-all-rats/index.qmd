@@ -1,0 +1,67 @@
+---
+title: Calculating haplotype probabilities for all HS rats
+author: Sabrina Mi
+date: 6/22/2024
+---
+
+### Split Genotypes by Chromosome
+
+Ran locally with genotypes downloaded with [RatGTEx](https://ratgtex.org/download/)
+
+**5 Brain Regions**
+
+Optional: Reformat CHROM column
+```
+cd /Users/sabrinami/Desktop/qtl2_data
+mkdir BrainRegionsVCFs
+gunzip IL_LHb_NAcc_OFC_PL.rn7.vcf.gz
+awk '{if($0 !~ /^#/) print "chr"$0; else print $0}' IL_LHb_NAcc_OFC_PL.rn7.vcf > output.rn7.vcf
+bgzip output.rn7.vcf
+bcftools index -t output.rn7.vcf.gz
+```
+
+```
+vcf_in=output.rn7.vcf.gz
+vcf_out_prefix=BrainRegionsVCFs/chr
+
+for i in {1..20}
+do
+    echo "Working on chromosome ${i}..."
+    bcftools view ${vcf_in} --regions chr${i} -o ${vcf_out_prefix}${i}.vcf.gz -Oz
+done
+```
+```
+for i in {1..20}
+do
+    echo "Indexing chromosome ${i}..."
+    bcftools index -t ${vcf_out_prefix}${i}.vcf.gz
+done
+```
+
+```
+
+bcftools view ${vcf_in} --regions X -o ${vcf_out_prefix}X.vcf.gz -Oz
+bcftools view ${vcf_in} --regions Y -o ${vcf_out_prefix}Y.vcf.gz -Oz
+
+bcftools index -t ${vcf_out_prefix}X.vcf.gz
+bcftools index -t ${vcf_out_prefix}Y.vcf.gz
+```
+
+
+### Prepare qtl2 Inputs
+
+Also ran locally, with [`make_qtl2_inputs.py](https://github.com/hakyimlab/sabrina-deep-learning-in-genomics/blob/main/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/make_qtl2_inputs.py) modified from Dan's original [qlt2 wrapper code](https://github.com/daniel-munro/qtl2-founder-haps/tree/main). 
+
+First, [create genetic mapping files](https://sabrina-dl.hakyimlab.org/posts/2023-11-08-calculating-br-genotype-probabilities/#write-genetic-mapping-files).
+
+```
+conda activate genomics ## pandas and pysam are the only dependencies
+cd /Users/sabrinami/Github/deep-learning-in-genomics/posts/2024-06-22-qlt2-haplotype-probabilities-all-rats
+DATA_DIR=/Users/sabrinami/Desktop/qtl2_data
+for i in {1..18}
+do
+    echo "Writing chromosome ${i} files..."
+    python make_qtl2_inputs.py $DATA_DIR/BrainRegionsVCFs/chr${i}.vcf.gz $DATA_DIR/FounderVCFs/chr${i}.vcf.gz --working-dir $DATA_DIR/chr${i}-qtl2-founder-haps --gmap-dir $DATA_DIR/genetic_map
+done
+
+```
