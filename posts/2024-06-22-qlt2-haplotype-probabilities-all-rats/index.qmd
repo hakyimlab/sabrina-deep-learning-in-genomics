@@ -8,8 +8,6 @@ date: 6/22/2024
 
 Ran locally with genotypes downloaded with [RatGTEx](https://ratgtex.org/download/)
 
-**5 Brain Regions**
-
 Optional: Reformat CHROM column
 ```
 cd /Users/sabrinami/Desktop/qtl2_data
@@ -65,3 +63,15 @@ do
 done
 
 ```
+
+### Submit qtl2 Jobs
+
+Remote transfer files: `scp -r $DATA_DIR/chr*-qtl2-founder-haps polaris:qtl2_data`
+
+```
+cd /home/s1mi/Github/deep-learning-in-genomics/posts/2024-06-22-qlt2-haplotype-probabilities-all-rats
+for i in {1..20}
+do
+    qsub -v CHR=${i} -N chr${i}-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
+    sleep 5
+done

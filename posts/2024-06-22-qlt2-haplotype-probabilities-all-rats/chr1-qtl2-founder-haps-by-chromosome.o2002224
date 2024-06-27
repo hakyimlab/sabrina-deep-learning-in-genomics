@@ -1,0 +1,20 @@
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(qtl2); cross <- read_cross2("/home/s1mi/qtl2_data/tmp-chr1-qtl2-founder-haps/control.yaml"); pr <- calc_genoprob(cross, error_prob = 0.01, cores = 32); pr <- genoprob_to_alleleprob(pr); saveRDS(pr, "/eagle/AIHPC4Edu/sabrina/qtl2_outputs/chr1-qtl2-outputs/batch0_prob.rds")
