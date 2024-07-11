@@ -56,7 +56,7 @@ First, [create genetic mapping files](https://sabrina-dl.hakyimlab.org/posts/202
 conda activate genomics ## pandas and pysam are the only dependencies
 cd /Users/sabrinami/Github/deep-learning-in-genomics/posts/2024-06-22-qlt2-haplotype-probabilities-all-rats
 DATA_DIR=/Users/sabrinami/Desktop/qtl2_data
-for i in {1..18}
+for i in {1..20}
 do
     echo "Writing chromosome ${i} files..."
     python make_qtl2_inputs.py $DATA_DIR/BrainRegionsVCFs/chr${i}.vcf.gz $DATA_DIR/FounderVCFs/chr${i}.vcf.gz --working-dir $DATA_DIR/chr${i}-qtl2-founder-haps --gmap-dir $DATA_DIR/genetic_map
@@ -75,3 +75,83 @@ do
     qsub -v CHR=${i} -N chr${i}-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
     sleep 5
 done
+```
+
+
+### Convert RDS to CSV (R)
+
+Read RDS files and write to CSV using R code:
+
+```{r}
+#| eval: false
+qtl2_output_dir = "/eagle/AIHPC4Edu/sabrina/qtl2_outputs/"
+"%&%" = function(a,b) paste(a,b,sep="")
+split_by_sample = function(chromosome) {
+  chr = as.character(chromosome)
+  prob_dir <- qtl2_output_dir %&% "chr" %&% chr %&% "-qtl2-outputs/"
+  output_dir = "/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities/"
+  batches <- list.files(prob_dir)
+  for (file in batches) {
+    pr <- readRDS(prob_dir %&% file)[[1]]
+    samples <- rownames(pr)
+    for (sample in samples) {
+      sample_dir = output_dir %&% sample
+      if (!file.exists(sample_dir)) {
+        dir.create(sample_dir)
+      }
+      csv = sample_dir %&% "/chr" %&% chr %&% "_probabilities.csv"
+      if (!file.exists(csv)) {
+        write.csv(t(pr[sample, ,]), csv, quote=FALSE)
+      }
+    }
+  }
+}
+```
+
+```{r}
+#| eval: false
+for (i in 1:20) {
+  print("Chromosome " %&% i)
+  split_by_sample(i)
+}
+```
+
+### Convert CSV to h5 (Python)
+
+Write files to `/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities`
+
+```{python}
+#| eval: false
+import os
+import pandas as pd 
+import h5py
+import numpy as np
+probabilities_dir = '/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities'
+individuals = [individual for individual in os.listdir(probabilities_dir) if os.path.isdir(os.path.join(probabilities_dir, individual))]
+```
+
+```{python}
+#| eval: false
+# Function to read CSV files and create tables in SQLite database
+def create_db(N):
+    # Connect to SQLite database
+    with h5py.File(os.path.join(probabilities_dir, f'chr{N}_probabilities.h5'), 'a') as hf:
+        for individual in individuals:
+            if individual in hf.keys():
+                continue
+            prob_csv = os.path.join(probabilities_dir, individual, f'chr{N}_probabilities.csv')
+            df = pd.read_csv(prob_csv, index_col=0)
+            positions = df.index.str.replace(f"chr{N}:", "").astype(int) 
+            df.insert(0, 'POS', positions)
+            hf[individual] = df
+
+```
+
+```{python}
+#| eval: false
+for N in range(1, 21):
+    print("Chromosome", N)
+    create_db(str(N))
+```
+
+Delete CSVs: `rm -r 0007*`
