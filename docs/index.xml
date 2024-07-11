@@ -10,7 +10,371 @@
 <atom:link href="https://sabrinami.quarto.pub/deep-learning-in-genomics/index.xml" rel="self" type="application/rss+xml"/>
 <description>Sabrina&#39;s blog for Deep Learning in Genomics course</description>
 <generator>quarto-1.3.361</generator>
-<lastBuildDate>Wed, 14 Feb 2024 08:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 22 Jun 2024 07:00:00 GMT</lastBuildDate>
+<item>
+  <title>Calculating haplotype probabilities for all HS rats</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2024-06-22-qlt2-haplotype-probabilities-all-rats/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="split-genotypes-by-chromosome" class="level3">
+<h3 class="anchored" data-anchor-id="split-genotypes-by-chromosome">Split Genotypes by Chromosome</h3>
+<p>Ran locally with genotypes downloaded with <a href="https://ratgtex.org/download/">RatGTEx</a></p>
+<p>Optional: Reformat CHROM column</p>
+<pre><code>cd /Users/sabrinami/Desktop/qtl2_data
+mkdir BrainRegionsVCFs
+gunzip IL_LHb_NAcc_OFC_PL.rn7.vcf.gz
+awk '{if($0 !~ /^#/) print "chr"$0; else print $0}' IL_LHb_NAcc_OFC_PL.rn7.vcf &gt; output.rn7.vcf
+bgzip output.rn7.vcf
+bcftools index -t output.rn7.vcf.gz</code></pre>
+<pre><code>vcf_in=output.rn7.vcf.gz
+vcf_out_prefix=BrainRegionsVCFs/chr
+
+for i in {1..20}
+do
+    echo "Working on chromosome ${i}..."
+    bcftools view ${vcf_in} --regions chr${i} -o ${vcf_out_prefix}${i}.vcf.gz -Oz
+done</code></pre>
+<pre><code>for i in {1..20}
+do
+    echo "Indexing chromosome ${i}..."
+    bcftools index -t ${vcf_out_prefix}${i}.vcf.gz
+done</code></pre>
+<pre><code>
+bcftools view ${vcf_in} --regions X -o ${vcf_out_prefix}X.vcf.gz -Oz
+bcftools view ${vcf_in} --regions Y -o ${vcf_out_prefix}Y.vcf.gz -Oz
+
+bcftools index -t ${vcf_out_prefix}X.vcf.gz
+bcftools index -t ${vcf_out_prefix}Y.vcf.gz</code></pre>
+</section>
+<section id="prepare-qtl2-inputs" class="level3">
+<h3 class="anchored" data-anchor-id="prepare-qtl2-inputs">Prepare qtl2 Inputs</h3>
+<p>Also ran locally, with <a href="https://github.com/hakyimlab/sabrina-deep-learning-in-genomics/blob/main/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/make_qtl2_inputs.py">`make_qtl2_inputs.py</a> modified from Dan’s original <a href="https://github.com/daniel-munro/qtl2-founder-haps/tree/main">qlt2 wrapper code</a>.</p>
+<p>First, <a href="https://sabrina-dl.hakyimlab.org/posts/2023-11-08-calculating-br-genotype-probabilities/#write-genetic-mapping-files">create genetic mapping files</a>.</p>
+<pre><code>conda activate genomics ## pandas and pysam are the only dependencies
+cd /Users/sabrinami/Github/deep-learning-in-genomics/posts/2024-06-22-qlt2-haplotype-probabilities-all-rats
+DATA_DIR=/Users/sabrinami/Desktop/qtl2_data
+for i in {1..20}
+do
+    echo "Writing chromosome ${i} files..."
+    python make_qtl2_inputs.py $DATA_DIR/BrainRegionsVCFs/chr${i}.vcf.gz $DATA_DIR/FounderVCFs/chr${i}.vcf.gz --working-dir $DATA_DIR/chr${i}-qtl2-founder-haps --gmap-dir $DATA_DIR/genetic_map
+done
+</code></pre>
+</section>
+<section id="submit-qtl2-jobs" class="level3">
+<h3 class="anchored" data-anchor-id="submit-qtl2-jobs">Submit qtl2 Jobs</h3>
+<p>Remote transfer files: <code>scp -r $DATA_DIR/chr*-qtl2-founder-haps polaris:qtl2_data</code></p>
+<pre><code>cd /home/s1mi/Github/deep-learning-in-genomics/posts/2024-06-22-qlt2-haplotype-probabilities-all-rats
+for i in {1..20}
+do
+    qsub -v CHR=${i} -N chr${i}-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
+    sleep 5
+done</code></pre>
+</section>
+<section id="convert-rds-to-csv-r" class="level3">
+<h3 class="anchored" data-anchor-id="convert-rds-to-csv-r">Convert RDS to CSV (R)</h3>
+<p>Read RDS files and write to CSV using R code:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_c53e4979acc4ad4fa17c12d5cd1a3ef1">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1">qtl2_output_dir <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/eagle/AIHPC4Edu/sabrina/qtl2_outputs/"</span></span>
+<span id="cb7-2"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%&amp;%"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">function</span>(a,b) <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">paste</span>(a,b,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">sep=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">""</span>)</span>
+<span id="cb7-3">split_by_sample <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">function</span>(chromosome) {</span>
+<span id="cb7-4">  chr <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.character</span>(chromosome)</span>
+<span id="cb7-5">  prob_dir <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> qtl2_output_dir <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"chr"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> chr <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-qtl2-outputs/"</span></span>
+<span id="cb7-6">  output_dir <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities/"</span></span>
+<span id="cb7-7">  batches <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">list.files</span>(prob_dir)</span>
+<span id="cb7-8">  <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> (file <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> batches) {</span>
+<span id="cb7-9">    pr <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(prob_dir <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> file)[[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]]</span>
+<span id="cb7-10">    samples <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(pr)</span>
+<span id="cb7-11">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> (sample <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> samples) {</span>
+<span id="cb7-12">      sample_dir <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> output_dir <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> sample</span>
+<span id="cb7-13">      <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> (<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">file.exists</span>(sample_dir)) {</span>
+<span id="cb7-14">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dir.create</span>(sample_dir)</span>
+<span id="cb7-15">      }</span>
+<span id="cb7-16">      csv <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> sample_dir <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/chr"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> chr <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"_probabilities.csv"</span></span>
+<span id="cb7-17">      <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> (<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">file.exists</span>(csv)) {</span>
+<span id="cb7-18">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">write.csv</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">t</span>(pr[sample, ,]), csv, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">quote=</span><span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>)</span>
+<span id="cb7-19">      }</span>
+<span id="cb7-20">    }</span>
+<span id="cb7-21">  }</span>
+<span id="cb7-22">}</span></code></pre></div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-2_abb99906079e3dd3df356a4f4ef5716f">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> (i <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>) {</span>
+<span id="cb8-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Chromosome "</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&amp;%</span> i)</span>
+<span id="cb8-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">split_by_sample</span>(i)</span>
+<span id="cb8-4">}</span></code></pre></div>
+</div>
+</section>
+<section id="convert-csv-to-h5-python" class="level3">
+<h3 class="anchored" data-anchor-id="convert-csv-to-h5-python">Convert CSV to h5 (Python)</h3>
+<p>Write files to <code>/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities</code></p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-3_83c69e36284912dba2c096f3e04c1821">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> os</span>
+<span id="cb9-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pd </span>
+<span id="cb9-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> h5py</span>
+<span id="cb9-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb9-5">probabilities_dir <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities'</span></span>
+<span id="cb9-6">individuals <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [individual <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> os.listdir(probabilities_dir) <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> os.path.isdir(os.path.join(probabilities_dir, individual))]</span></code></pre></div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-4_319901d6cb7b62ac279dc06007e3a82f">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Function to read CSV files and create tables in SQLite database</span></span>
+<span id="cb10-2"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">def</span> create_db(N):</span>
+<span id="cb10-3">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Connect to SQLite database</span></span>
+<span id="cb10-4">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">with</span> h5py.File(os.path.join(probabilities_dir, <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>N<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">_probabilities.h5'</span>), <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'a'</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> hf:</span>
+<span id="cb10-5">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> individuals:</span>
+<span id="cb10-6">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span> individual <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> hf.keys():</span>
+<span id="cb10-7">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">continue</span></span>
+<span id="cb10-8">            prob_csv <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> os.path.join(probabilities_dir, individual, <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>N<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">_probabilities.csv'</span>)</span>
+<span id="cb10-9">            df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(prob_csv, index_col<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb10-10">            positions <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df.index.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>.replace(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>N<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">:"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">""</span>).astype(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span>) </span>
+<span id="cb10-11">            df.insert(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'POS'</span>, positions)</span>
+<span id="cb10-12">            hf[individual] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df</span></code></pre></div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-5_be984482d0e803cd03b63fc570d9febe">
+<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> N <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">21</span>):</span>
+<span id="cb11-2">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Chromosome"</span>, N)</span>
+<span id="cb11-3">    create_db(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>(N))</span></code></pre></div>
+</div>
+<p>Delete CSVs: <code>rm -r 0007*</code></p>
+
+
+</section>
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2024-06-22-qlt2-haplotype-probabilities-all-rats/index.html</guid>
+  <pubDate>Sat, 22 Jun 2024 07:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Low performance genes</title>
   <dc:creator>Sabrina Mi</dc:creator>
@@ -14607,1143 +14971,6 @@ Highest Absolute Valued Correlation Model:
   <category>report</category>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-01-borzoi-performance-analysis/index.html</guid>
   <pubDate>Wed, 25 Oct 2023 07:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Comparing Enformer and Borzoi prediction on GEUVADIS individuals</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<p>Based off the limited results from personalized prediction across GEUVADIS individuals (N=455), I conclude that Borzoi does not outperform Enformer in predicting cross-population variation in gene expression. At the very bottom, I found that for most genes, Enformer had the best cross-population predictions out of all Borzoi estimates (from varying CAGE TSS window sizes).</p>
-<div class="cell" data-execution_count="6">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span>
-<span id="cb1-2">enformer_corr_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer_geuvadis_correlations.csv"</span>).dropna()</span>
-<span id="cb1-3">hg38_annot <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> hg38_annot <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/annotation/hg38.gene.txt"</span>, sep<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>, index_col <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"external_gene_name"</span>)</span>
-<span id="cb1-4">genes <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">set</span>(enformer_corr_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'gene_names'</span>]).intersection(hg38_annot.index)</span>
-<span id="cb1-5">genes_annot <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> hg38_annot.loc[<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(genes)]</span>
-<span id="cb1-6">sample_genes <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> genes_annot.sample(n<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">100</span>)</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="7">
-<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">intervals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> []</span>
-<span id="cb2-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene, annot <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> sample_genes.iterrows():</span>
-<span id="cb2-3">    interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"chr</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'chromosome_name'</span>]<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'transcription_start_site'</span>]<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'transcription_start_site'</span>]<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span></span>
-<span id="cb2-4">    intervals.append(interval)</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"intervals.txt"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"w"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb3-2">    f.write(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\n</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>.join(intervals))</span></code></pre></div>
-</div>
-<section id="submit-pbs-job" class="level3">
-<h3 class="anchored" data-anchor-id="submit-pbs-job">Submit PBS Job</h3>
-<pre><code>#!/bin/bash
-#PBS -A AIHPC4EDU
-#PBS -q preemptable
-#PBS -l walltime=6:00:00
-#PBS -l select=2:ncpus=64:ngpus=16
-#PBS -l filesystems=home:eagle
-#PBS -N borzoi_across_geuvadis_parallel
-
-module load conda
-conda activate borzoi
-cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction
-
-python3 personalized_prediction.py \
---intervals_file intervals.txt \
---fasta_file /home/s1mi/borzoi_tutorial/hg38.fa \
---vcf_dir /grand/TFXcan/imlab/data/1000G/vcf_snps_only \
---individuals_file individuals.txt \
---model_dir /home/s1mi/borzoi_tutorial \
---output_dir /eagle/AIHPC4Edu/sabrina/borzoi-personalized-predictions</code></pre>
-<div class="cell" data-execution_count="41">
-<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span>
-<span id="cb5-2"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> np</span>
-<span id="cb5-3"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> os</span>
-<span id="cb5-4"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> h5py</span>
-<span id="cb5-5"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">from</span> scipy <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> stats</span>
-<span id="cb5-6"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> seaborn <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> sns</span>
-<span id="cb5-7"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> plt</span>
-<span id="cb5-8"></span>
-<span id="cb5-9">hg38_annot <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/annotation/hg38.gene.txt"</span>, sep<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>, index_col<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ensembl_gene_id"</span>)</span>
-<span id="cb5-10">seq_len <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">524288</span></span>
-<span id="cb5-11">seq_out_len <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">523264</span></span>
-<span id="cb5-12">predictions_dir <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/eagle/AIHPC4Edu/sabrina/borzoi-personalized-predictions"</span></span>
-<span id="cb5-13"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"individuals.txt"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb5-14">    individuals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> f.read().splitlines()</span>
-<span id="cb5-15"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"completed_intervals.txt"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb5-16">    intervals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> f.read().splitlines()</span>
-<span id="cb5-17"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"intervals.txt"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb5-18">    intervals.extend(f.read().splitlines()[:<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>]) <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># test on first few genes</span></span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="43">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">gene_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> []</span>
-<span id="cb6-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> interval <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> intervals:</span>
-<span id="cb6-3">    split_interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> interval.split(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"_"</span>)</span>
-<span id="cb6-4">    <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> split_interval[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>][<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>:]</span>
-<span id="cb6-5">    tss <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">int</span>(split_interval[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>])</span>
-<span id="cb6-6">    gene <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> hg38_annot.index[(hg38_annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'chromosome_name'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">chr</span>) <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&amp;</span> (hg38_annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'transcription_start_site'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> tss)]</span>
-<span id="cb6-7">    gene_list.append(gene.item())</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="44">
-<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">CAGE_dict <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {gene: [] <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list}</span>
-<span id="cb7-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> index, gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">enumerate</span>(gene_list):</span>
-<span id="cb7-3">    interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> intervals[index]</span>
-<span id="cb7-4">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> individuals: </span>
-<span id="cb7-5">        predictions_file <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(predictions_dir, individual, <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>interval<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_predictions.h5'</span>)</span>
-<span id="cb7-6">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> os.path.exists(predictions_file):</span>
-<span id="cb7-7">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(predictions_file, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> hf:</span>
-<span id="cb7-8">                haplo1 <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.mean(hf[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'haplotype1'</span>][:, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>:<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">7</span>, :])</span>
-<span id="cb7-9">                haplo2 <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.mean(hf[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'haplotype2'</span>][:, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>:<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">7</span>, :])</span>
-<span id="cb7-10">                prediction <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> (haplo1 <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> haplo2)<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span></span>
-<span id="cb7-11">            CAGE_dict[gene].append(prediction)</span>
-<span id="cb7-12">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb7-13">            CAGE_dict[gene].append(np.nan)</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="45">
-<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">geuvadis_gex <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/lus/grand/projects/TFXcan/imlab/data/1000G/expression/GD462.GeneQuantRPKM.50FN.samplename.resk10.txt.gz"</span>, sep<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb8-2">geuvadis_gex[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'TargetID'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> geuvadis_gex[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'TargetID'</span>].<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">apply</span>(<span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">lambda</span> gene: gene.split(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'.'</span>)[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>])</span>
-<span id="cb8-3">geuvadis_gex.set_index(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'TargetID'</span>, inplace<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">True</span>)</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="46">
-<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1">expr_dict <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {}</span>
-<span id="cb9-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb9-3">    observed <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.to_numeric(geuvadis_gex.loc[gene][individuals])</span>
-<span id="cb9-4">    expr_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.DataFrame({<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Observed'</span>: observed, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Predicted"</span>: CAGE_dict[gene]}, index <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> individuals)</span>
-<span id="cb9-5">    expr_dict[gene] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> expr_df.dropna()</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="47">
-<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">pearson_corr_by_gene <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.DataFrame(columns<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Pearson R"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"P-value"</span>], index <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gene_list)</span>
-<span id="cb10-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb10-3">    corr, pval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> stats.pearsonr(expr_dict[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>], expr_dict[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Predicted"</span>])</span>
-<span id="cb10-4">    pearson_corr_by_gene.loc[gene] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [corr, pval]</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="48">
-<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1">spearman_corr_by_gene <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.DataFrame(columns<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Spearman R"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"P-value"</span>], index <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gene_list)</span>
-<span id="cb11-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb11-3">    corr, pval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> stats.spearmanr(expr_dict[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>], expr_dict[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Predicted"</span>])</span>
-<span id="cb11-4">    spearman_corr_by_gene.loc[gene] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [corr, pval]</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="60">
-<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1">colors <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> sns.color_palette(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pastel"</span>)</span>
-<span id="cb12-2">gex_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> expr_dict[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'ENSG00000137265'</span>]</span>
-<span id="cb12-3">corr, pval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> stats.pearsonr(gex_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Observed'</span>], gex_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Predicted'</span>])</span>
-<span id="cb12-4">plt.scatter(gex_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Observed'</span>], gex_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Predicted'</span>], marker<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'o'</span>, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>colors[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>], label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"Correlation: </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>corr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>)</span>
-<span id="cb12-5"></span>
-<span id="cb12-6"></span>
-<span id="cb12-7"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Add labels and title</span></span>
-<span id="cb12-8">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Observed"</span>)</span>
-<span id="cb12-9">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Predicted"</span>)</span>
-<span id="cb12-10">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi CAGE predictions for ENSG00000137265"</span>)</span>
-<span id="cb12-11"></span>
-<span id="cb12-12"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Show the plot</span></span>
-<span id="cb12-13">plt.legend()</span>
-<span id="cb12-14">plt.show()</span></code></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index_files/figure-html/cell-12-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<p>ENSG00000137265 was the best performing gene (both for Spearman and Pearson R) for Borzoi’s personalized prediction.</p>
-</section>
-<section id="compare-correlations-to-enformer" class="level2">
-<h2 class="anchored" data-anchor-id="compare-correlations-to-enformer">Compare Correlations to Enformer</h2>
-<div class="cell" data-execution_count="61">
-<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1">enformer_corr_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"enformer_geuvadis_correlations.csv"</span>).dropna()</span>
-<span id="cb13-2">enformer_corr <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> []</span>
-<span id="cb13-3"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb13-4">    gene_name <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> hg38_annot.loc[gene][<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'external_gene_name'</span>]</span>
-<span id="cb13-5">    corr <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> enformer_corr_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'ge'</span>][enformer_corr_df[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'gene_names'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> gene_name]</span>
-<span id="cb13-6">    enformer_corr.append(corr.item())</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="62">
-<div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1">spearman_corr_by_gene[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer"</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> enformer_corr</span>
-<span id="cb14-2">spearman_corr_by_model <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> spearman_corr_by_gene.rename(columns<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>{<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Spearman R"</span>: <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi"</span>}).drop(columns<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"P-value"</span>])</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="63">
-<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">spearman_corr_by_model.head()</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="63">
-<div>
-
-
-<table class="dataframe table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
-<thead>
-<tr class="header">
-<th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">Borzoi</th>
-<th data-quarto-table-cell-role="th">Enformer</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000176058</td>
-<td>-0.005758</td>
-<td>-0.027832</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000156931</td>
-<td>-0.075927</td>
-<td>0.051405</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000118804</td>
-<td>0.027522</td>
-<td>0.004061</td>
-</tr>
-<tr class="even">
-<td data-quarto-table-cell-role="th">ENSG00000076924</td>
-<td>0.058653</td>
-<td>0.324224</td>
-</tr>
-<tr class="odd">
-<td data-quarto-table-cell-role="th">ENSG00000167562</td>
-<td>-0.027883</td>
-<td>0.062367</td>
-</tr>
-</tbody>
-</table>
-
-</div>
-</div>
-</div>
-<div class="cell" data-execution_count="64">
-<div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1">colors <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> sns.color_palette(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pastel"</span>)</span>
-<span id="cb16-2">plt.scatter(spearman_corr_by_model[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Enformer'</span>], spearman_corr_by_model[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Borzoi'</span>], marker<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'o'</span>, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>colors[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>])</span>
-<span id="cb16-3">line <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.linspace(<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.3</span>, <span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.3</span>)</span>
-<span id="cb16-4">plt.plot(line, line, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'y = x'</span>, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'gray'</span>, linestyle<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'--'</span>)</span>
-<span id="cb16-5"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Add labels and title</span></span>
-<span id="cb16-6">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer"</span>)</span>
-<span id="cb16-7">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi"</span>)</span>
-<span id="cb16-8">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Comparing Spearman R Correlations for Personalized Prediction"</span>)</span>
-<span id="cb16-9"></span>
-<span id="cb16-10">plt.show()</span></code></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index_files/figure-html/cell-16-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-<section id="bin-sizing" class="level3">
-<h3 class="anchored" data-anchor-id="bin-sizing">Bin Sizing</h3>
-<p>We used a 4 bin window centered at the TSS for each CAGE computation, we want to see which bin width gives the best estimate.</p>
-<div class="cell" data-execution_count="65">
-<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1">CAGE_dicts <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> [{gene: [] <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list} <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> i <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>)]</span>
-<span id="cb17-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> index, gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">enumerate</span>(gene_list):</span>
-<span id="cb17-3">    interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> intervals[index]</span>
-<span id="cb17-4">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> individual <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> individuals: </span>
-<span id="cb17-5">        predictions_file <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> os.path.join(predictions_dir, individual, <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>interval<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_predictions.h5'</span>)</span>
-<span id="cb17-6">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">if</span> os.path.exists(predictions_file):</span>
-<span id="cb17-7">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(predictions_file, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> hf:</span>
-<span id="cb17-8">                <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> i <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>): </span>
-<span id="cb17-9">                    haplo1 <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.mean(hf[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'haplotype1'</span>][:, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span>i:<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span>i, :])</span>
-<span id="cb17-10">                    haplo2 <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.mean(hf[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'haplotype2'</span>][:, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span>i:<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span>i, :])</span>
-<span id="cb17-11">                    prediction <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> (haplo1 <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> haplo2)<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">/</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span></span>
-<span id="cb17-12">                    CAGE_dicts[i][gene].append(prediction)</span>
-<span id="cb17-13">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">else</span>:</span>
-<span id="cb17-14">            <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> i <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>):</span>
-<span id="cb17-15">                CAGE_dicts[i][gene].append(np.nan)</span>
-<span id="cb17-16">    </span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="66">
-<div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1">spearman_corr_by_bin_size <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.DataFrame({<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer"</span>: enformer_corr}, index<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>gene_list)</span>
-<span id="cb18-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> i <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>):</span>
-<span id="cb18-3">    results <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>[]</span>
-<span id="cb18-4">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb18-5">        observed <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.to_numeric(geuvadis_gex.loc[gene][individuals])</span>
-<span id="cb18-6">        predicted <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> CAGE_dicts[i][gene]</span>
-<span id="cb18-7">        corr, _ <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> stats.spearmanr(observed, predicted)</span>
-<span id="cb18-8">        results.append(corr)</span>
-<span id="cb18-9">    spearman_corr_by_bin_size[<span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'Borzoi, </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">*</span>(i<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>)<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> bins'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> results</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="58">
-<div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">def</span> histogram(x, title):</span>
-<span id="cb19-2">    plt.hist(x, bins<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>, edgecolor<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'black'</span>, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>colors[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>])  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 'bins' determines the number of bins or bars</span></span>
-<span id="cb19-3">    plt.title(title)</span>
-<span id="cb19-4">    plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Spearman Correlations'</span>)</span>
-<span id="cb19-5">    plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Frequency'</span>)</span>
-<span id="cb19-6">    mean <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.mean(x)</span>
-<span id="cb19-7">    plt.axvline(mean, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'black'</span>, linestyle<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'dashed'</span>, linewidth<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'Mean: </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>mean<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb19-8">    plt.legend()</span>
-<span id="cb19-9"></span>
-<span id="cb19-10">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Display the plot</span></span>
-<span id="cb19-11">    plt.show()</span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="67">
-<div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> column <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> spearman_corr_by_bin_size:</span>
-<span id="cb20-2">    n <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">len</span>(gene_list)</span>
-<span id="cb20-3">    x <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> spearman_corr_by_bin_size[column]</span>
-<span id="cb20-4">    histogram(x, title<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f'Personalized Prediction Performance for </span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>column<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> on N=</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>n<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;"> genes'</span>)</span></code></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index_files/figure-html/cell-20-output-1.png" class="img-fluid"></p>
-</div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index_files/figure-html/cell-20-output-2.png" class="img-fluid"></p>
-</div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index_files/figure-html/cell-20-output-3.png" class="img-fluid"></p>
-</div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index_files/figure-html/cell-20-output-4.png" class="img-fluid"></p>
-</div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index_files/figure-html/cell-20-output-5.png" class="img-fluid"></p>
-</div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index_files/figure-html/cell-20-output-6.png" class="img-fluid"></p>
-</div>
-</div>
-<div class="cell" data-execution_count="39">
-<div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1">model_perf_dict <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {column: <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> column <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> spearman_corr_by_bin_size}</span>
-<span id="cb21-2"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> index, row <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> spearman_corr_by_bin_size.iterrows():</span>
-<span id="cb21-3">    best_model <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> spearman_corr_by_bin_size.loc[index].idxmax()</span>
-<span id="cb21-4">    model_perf_dict[best_model] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span></span>
-<span id="cb21-5">model_abs_perf_dict <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> {column: <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> column <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> spearman_corr_by_bin_size}</span>
-<span id="cb21-6"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> index, row <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> spearman_corr_by_bin_size.iterrows():</span>
-<span id="cb21-7">    best_model <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> spearman_corr_by_bin_size.<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">abs</span>().loc[index].idxmax()</span>
-<span id="cb21-8">    model_abs_perf_dict[best_model] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span></span></code></pre></div>
-</div>
-<div class="cell" data-execution_count="40">
-<div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Highest Correlation Model:"</span>)</span>
-<span id="cb22-2"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(model_perf_dict)</span>
-<span id="cb22-3"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Highest Absolute Valued Correlation Model:"</span>)</span>
-<span id="cb22-4"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(model_abs_perf_dict)</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Highest Correlation Model:
-{'Enformer': 18, 'Borzoi, 2 bins': 4, 'Borzoi, 4 bins': 1, 'Borzoi, 6 bins': 2, 'Borzoi, 8 bins': 2, 'Borzoi, 10 bins': 1}
-Highest Absolute Valued Correlation Model:
-{'Enformer': 18, 'Borzoi, 2 bins': 3, 'Borzoi, 4 bins': 2, 'Borzoi, 6 bins': 1, 'Borzoi, 8 bins': 3, 'Borzoi, 10 bins': 1}</code></pre>
-</div>
-</div>
-<p>These plots suggest that averaging an 8-bin window (equivalent to 2 Enformer bins) might be the best method to estimate gene expression, but not by much:</p>
-<div class="cell" data-execution_count="68">
-<div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1">colors <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> sns.color_palette(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pastel"</span>)</span>
-<span id="cb24-2">plt.scatter(spearman_corr_by_bin_size[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Enformer'</span>], spearman_corr_by_bin_size[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Borzoi, 8 bins'</span>], marker<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'o'</span>, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span>colors[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>])</span>
-<span id="cb24-3">line <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> np.linspace(<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span><span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.3</span>, <span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.3</span>)</span>
-<span id="cb24-4">plt.plot(line, line, label<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'y = x'</span>, color<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'gray'</span>, linestyle<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'--'</span>)</span>
-<span id="cb24-5"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># Add labels and title</span></span>
-<span id="cb24-6">plt.xlabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Enformer"</span>)</span>
-<span id="cb24-7">plt.ylabel(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Borzoi"</span>)</span>
-<span id="cb24-8">plt.title(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Comparing Spearman R Correlations for Personalized Prediction"</span>)</span>
-<span id="cb24-9"></span>
-<span id="cb24-10">plt.show()</span></code></pre></div>
-<div class="cell-output cell-output-display">
-<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index_files/figure-html/cell-23-output-1.png" class="img-fluid"></p>
-</div>
-</div>
-
-
-</section>
-</section>
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index.html</guid>
-  <pubDate>Fri, 20 Oct 2023 07:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
