@@ -80,7 +80,14 @@ done
 
 ### Convert RDS to CSV (R)
 
-Read RDS files and write to CSV using R code:
+Read RDS files and write to CSV using R code. I started up R in a conda environment on Polaris:
+
+```
+#| code-fold: true
+module use /soft/modulefiles
+module load conda
+conda activate genomics
+```
 
 ```{r}
 #| eval: false
@@ -89,7 +96,7 @@ qtl2_output_dir = "/eagle/AIHPC4Edu/sabrina/qtl2_outputs/"
 split_by_sample = function(chromosome) {
   chr = as.character(chromosome)
   prob_dir <- qtl2_output_dir %&% "chr" %&% chr %&% "-qtl2-outputs/"
-  output_dir = "/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities/"
+  output_dir = "/eagle/AIHPC4Edu/sabrina/BLA_NAcc2_PL2_genotype_probabilities/"
   batches <- list.files(prob_dir)
   for (file in batches) {
     pr <- readRDS(prob_dir %&% file)[[1]]
