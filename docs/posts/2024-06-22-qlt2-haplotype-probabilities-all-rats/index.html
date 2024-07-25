@@ -233,67 +233,71 @@ done</code></pre>
 </section>
 <section id="convert-rds-to-csv-r" class="level3">
 <h3 class="anchored" data-anchor-id="convert-rds-to-csv-r">Convert RDS to CSV (R)</h3>
-<p>Read RDS files and write to CSV using R code:</p>
-<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_c53e4979acc4ad4fa17c12d5cd1a3ef1">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>qtl2_output_dir <span class="ot">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/qtl2_outputs/"</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="st">"%&amp;%"</span> <span class="ot">=</span> <span class="cf">function</span>(a,b) <span class="fu">paste</span>(a,b,<span class="at">sep=</span><span class="st">""</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>split_by_sample <span class="ot">=</span> <span class="cf">function</span>(chromosome) {</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  chr <span class="ot">=</span> <span class="fu">as.character</span>(chromosome)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  prob_dir <span class="ot">&lt;-</span> qtl2_output_dir <span class="sc">%&amp;%</span> <span class="st">"chr"</span> <span class="sc">%&amp;%</span> chr <span class="sc">%&amp;%</span> <span class="st">"-qtl2-outputs/"</span></span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  output_dir <span class="ot">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities/"</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  batches <span class="ot">&lt;-</span> <span class="fu">list.files</span>(prob_dir)</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (file <span class="cf">in</span> batches) {</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    pr <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(prob_dir <span class="sc">%&amp;%</span> file)[[<span class="dv">1</span>]]</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    samples <span class="ot">&lt;-</span> <span class="fu">rownames</span>(pr)</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (sample <span class="cf">in</span> samples) {</span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>      sample_dir <span class="ot">=</span> output_dir <span class="sc">%&amp;%</span> sample</span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(sample_dir)) {</span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">dir.create</span>(sample_dir)</span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>      csv <span class="ot">=</span> sample_dir <span class="sc">%&amp;%</span> <span class="st">"/chr"</span> <span class="sc">%&amp;%</span> chr <span class="sc">%&amp;%</span> <span class="st">"_probabilities.csv"</span></span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(csv)) {</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">write.csv</span>(<span class="fu">t</span>(pr[sample, ,]), csv, <span class="at">quote=</span><span class="cn">FALSE</span>)</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    }</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Read RDS files and write to CSV using R code. I started up R in a conda environment on Polaris:</p>
+<pre><code>#| code-fold: true
+module use /soft/modulefiles
+module load conda
+conda activate genomics</code></pre>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_f1b57ec74701ded3afa10c82ca2369d8">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>qtl2_output_dir <span class="ot">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/qtl2_outputs/"</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="st">"%&amp;%"</span> <span class="ot">=</span> <span class="cf">function</span>(a,b) <span class="fu">paste</span>(a,b,<span class="at">sep=</span><span class="st">""</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>split_by_sample <span class="ot">=</span> <span class="cf">function</span>(chromosome) {</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  chr <span class="ot">=</span> <span class="fu">as.character</span>(chromosome)</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  prob_dir <span class="ot">&lt;-</span> qtl2_output_dir <span class="sc">%&amp;%</span> <span class="st">"chr"</span> <span class="sc">%&amp;%</span> chr <span class="sc">%&amp;%</span> <span class="st">"-qtl2-outputs/"</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  output_dir <span class="ot">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/BLA_NAcc2_PL2_genotype_probabilities/"</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  batches <span class="ot">&lt;-</span> <span class="fu">list.files</span>(prob_dir)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (file <span class="cf">in</span> batches) {</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    pr <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(prob_dir <span class="sc">%&amp;%</span> file)[[<span class="dv">1</span>]]</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    samples <span class="ot">&lt;-</span> <span class="fu">rownames</span>(pr)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (sample <span class="cf">in</span> samples) {</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>      sample_dir <span class="ot">=</span> output_dir <span class="sc">%&amp;%</span> sample</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(sample_dir)) {</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        <span class="fu">dir.create</span>(sample_dir)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>      csv <span class="ot">=</span> sample_dir <span class="sc">%&amp;%</span> <span class="st">"/chr"</span> <span class="sc">%&amp;%</span> chr <span class="sc">%&amp;%</span> <span class="st">"_probabilities.csv"</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(csv)) {</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        <span class="fu">write.csv</span>(<span class="fu">t</span>(pr[sample, ,]), csv, <span class="at">quote=</span><span class="cn">FALSE</span>)</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-hash="index_cache/html/unnamed-chunk-2_abb99906079e3dd3df356a4f4ef5716f">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>) {</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">"Chromosome "</span> <span class="sc">%&amp;%</span> i)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">split_by_sample</span>(i)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>) {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">"Chromosome "</span> <span class="sc">%&amp;%</span> i)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">split_by_sample</span>(i)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="convert-csv-to-h5-python" class="level3">
 <h3 class="anchored" data-anchor-id="convert-csv-to-h5-python">Convert CSV to h5 (Python)</h3>
 <p>Write files to <code>/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities</code></p>
 <div class="cell" data-hash="index_cache/html/unnamed-chunk-3_83c69e36284912dba2c096f3e04c1821">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd </span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>probabilities_dir <span class="op">=</span> <span class="st">'/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities'</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> [individual <span class="cf">for</span> individual <span class="kw">in</span> os.listdir(probabilities_dir) <span class="cf">if</span> os.path.isdir(os.path.join(probabilities_dir, individual))]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> h5py</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>probabilities_dir <span class="op">=</span> <span class="st">'/eagle/AIHPC4Edu/sabrina/IL_LHb_NAcc_OFC_PL_genotype_probabilities'</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>individuals <span class="op">=</span> [individual <span class="cf">for</span> individual <span class="kw">in</span> os.listdir(probabilities_dir) <span class="cf">if</span> os.path.isdir(os.path.join(probabilities_dir, individual))]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-hash="index_cache/html/unnamed-chunk-4_319901d6cb7b62ac279dc06007e3a82f">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to read CSV files and create tables in SQLite database</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_db(N):</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Connect to SQLite database</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(os.path.join(probabilities_dir, <span class="ss">f'chr</span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">_probabilities.h5'</span>), <span class="st">'a'</span>) <span class="im">as</span> hf:</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> individual <span class="kw">in</span> hf.keys():</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>            prob_csv <span class="op">=</span> os.path.join(probabilities_dir, individual, <span class="ss">f'chr</span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">_probabilities.csv'</span>)</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>            df <span class="op">=</span> pd.read_csv(prob_csv, index_col<span class="op">=</span><span class="dv">0</span>)</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>            positions <span class="op">=</span> df.index.<span class="bu">str</span>.replace(<span class="ss">f"chr</span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">:"</span>, <span class="st">""</span>).astype(<span class="bu">int</span>) </span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>            df.insert(<span class="dv">0</span>, <span class="st">'POS'</span>, positions)</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>            hf[individual] <span class="op">=</span> df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to read CSV files and create tables in SQLite database</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_db(N):</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Connect to SQLite database</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> h5py.File(os.path.join(probabilities_dir, <span class="ss">f'chr</span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">_probabilities.h5'</span>), <span class="st">'a'</span>) <span class="im">as</span> hf:</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> individual <span class="kw">in</span> individuals:</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> individual <span class="kw">in</span> hf.keys():</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>            prob_csv <span class="op">=</span> os.path.join(probabilities_dir, individual, <span class="ss">f'chr</span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">_probabilities.csv'</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>            df <span class="op">=</span> pd.read_csv(prob_csv, index_col<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>            positions <span class="op">=</span> df.index.<span class="bu">str</span>.replace(<span class="ss">f"chr</span><span class="sc">{</span>N<span class="sc">}</span><span class="ss">:"</span>, <span class="st">""</span>).astype(<span class="bu">int</span>) </span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>            df.insert(<span class="dv">0</span>, <span class="st">'POS'</span>, positions)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>            hf[individual] <span class="op">=</span> df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-hash="index_cache/html/unnamed-chunk-5_be984482d0e803cd03b63fc570d9febe">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> N <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">21</span>):</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Chromosome"</span>, N)</span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    create_db(<span class="bu">str</span>(N))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> N <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, <span class="dv">21</span>):</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"Chromosome"</span>, N)</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    create_db(<span class="bu">str</span>(N))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Delete CSVs: <code>rm -r 0007*</code></p>
 
