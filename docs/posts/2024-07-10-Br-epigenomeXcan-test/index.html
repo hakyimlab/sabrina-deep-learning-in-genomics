@@ -195,7 +195,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>3190 genes, 10 samples: ~40s</li>
 </ul></li>
 </ol>
-<p>GPU times, combined steps 1 &amp; 2: 1. Old code * 3190 genes, 340 samples: 32 minutes 2. New code removing inner foor loop * 1592 genes, 340 samples: 2 min 30 sec * 1575 genes, 340 samples: 2 min 5 sec * 19696 genes, 340 samples: 22 min 30 sec</p>
+<p>GPU times, combined steps 1 &amp; 2:</p>
+<ol type="1">
+<li>Old code
+<ul>
+<li>3190 genes, 340 samples: 32 minutes</li>
+</ul></li>
+<li>New code removing inner foor loop
+<ul>
+<li>1592 genes, 340 samples: 2 min 30 sec</li>
+<li>1575 genes, 340 samples: 2 min 5 sec</li>
+<li>19696 genes, 340 samples: 22 min 30 sec</li>
+</ul></li>
+</ol>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>

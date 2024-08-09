@@ -2,7 +2,6 @@
   {
     "listing": "/index.html",
     "items": [
-      "/posts/borzoi-tests-overview/index.html",
       "/posts/enformer-rat-human-analysis-overview/index.html",
       "/posts/shortcuts/index.html",
       "/posts/2024-08-08-Br-epigenomeXcan-vs-ratXcan-validation/index.html",
@@ -26,6 +25,7 @@
       "/posts/2023-11-14-calculating-genotype-probabilities-by-chromosome/index.html",
       "/posts/2023-11-08-calculating-Br-genotype-probabilities/index.html",
       "/posts/2023-11-07-HS-founder-epigenomes/pipeline.html",
+      "/posts/borzoi-tests-overview/index.html",
       "/posts/2023-11-01-borzoi-performance-analysis/index.html",
       "/posts/2023-10-20-borzoi-vs-enformer-personalized-prediction/index.html",
       "/posts/2023-10-18-borzoi-personalized-on-Huang-et-al-high-performance-gene/index.html",

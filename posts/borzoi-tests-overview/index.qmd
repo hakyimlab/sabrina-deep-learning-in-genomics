@@ -1,5 +1,6 @@
 ---
 title: Borzoi vs Enformer Comparisons
+date: 11/1/2023
 ---
 
 ## Genome-wide Performance
