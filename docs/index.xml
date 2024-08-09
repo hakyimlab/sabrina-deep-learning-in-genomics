@@ -10,7 +10,450 @@
 <atom:link href="https://sabrinami.quarto.pub/deep-learning-in-genomics/index.xml" rel="self" type="application/rss+xml"/>
 <description>Sabrina&#39;s blog for Deep Learning in Genomics course</description>
 <generator>quarto-1.3.361</generator>
-<lastBuildDate>Wed, 10 Jul 2024 07:00:00 GMT</lastBuildDate>
+<lastBuildDate>Thu, 08 Aug 2024 07:00:00 GMT</lastBuildDate>
+<item>
+  <title>Validating EpigenomeXcan against RatXcan</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2024-08-08-Br-epigenomeXcan-vs-ratXcan-validation/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>EpigenomeXcan consists of two steps: 1. Fast Enformer prediction for gene expression and 2. Calculate Gene-Trait association under a linear mixed effects model.</p>
+<p>We predicted gene expression in brain tissues using both Fast Enformer and PrediXcan methods.</p>
+<p><strong>August 9 Note</strong>: I have not started implemented mixed effects model, so I only have comparisons for Fast Enformer gene expression predictions against RatXcan.</p>
+<section id="read-in-predicted-expression" class="level3">
+<h3 class="anchored" data-anchor-id="read-in-predicted-expression">Read in Predicted Expression</h3>
+<p>Fast Enformer predictions were computed in this <a href="https://sabrina-dl.hakyimlab.org/posts/2024-07-10-br-epigenomexcan-test/">blog post</a></p>
+<div class="cell" data-execution_count="29">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pd</span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> numpy <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> np</span>
+<span id="cb1-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> matplotlib.pyplot <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> plt</span>
+<span id="cb1-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> seaborn <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> sns</span>
+<span id="cb1-5">colors <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> sns.color_palette(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pastel"</span>)</span>
+<span id="cb1-6">predictions_dir <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'/eagle/AIHPC4Edu/sabrina/Br_prediction_from_founders'</span></span></code></pre></div>
+</div>
+<p>The output files from Fast Enformer are split by chromosome, so the code below combines them into a single file.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1">predictions_by_chrom <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []</span>
+<span id="cb2-2"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> N <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>,<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">21</span>):</span>
+<span id="cb2-3">    df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>predictions_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>N<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">_CAGE_brain__predict.txt'</span>, index_col<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb2-4">    predictions_by_chrom.append(df)</span>
+<span id="cb2-5">CAGE_predictions <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.concat(predictions_by_chrom, axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb2-6">CAGE_predictions.to_csv(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>predictions_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/Br_all_genes_by_tissue/Br_CAGE_brain__predict.txt'</span>)</span></code></pre></div>
+</details>
+</div>
+<div class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">CAGE_predictions <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>predictions_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/Br_all_genes_by_tissue/Br_CAGE_brain__predict.txt'</span>, index_col<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span></code></pre></div>
+</div>
+</section>
+<section id="run-predixcan" class="level3">
+<h3 class="anchored" data-anchor-id="run-predixcan">Run PrediXcan</h3>
+<p>I ran locally, then copied to polaris.</p>
+<pre><code>cd /Users/sabrinami/ratxcan-tutorial
+
+conda activate imlabtools
+
+python MetaXcan/software/Predict.py \
+--model_db_path models/AC-filtered.db \
+--model_db_snp_key rsid \
+--vcf_genotypes data/genotype/Brain.rn7.vcf.gz \
+--vcf_mode genotyped \
+--liftover data/liftover/rn7ToRn6.over.chain.gz \
+--on_the_fly_mapping METADATA "{}_{}_{}_{}" \
+--prediction_output output/AC-filtered-Br__predict.txt  \
+--prediction_summary_output output/AC-filtered-Br__summary.txt \
+--throw</code></pre>
+</section>
+<section id="comparing-predicted-expression-results-from-fast-enformer-and-predixcan" class="level2">
+<h2 class="anchored" data-anchor-id="comparing-predicted-expression-results-from-fast-enformer-and-predixcan">Comparing Predicted Expression Results from Fast Enformer and PrediXcan</h2>
+<p>We have two dataframes with individuals as rows and genes as columns. We compute correlation across individuals (fixing a gene) as well as correlation across genes (fixing an individual) and plot their distributions</p>
+<div class="cell" data-execution_count="27">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">AC_predictions <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'/home/s1mi/PrediXcan/Br/AC-filtered-Br__predict.txt'</span>, sep <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\t</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>, index_col <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'IID'</span>).drop(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'FID'</span>, axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb5-2">gene_list <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (AC_predictions.columns).intersection(CAGE_predictions.columns)</span>
+<span id="cb5-3">individuals <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">list</span>(AC_predictions.index)</span>
+<span id="cb5-4">filtered_AC_predictions <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> AC_predictions.reindex(columns <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gene_list)</span>
+<span id="cb5-5">filtered_CAGE_predictions <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> CAGE_predictions.reindex(index <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> individuals, columns <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gene_list)</span></code></pre></div>
+</div>
+<section id="correlations-across-individuals" class="level3">
+<h3 class="anchored" data-anchor-id="correlations-across-individuals">Correlations across Individuals</h3>
+<p><strong>How well does Fast Enformer approximate PrediXcan when predicting variation across individuals?</strong></p>
+<div class="cell" data-execution_count="39">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1">correlations_across_individuals <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> filtered_AC_predictions.corrwith(filtered_CAGE_predictions, axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb6-2"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#plt.figure(figsize=(10, 6))</span></span>
+<span id="cb6-3">plt.hist(correlations_across_individuals, bins<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">30</span>, edgecolor<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black'</span>, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>colors[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])</span>
+<span id="cb6-4">plt.title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Distribution of Cross-Population Correlations for 5,322 genes'</span>)</span>
+<span id="cb6-5">plt.xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Correlation'</span>)</span>
+<span id="cb6-6">plt.ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Frequency'</span>)</span>
+<span id="cb6-7">mean <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.mean(correlations_across_individuals)</span>
+<span id="cb6-8">plt.axvline(mean, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black'</span>, linestyle<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'dashed'</span>, linewidth<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'Mean: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>mean<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>)</span>
+<span id="cb6-9">plt.legend()</span>
+<span id="cb6-10">plt.show()</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2024-08-08-Br-epigenomeXcan-vs-ratXcan-validation/index_files/figure-html/cell-6-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="40">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1">correlations_across_genes <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> filtered_AC_predictions.corrwith(filtered_CAGE_predictions, axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb7-2"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#plt.figure(figsize=(10, 6))</span></span>
+<span id="cb7-3">plt.hist(correlations_across_individuals, bins<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">30</span>, edgecolor<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black'</span>, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>colors[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])</span>
+<span id="cb7-4">plt.title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Distribution of Genome-wide Correlations for 340 individuals'</span>)</span>
+<span id="cb7-5">plt.xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Correlation'</span>)</span>
+<span id="cb7-6">plt.ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Frequency'</span>)</span>
+<span id="cb7-7">mean <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.mean(correlations_across_genes)</span>
+<span id="cb7-8">plt.axvline(mean, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black'</span>, linestyle<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'dashed'</span>, linewidth<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'Mean: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>mean<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>)</span>
+<span id="cb7-9">plt.legend()</span>
+<span id="cb7-10">plt.show()</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2024-08-08-Br-epigenomeXcan-vs-ratXcan-validation/index_files/figure-html/cell-7-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+</section>
+<section id="correlations-across-genes" class="level3">
+<h3 class="anchored" data-anchor-id="correlations-across-genes">Correlations across Genes</h3>
+<p>This is less relevant, since our focus is to identify significant gene-trait associations by phenotype variation across individuals is regressed on gene expression variation across indviduals. However, we still check that Fast Enformer can predict variation across the genome for each individual.</p>
+</section>
+</section>
+<section id="comparing-fast-enformer-predicted-expression-to-observed" class="level2">
+<h2 class="anchored" data-anchor-id="comparing-fast-enformer-predicted-expression-to-observed">Comparing Fast Enformer Predicted Expression to Observed</h2>
+<section id="correlation-across-individuals" class="level3">
+<h3 class="anchored" data-anchor-id="correlation-across-individuals">Correlation across individuals</h3>
+<div class="cell" data-execution_count="45">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1">gene_expr_bed <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/s1mi/enformer_rat_data/expression_data/Brain.rn7.expr.tpm.bed"</span></span>
+<span id="cb8-2">obs_gene_expr <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(gene_expr_bed, sep<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\t</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>, header<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, index_col<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gene_id'</span>).transpose()</span>
+<span id="cb8-3">filtered_observed <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> obs_gene_expr.reindex(index <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> individuals, columns <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> gene_list)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_2917084/641794222.py:2: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+  obs_gene_expr = pd.read_csv(gene_expr_bed, sep="\t", header=0, index_col='gene_id').transpose()</code></pre>
+</div>
+</div>
+<div class="cell" data-execution_count="48">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">correlations_across_individuals <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> filtered_AC_predictions.corrwith(filtered_observed, axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>)</span>
+<span id="cb10-2"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#plt.figure(figsize=(10, 6))</span></span>
+<span id="cb10-3">plt.hist(correlations_across_individuals, bins<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">30</span>, edgecolor<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black'</span>, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>colors[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>])</span>
+<span id="cb10-4">plt.title(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Distribution of Predicted vs Observed Correlations for 5,322 genes'</span>)</span>
+<span id="cb10-5">plt.xlabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Correlation'</span>)</span>
+<span id="cb10-6">plt.ylabel(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'Frequency'</span>)</span>
+<span id="cb10-7">mean <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> np.mean(correlations_across_individuals)</span>
+<span id="cb10-8">plt.axvline(mean, color<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'black'</span>, linestyle<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'dashed'</span>, linewidth<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, label<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'Mean: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>mean<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:.3f}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'</span>)</span>
+<span id="cb10-9">plt.legend()</span>
+<span id="cb10-10">plt.show()</span></code></pre></div>
+<div class="cell-output cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2024-08-08-Br-epigenomeXcan-vs-ratXcan-validation/index_files/figure-html/cell-9-output-1.png" class="img-fluid"></p>
+</div>
+</div>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2024-08-08-Br-epigenomeXcan-vs-ratXcan-validation/index.html</guid>
+  <pubDate>Thu, 08 Aug 2024 07:00:00 GMT</pubDate>
+</item>
 <item>
   <title>EpigenomeXcan test on Br rats</title>
   <dc:creator>Sabrina Mi</dc:creator>
@@ -32,6 +475,7 @@
 <li>3190 genes, 10 samples: ~40s</li>
 </ul></li>
 </ol>
+<p>GPU times, combined steps 1 &amp; 2: 1. Old code * 3190 genes, 340 samples: 32 minutes 2. New code removing inner foor loop * 1592 genes, 340 samples: 2 min 30 sec * 1575 genes, 340 samples: 2 min 5 sec * 19696 genes, 340 samples: 22 min 30 sec</p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
 background-color: null;
@@ -80,14 +524,14 @@ font-style: inherit;">'WKY'</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'WN'</span>]</span></code></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2024-07-25 04:12:42.617981: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+<pre><code>2024-08-09 00:40:22.787012: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2024-07-25 04:12:49.066611: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nvshmem/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/math_libs/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/extras/qd/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/extras/CUPTI/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32
-2024-07-25 04:12:49.067355: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nvshmem/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/math_libs/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/extras/qd/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/extras/CUPTI/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32
-2024-07-25 04:12:49.067383: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.</code></pre>
+2024-08-09 00:40:30.021105: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/opt/cray/pe/gcc/11.2.0/snos/lib64:/opt/cray/pe/papi/6.0.0.14/lib64:/opt/cray/libfabric/1.11.0.4.125/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32:/soft/compilers/cudatoolkit/cuda-12.4.1/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-12.4.1/lib64:/soft/libraries/trt/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0/lib:/soft/libraries/nccl/nccl_2.21.5-1+cuda12.4_x86_64/lib:/soft/libraries/cudnn/cudnn-cuda12-linux-x64-v9.1.0.70/lib:/soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64
+2024-08-09 00:40:30.023520: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/opt/cray/pe/gcc/11.2.0/snos/lib64:/opt/cray/pe/papi/6.0.0.14/lib64:/opt/cray/libfabric/1.11.0.4.125/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32:/soft/compilers/cudatoolkit/cuda-12.4.1/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-12.4.1/lib64:/soft/libraries/trt/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0/lib:/soft/libraries/nccl/nccl_2.21.5-1+cuda12.4_x86_64/lib:/soft/libraries/cudnn/cudnn-cuda12-linux-x64-v9.1.0.70/lib:/soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64
+2024-08-09 00:40:30.023528: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="21">
+<div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">gene_annot <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
@@ -99,7 +543,7 @@ font-style: inherit;">=</span> gene_annot.groupby(<span class="st" style="color:
 background-color: null;
 font-style: inherit;">'chromosome'</span>)</span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="4">
+<div class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1">probabilities_dir <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="st" style="color: #20794D;
@@ -117,7 +561,7 @@ background-color: null;
 font-style: inherit;">"/eagle/AIHPC4Edu/sabrina/Br_prediction_from_founders"</span></span></code></pre></div>
 </div>
 <p>Realizing my haplotype probabilities storage is redundant, taking up extra space.</p>
-<div class="cell">
+<div class="cell" data-execution_count="4">
 <details>
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1">probabilities_file <span class="op" style="color: #5E5E5E;
@@ -130,7 +574,7 @@ font-style: inherit;">{</span>probabilities_dir<span class="sc" style="color: #5
 background-color: null;
 font-style: inherit;">}</span><span class="ss" style="color: #20794D;
 background-color: null;
-font-style: inherit;">/chr1_probabilities.h5'</span></span>
+font-style: inherit;">/chr20_probabilities.h5'</span></span>
 <span id="cb5-2"><span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">with</span> h5py.File(probabilities_file, <span class="st" style="color: #20794D;
@@ -147,7 +591,9 @@ background-color: null;
 font-style: inherit;">list</span>(hf.keys()):</span>
 <span id="cb5-4">        <span class="cf" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">if</span> hf[dataset_name].shape <span class="op" style="color: #5E5E5E;
+font-style: inherit;">if</span> hf[dataset_name].shape[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
 background-color: null;
@@ -155,31 +601,40 @@ font-style: inherit;">8</span>:</span>
 <span id="cb5-5">            <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">continue</span></span>
-<span id="cb5-6">        <span class="co" style="color: #5E5E5E;
+<span id="cb5-6">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">elif</span> hf[dataset_name].shape[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">9</span>:</span>
+<span id="cb5-7">            <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># Read the dataset</span></span>
-<span id="cb5-7">        data <span class="op" style="color: #5E5E5E;
+<span id="cb5-8">            data <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> hf[dataset_name][:]</span>
-<span id="cb5-8">        positions <span class="op" style="color: #5E5E5E;
+<span id="cb5-9">            positions <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> data[:, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>]  <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># Assuming the positions column is the first column</span></span>
-<span id="cb5-9">        new_data <span class="op" style="color: #5E5E5E;
+<span id="cb5-10">            new_data <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> data[:, <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>:]  <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># All columns except the first one</span></span>
-<span id="cb5-10">        </span>
-<span id="cb5-11">        <span class="co" style="color: #5E5E5E;
+<span id="cb5-11">            </span>
+<span id="cb5-12">            <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># Create a temporary dataset without the positions column</span></span>
-<span id="cb5-12">        temp_dataset_name <span class="op" style="color: #5E5E5E;
+<span id="cb5-13">            temp_dataset_name <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
 background-color: null;
@@ -190,42 +645,44 @@ background-color: null;
 font-style: inherit;">}</span><span class="ss" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"</span></span>
-<span id="cb5-13">        hf.create_dataset(temp_dataset_name, data<span class="op" style="color: #5E5E5E;
+<span id="cb5-14">            hf.create_dataset(temp_dataset_name, data<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>new_data)</span>
-<span id="cb5-14">        </span>
-<span id="cb5-15">        <span class="co" style="color: #5E5E5E;
+<span id="cb5-15">            </span>
+<span id="cb5-16">            <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># Delete the original dataset</span></span>
-<span id="cb5-16">        <span class="kw" style="color: #003B4F;
+<span id="cb5-17">            <span class="kw" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">del</span> hf[dataset_name]</span>
-<span id="cb5-17">        </span>
-<span id="cb5-18">        <span class="co" style="color: #5E5E5E;
+<span id="cb5-18">        </span>
+<span id="cb5-19">            <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># Rename the temporary dataset to the original dataset name</span></span>
-<span id="cb5-19">        hf.move(temp_dataset_name, dataset_name)</span>
-<span id="cb5-20">        </span>
-<span id="cb5-21">    hf.create_dataset(<span class="st" style="color: #20794D;
+<span id="cb5-20">            hf.move(temp_dataset_name, dataset_name)</span>
+<span id="cb5-21">        </span>
+<span id="cb5-22">    hf.create_dataset(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'positions'</span>, data<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span>positions)</span>
-<span id="cb5-22">        <span class="co" style="color: #5E5E5E;
+<span id="cb5-23">        <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># Store the positions vector as metadata (attribute) for the dataset</span></span>
-<span id="cb5-23"></span></code></pre></div>
+<span id="cb5-24"></span></code></pre></div>
 </details>
 </div>
 <p>split genes by chromosome number for individual, query haplotype probabilities at each gene tss, so we return an 8 x n_gene matrix. by batching by genes n_genes should be in the 1-2K range. stack to return a 3d array with dimensions n_samples x 8 x n_gene next query reference epigenome at each gene [446:450, CAGE_index], return 8 x n_gene matrix matrix multiply with something like tf.transpose(tf.tensordot(_W, _X, axes=[[1],[1]]),[1,0,2]) https://stackoverflow.com/questions/41870228/understanding-tensordot</p>
-<div class="cell" data-execution_count="63">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="cf" style="color: #003B4F;
+<div class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="kw" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">for</span> <span class="bu" style="color: null;
+font-style: inherit;">def</span> reference_epigenome_matrix(<span class="bu" style="color: null;
 background-color: null;
-font-style: inherit;">chr</span>, genes_df <span class="kw" style="color: #003B4F;
+font-style: inherit;">chr</span>, genes_df, track <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">in</span> genes_by_chrom:</span>
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5278</span>):</span>
 <span id="cb6-2">    reference_file <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
@@ -268,9 +725,7 @@ font-style: inherit;">=</span> ref[gene][:, <span class="dv" style="color: #AD00
 background-color: null;
 font-style: inherit;">446</span>:<span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">450</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5278</span>]</span>
+font-style: inherit;">450</span>, track]</span>
 <span id="cb6-7">            rows.append(founder_predictions)</span>
 <span id="cb6-8">        ref_matrix <span class="op" style="color: #5E5E5E;
 background-color: null;
@@ -288,25 +743,17 @@ background-color: null;
 font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">2</span>)</span>
-<span id="cb6-10">        <span class="bu" style="color: null;
+<span id="cb6-10">        <span class="cf" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">print</span>(ref_tensor.shape)</span>
-<span id="cb6-11">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">break</span></span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>(3190, 8)</code></pre>
+font-style: inherit;">return</span> ref_tensor</span></code></pre></div>
 </div>
-</div>
-<div class="cell" data-execution_count="76">
-<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="cf" style="color: #003B4F;
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="kw" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">for</span> <span class="bu" style="color: null;
+font-style: inherit;">def</span> probabilities_matrix(<span class="bu" style="color: null;
 background-color: null;
-font-style: inherit;">chr</span>, genes_df <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> genes_by_chrom:</span>
-<span id="cb8-2">    probabilities_file <span class="op" style="color: #5E5E5E;
+font-style: inherit;">chr</span>, genes_df, individuals):</span>
+<span id="cb7-2">    probabilities_file <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
 background-color: null;
@@ -325,96 +772,270 @@ background-color: null;
 font-style: inherit;">}</span><span class="ss" style="color: #20794D;
 background-color: null;
 font-style: inherit;">_probabilities.h5'</span></span>
-<span id="cb8-3">    <span class="cf" style="color: #003B4F;
+<span id="cb7-3">    <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">with</span> h5py.File(probabilities_file, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'r'</span>) <span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">as</span> prob:</span>
-<span id="cb8-4">        positions <span class="op" style="color: #5E5E5E;
+<span id="cb7-4">        positions <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> prob[<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'positions'</span>][:]</span>
-<span id="cb8-5">        individuals <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(prob.keys())</span>
-<span id="cb8-6">        population_prob <span class="op" style="color: #5E5E5E;
+<span id="cb7-5">        population_prob <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> []</span>
-<span id="cb8-7">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> sample <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> individuals[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>:<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">20</span>]:</span>
-<span id="cb8-8">            rows <span class="op" style="color: #5E5E5E;
+<span id="cb7-6">        indices <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> []</span>
-<span id="cb8-9">            <span class="cf" style="color: #003B4F;
+<span id="cb7-7">        <span class="cf" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">for</span> tss <span class="kw" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">in</span> genes_df[<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'tss'</span>]:</span>
-<span id="cb8-10">                index <span class="op" style="color: #5E5E5E;
+<span id="cb7-8">            index <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> bisect.bisect_left(positions, tss)</span>
-<span id="cb8-11">                tss_prob <span class="op" style="color: #5E5E5E;
+<span id="cb7-9">            <span class="cf" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">=</span> (prob[sample][index<span class="op" style="color: #5E5E5E;
+font-style: inherit;">if</span> index <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>:</span>
+<span id="cb7-10">                indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> [<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>,<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>]</span>
+<span id="cb7-11">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">elif</span> index <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(positions):</span>
+<span id="cb7-12">                indices <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> [index<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">1</span>,:] <span class="op" style="color: #5E5E5E;
+font-style: inherit;">1</span>,index<span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">+</span> prob[sample][index,:]) <span class="op" style="color: #5E5E5E;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
 background-color: null;
-font-style: inherit;">/</span> <span class="dv" style="color: #AD0000;
+font-style: inherit;">1</span>]</span>
+<span id="cb7-13">            <span class="cf" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">2</span></span>
-<span id="cb8-12">                rows.append(tss_prob)</span>
-<span id="cb8-13">            sample_prob <span class="op" style="color: #5E5E5E;
+font-style: inherit;">else</span>: <span class="co" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">=</span> np.vstack(rows)</span>
-<span id="cb8-14">            population_prob.append(sample_prob)</span>
-<span id="cb8-15">        prob_matrix <span class="op" style="color: #5E5E5E;
+font-style: inherit;"># 0 &lt; index &lt; len(positions)</span></span>
+<span id="cb7-14">                indices <span class="op" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">=</span> np.stack(population_prob, axis<span class="op" style="color: #5E5E5E;
+font-style: inherit;">+=</span> [index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, index]</span>
+<span id="cb7-15">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> sample <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> individuals:</span>
+<span id="cb7-16">            dataset <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> prob[sample][:]</span>
+<span id="cb7-17">            sample_prob <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> tf.convert_to_tensor(dataset[indices], dtype <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> tf.float32)</span>
+<span id="cb7-18">            sample_prob <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> tf.reshape(sample_prob, (<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, sample_prob.shape[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>]))</span>
+<span id="cb7-19">            sample_prob <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> tf.reduce_mean(sample_prob, axis<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)</span>
+<span id="cb7-20">            population_prob.append(sample_prob)</span>
+<span id="cb7-21">        prob_tensor <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> tf.stack(population_prob, axis<span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>)</span>
-<span id="cb8-16">        prob_tensor <span class="op" style="color: #5E5E5E;
+<span id="cb7-22">        <span class="cf" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">=</span> tf.convert_to_tensor(prob_matrix, dtype <span class="op" style="color: #5E5E5E;
+font-style: inherit;">return</span> prob_tensor</span></code></pre></div>
+</div>
+<div class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="kw" style="color: #003B4F;
 background-color: null;
-font-style: inherit;">=</span> tf.float32)</span>
-<span id="cb8-17">    <span class="cf" style="color: #003B4F;
+font-style: inherit;">def</span> predict_epigenome(<span class="bu" style="color: null;
 background-color: null;
-font-style: inherit;">break</span></span></code></pre></div>
+font-style: inherit;">chr</span>, genes_df, individuals, output_file, track):</span>
+<span id="cb8-2">    ref_tensor <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> reference_epigenome_matrix(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span>, genes_df, track)</span>
+<span id="cb8-3">    prob_tensor <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> probabilities_matrix(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span>, genes_df, individuals)</span>
+<span id="cb8-4">    epigenome_tensor <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> tf.einsum(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'ijk,jk-&gt;ij'</span>, prob_tensor, ref_tensor)</span>
+<span id="cb8-5">    epigenome_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.DataFrame(epigenome_tensor.numpy(), columns<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>genes_df[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'gene'</span>], index <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> individuals)</span>
+<span id="cb8-6">    epigenome_df.to_csv(output_file)</span></code></pre></div>
 </div>
-<div class="cell" data-execution_count="74">
-<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1">prob_tensor.shape</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="74">
-<pre><code>TensorShape([10, 3190, 8])</code></pre>
+<div class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">with</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'/eagle/AIHPC4Edu/sabrina/Br_genotype_probabilities/individuals.txt'</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'r'</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> f:</span>
+<span id="cb9-2">    individuals <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> f.read().splitlines()</span>
+<span id="cb9-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#pheno = pd.read_csv('/home/s1mi/enformer_rat_data/phenotypes/pheno.fam', sep = '\t', index_col = 'IID')</span></span></code></pre></div>
 </div>
+<section id="example-with-cage-brain" class="level3">
+<h3 class="anchored" data-anchor-id="example-with-cage-brain">Example with CAGE Brain</h3>
+<div class="cell" data-execution_count="9">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span>, genes_df <span class="kw" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> genes_by_chrom:</span>
+<span id="cb10-2">    tic <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> time.perf_counter()</span>
+<span id="cb10-3">    predict_epigenome(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span>, genes_df, individuals, <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>output_dir<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">/</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">_CAGE_brain__predict.txt'</span>, track <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4980</span>)</span>
+<span id="cb10-4">    toc <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> time.perf_counter()</span>
+<span id="cb10-5">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f'</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">chr</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">, </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(genes_df)<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> genes:'</span>, toc <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> tic, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'seconds'</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>2024-08-09 00:45:57.658084: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/opt/cray/pe/gcc/11.2.0/snos/lib64:/opt/cray/pe/papi/6.0.0.14/lib64:/opt/cray/libfabric/1.11.0.4.125/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32:/soft/compilers/cudatoolkit/cuda-12.4.1/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-12.4.1/lib64:/soft/libraries/trt/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0/lib:/soft/libraries/nccl/nccl_2.21.5-1+cuda12.4_x86_64/lib:/soft/libraries/cudnn/cudnn-cuda12-linux-x64-v9.1.0.70/lib:/soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64
+2024-08-09 00:45:57.659167: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+Skipping registering GPU devices...</code></pre>
 </div>
-<div class="cell" data-execution_count="75">
-<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1">ref_tensor.shape</span></code></pre></div>
-<div class="cell-output cell-output-display" data-execution_count="75">
-<pre><code>TensorShape([3190, 8])</code></pre>
+<div class="cell-output cell-output-stdout">
+<pre><code>chr1, 3190 genes: 129.08863715000916 seconds
+chr10, 1844 genes: 64.15786012192257 seconds
+chr11, 651 genes: 37.914293350069784 seconds
+chr12, 728 genes: 38.18615038192365 seconds
+chr13, 739 genes: 38.521823541028425 seconds
+chr14, 794 genes: 44.71535247191787 seconds
+chr15, 778 genes: 43.91769809497055 seconds
+chr16, 701 genes: 42.883026172057725 seconds
+chr17, 555 genes: 38.34623588703107 seconds
+chr18, 581 genes: 39.45503612293396 seconds
+chr19, 654 genes: 35.40245614293963 seconds
+chr2, 1592 genes: 162.26185088197235 seconds
+chr20, 702 genes: 40.760752159985714 seconds
+chr3, 1615 genes: 165.32191750698257 seconds
+chr4, 1575 genes: 162.78142886899877 seconds
+chr5, 1503 genes: 60.48483659804333 seconds
+chr6, 1033 genes: 50.48902957001701 seconds
+chr7, 1370 genes: 55.30841292592231 seconds
+chr8, 1289 genes: 53.40656710800249 seconds
+chr9, 982 genes: 48.54825172596611 seconds</code></pre>
+</div>
+<div class="cell-output cell-output-error">
+<pre><code>FileNotFoundError: [Errno 2] Unable to open file (unable to open file: name = '/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/human/chrX_genes.h5', errno = 2, error message = 'No such file or directory', flags = 0, o_flags = 0)</code></pre>
 </div>
 </div>
 
 
+</section>
 
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2024-07-10-Br-epigenomeXcan-test/index.html</guid>
@@ -11674,212 +12295,6 @@ saveRDS(pr, "~/Github/qtl2-founder-haps/probs.rds")
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-08-calculating-Br-genotype-probabilities/index.html</guid>
   <pubDate>Wed, 08 Nov 2023 08:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Running Enformer genome-wide on HS founder rats</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/pipeline.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<p>After subset to genes that were expressed in rat brain tissue, we end up with 23,867 genomic regions.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> pd</span>
-<span id="cb1-2">rn7_reference_brain_gex <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/s1mi/enformer_rat_data/output/rn7_reference_predicted_vs_observed_expression.csv"</span>, index_col<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>)</span>
-<span id="cb1-3">gene_list <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">list</span>(rn7_reference_brain_gex.index[rn7_reference_brain_gex[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'observed'</span>] <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">!=</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>])</span>
-<span id="cb1-4"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'Br_expressed_genes.txt'</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'w'</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb1-5">    f.write(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\n</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span>.join(gene_list))</span>
-<span id="cb1-6"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">## write intervals.txt</span></span>
-<span id="cb1-7">annot_df <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'/home/s1mi/enformer_rat_data/annotation/rn7.gene.txt'</span>, sep <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\t</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>,  index_col<span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'geneId'</span>)</span>
-<span id="cb1-8"></span>
-<span id="cb1-9"><span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">def</span> write_intervals(gene_list, <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>):</span>
-<span id="cb1-10">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">open</span>(<span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">file</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'w'</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> f:</span>
-<span id="cb1-11">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> gene <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> gene_list:</span>
-<span id="cb1-12">            gene_annot <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> annot_df.loc[gene]</span>
-<span id="cb1-13">            tss <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> gene_annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'tss'</span>]</span>
-<span id="cb1-14">            interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">f"chr</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>gene_annot[<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'chromosome'</span>]<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>tss<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">_</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">{</span>tss<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">}</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span></span>
-<span id="cb1-15">            f.write(interval <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">\n</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'</span>)</span>
-<span id="cb1-16"></span>
-<span id="cb1-17">write_intervals(gene_list, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"metadata/intervals.txt"</span>)</span></code></pre></div>
-</div>
-<section id="run-pipeline" class="level3">
-<h3 class="anchored" data-anchor-id="run-pipeline">Run Pipeline</h3>
-<pre><code>module load conda
-conda activate enformer-predict-tools
-
-python /home/s1mi/Github/enformer_epigenome_pipeline/enformer_predict.py --parameters /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/founder_epigenome_config.json</code></pre>
-</section>
-<section id="check-predictions" class="level2">
-<h2 class="anchored" data-anchor-id="check-predictions">Check Predictions</h2>
-<div class="cell" data-execution_count="4">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">import</span> h5py</span>
-<span id="cb3-2">h5_file <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/eagle/AIHPC4Edu/sabrina/Br_predictions/predictions_folder/HS_founders_genome_wide/predictions_2023-11-27/enformer_predictions/BN/haplotype0/chr10_100115821_100115821_predictions.h5"</span></span>
-<span id="cb3-3"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">with</span> h5py.File(h5_file, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
-background-color: null;
-font-style: inherit;">as</span> hf:</span>
-<span id="cb3-4">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">for</span> key, value <span class="kw" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">in</span> hf.items():</span>
-<span id="cb3-5">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(key)</span>
-<span id="cb3-6">        <span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">print</span>(value[:])</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>human
-[[0.09566703 0.10165276 0.08404372 ... 0.00587161 0.06136435 0.04359803]
- [0.10662825 0.1139144  0.09694222 ... 0.00824633 0.07404334 0.06823193]
- [0.09993935 0.10983597 0.09347952 ... 0.00431036 0.06122369 0.04992136]
- ...
- [0.06703217 0.06465818 0.05357087 ... 0.01535742 0.05460119 0.04726781]
- [0.03674487 0.03669333 0.02561367 ... 0.00362175 0.01091049 0.00503846]
- [0.06257919 0.07025048 0.06735092 ... 0.00419223 0.00971855 0.00822341]]
-mouse
-[[0.09508593 0.04494116 0.08364319 ... 0.24798432 0.38567212 0.3783706 ]
- [0.09461962 0.05752731 0.08894978 ... 0.299645   0.44955045 0.44385162]
- [0.10998561 0.07225344 0.09443015 ... 0.2621954  0.35028058 0.3864176 ]
- ...
- [0.04612014 0.0642754  0.07402609 ... 0.4328676  1.1677598  0.7585961 ]
- [0.02304047 0.02882738 0.04057743 ... 0.13793258 0.27883688 0.23426382]
- [0.04535931 0.05920705 0.08596259 ... 0.24028273 0.40435565 0.40454867]]</code></pre>
-</div>
-</div>
-
-
-</section>
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-07-HS-founder-epigenomes/pipeline.html</guid>
-  <pubDate>Tue, 07 Nov 2023 08:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
