@@ -42,6 +42,8 @@ conda activate genomics
 GENO_DIR=/home/s1mi/enformer_rat_data/genotypes
 DATA_DIR=/home/s1mi/qtl2-data
 cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
-python run_qtl2_batches.py --data_dir $DATA_DIR/chr1-qtl2-founder-haps --output_dir /home/s1mi/qtl2-outputs/chr1-qtl2-outputs --work_dir $DATA_DIR/tmp-chr1-qtl2-founder-haps
+qsub -v CHR=20 -N chr20-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
+qsub -v CHR=1 -N chr1-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
+qsub -v CHR=2 -N chr20-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
 
 ```
