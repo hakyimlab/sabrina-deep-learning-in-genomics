@@ -6,10 +6,8 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2023-11-22">
 
-<title>deep-learning-in-genomics - Br rat haplotype probabilities from HS founders by chromosome</title>
+<title>deep-learning-in-genomics - Preparing 8K rat genotypes with body lenght, BMI data</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,6 +19,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -108,26 +140,14 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Br rat haplotype probabilities from HS founders by chromosome</h1>
+      <h1 class="title">Preparing 8K rat genotypes with body lenght, BMI data</h1>
                       </div>
   </div>
     
   
   <div class="quarto-title-meta">
 
-      <div>
-      <div class="quarto-title-meta-heading">Author</div>
-      <div class="quarto-title-meta-contents">
-               <p>Sabrina Mi </p>
-            </div>
-    </div>
       
-      <div>
-      <div class="quarto-title-meta-heading">Published</div>
-      <div class="quarto-title-meta-contents">
-        <p class="date">November 22, 2023</p>
-      </div>
-    </div>
     
       
     </div>
@@ -143,9 +163,50 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="prepare-chromosome-inputs" class="level3">
-<h3 class="anchored" data-anchor-id="prepare-chromosome-inputs">Prepare Chromosome Inputs</h3>
-<p>We first generate chromosome-wide input files with Dan’s original make_qtl2_inputs function locally, because I’m having so much trouble creating a conda environment with both R and python’s pysam libraries on polaris.</p>
+<section id="write-samples-file" class="level2">
+<h2 class="anchored" data-anchor-id="write-samples-file">Write samples file</h2>
+<p>First, we obtain a list of samples with body length and BMI data, then intersect with genotypes rats.</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>all_pheno <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/phenotypes/ALLTRAITSALLNORMALIZES_19jul24.csv"</span>, </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                        usecols <span class="op">=</span> [<span class="st">'rfid'</span>, <span class="st">'dissection:regressedlr_length_w_tail_cm'</span>, <span class="st">'dissection:regressedlr_bmi_w_tail'</span>],</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                        index_col <span class="op">=</span> <span class="st">'rfid'</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>all_pheno.columns <span class="op">=</span> [<span class="st">'bodylen'</span>, <span class="st">'bmi'</span>]</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>pheno_rats <span class="op">=</span> all_pheno[all_pheno[<span class="st">'bodylen'</span>].notna()].index</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/tmp/ipykernel_46928/766119701.py:2: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+  all_pheno = pd.read_csv("/home/s1mi/enformer_rat_data/phenotypes/ALLTRAITSALLNORMALIZES_19jul24.csv",</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pysam</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>vcf <span class="op">=</span> pysam.VariantFile(<span class="st">"/home/s1mi/enformer_rat_data/genotypes/ratgtex_v3_round10_5.rn7.vcf.gz"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>geno_rats <span class="op">=</span> <span class="bu">list</span>(vcf.header.samples)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>samples <span class="op">=</span> pheno_rats.intersection(geno_rats)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co"># with open("samples.txt", "w") as f:</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># f.write("\n".join(samples))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>I downloaded the <a href="https://library.ucsd.edu/dc/object/bb5610743d">bed, bim, fam files</a>, then filtered to the 8K rats with phenotype data.</p>
+</section>
+<section id="filter-samples" class="level2">
+<h2 class="anchored" data-anchor-id="filter-samples">Filter Samples</h2>
+<pre><code>plink --bfile bb5610743d --keep-fam samples.txt --make-bed --out bodylen_bmi_8K_samples
+</code></pre>
+</section>
+<section id="convert-ncbi-refseq-id-to-chromosome-numbers" class="level2">
+<h2 class="anchored" data-anchor-id="convert-ncbi-refseq-id-to-chromosome-numbers">Convert NCBI RefSeq ID to chromosome numbers</h2>
+<pre><code>bcftools annotate \
+  --rename-chrs /home/s1mi/enformer_rat_data/annotation/mRatBN7.2_chromosome_names.txt \
+  --threads 20 \
+  -o /eagle/AIHPC4Edu/sabrina/scratch/ratgtex_v3_round10_5_annot.rn7.vcf \
+  -Ov /home/s1mi/enformer_rat_data/genotypes/ratgtex_v3_round10_5.rn7.vcf.gz
+</code></pre>
+</section>
+<section id="replace-missing-genotypes-with-reference-alleles" class="level2">
+<h2 class="anchored" data-anchor-id="replace-missing-genotypes-with-reference-alleles">Replace Missing Genotypes with Reference Alleles</h2>
+<pre><code>sed 's/\.\/\./0\/0/g' ratgtex_v3_round10_5_annot.rn7.vcf &gt; ratgtex_v3_round10_5_no_missing.vcf</code></pre>
+<section id="compute-haplotype-probabilities" class="level3">
+<h3 class="anchored" data-anchor-id="compute-haplotype-probabilities">Compute Haplotype Probabilities</h3>
 <pre><code>conda activate genomics
 cd Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
 GENO_DIR=/Users/sabrinami/Desktop/Sabrina/2022-23/tutorials/enformer_pipeline_test/rn7_data
@@ -154,30 +215,10 @@ for CHR in {1..20}
 do
     python make_qtl2_inputs.py $GENO_DIR/BrainVCFs/chr${CHR}.vcf.gz $GENO_DIR/FounderVCFs/chr${CHR}.vcf.gz --working-dir $DATA_DIR/chr${CHR}-qtl2-founder-haps --gmap-dir $DATA_DIR/genetic_map
 done
-
-scp -r $DATA_DIR/chr*-qtl2-founder-haps polaris:qtl2-data</code></pre>
-<p><a href="https://github.com/hakyimlab/sabrina-deep-learning-in-genomics/blob/main/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/run_qtl2_batches.py"><code>run_qtl2_batches.py</code></a> splits genotype inputs for a given chromsome into batches of 10 samples. I passed in chromosome number as a variables when I submitted <a href="https://github.com/hakyimlab/sabrina-deep-learning-in-genomics/blob/main/posts/2023-11-22-qtl2-founder-haps-pbs-job-array/qtl2-founder-haps-by-chromsome.pbs"><code>qtl2-founder-haps-by-chromsome.pbs</code></a>.</p>
-<pre><code>cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
-for i in {1..20}
-do
-    qsub -v CHR=${i} -N chr${i}-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
-    sleep 5
-done
 </code></pre>
+
+
 </section>
-<section id="fill-in-gaps" class="level3">
-<h3 class="anchored" data-anchor-id="fill-in-gaps">Fill in Gaps</h3>
-<pre><code>module load conda
-conda activate genomics
-GENO_DIR=/home/s1mi/enformer_rat_data/genotypes
-DATA_DIR=/home/s1mi/qtl2-data
-cd /home/s1mi/Github/deep-learning-in-genomics/posts/2023-11-22-qtl2-founder-haps-pbs-job-array
-qsub -v CHR=20 -N chr20-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
-qsub -v CHR=1 -N chr1-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
-qsub -v CHR=2 -N chr20-qtl2-founder-haps-by-chromosome qtl2-founder-haps-by-chromsome.pbs
-</code></pre>
-
-
 </section>
 
 </main> <!-- /main -->

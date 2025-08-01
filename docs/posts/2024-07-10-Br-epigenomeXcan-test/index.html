@@ -195,19 +195,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>3190 genes, 10 samples: ~40s</li>
 </ul></li>
 </ol>
-<p>GPU times, combined steps 1 &amp; 2:</p>
-<ol type="1">
-<li>Old code
-<ul>
-<li>3190 genes, 340 samples: 32 minutes</li>
-</ul></li>
-<li>New code removing inner foor loop
-<ul>
-<li>1592 genes, 340 samples: 2 min 30 sec</li>
-<li>1575 genes, 340 samples: 2 min 5 sec</li>
-<li>19696 genes, 340 samples: 22 min 30 sec</li>
-</ul></li>
-</ol>
+<p>GPU times, combined steps 1 &amp; 2: 1. Old code * 3190 genes, 340 samples: 32 minutes 2. New code removing inner foor loop * 1592 genes, 340 samples: 2 min 30 sec * 1575 genes, 340 samples: 2 min 5 sec * 19696 genes, 340 samples: 22 min 30 sec</p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -316,42 +304,12 @@ To enable them in other operations, rebuild TensorFlow with the appropriate comp
 </div>
 <section id="example-with-cage-brain" class="level3">
 <h3 class="anchored" data-anchor-id="example-with-cage-brain">Example with CAGE Brain</h3>
-<div class="cell" data-execution_count="9">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> <span class="bu">chr</span>, genes_df <span class="kw">in</span> genes_by_chrom:</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>    tic <span class="op">=</span> time.perf_counter()</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    predict_epigenome(<span class="bu">chr</span>, genes_df, individuals, <span class="ss">f'</span><span class="sc">{</span>output_dir<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">_CAGE_brain__predict.txt'</span>, track <span class="op">=</span> <span class="dv">4980</span>)</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    toc <span class="op">=</span> time.perf_counter()</span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">, </span><span class="sc">{</span><span class="bu">len</span>(genes_df)<span class="sc">}</span><span class="ss"> genes:'</span>, toc <span class="op">-</span> tic, <span class="st">'seconds'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>2024-08-09 00:45:57.658084: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/opt/cray/pe/gcc/11.2.0/snos/lib64:/opt/cray/pe/papi/6.0.0.14/lib64:/opt/cray/libfabric/1.11.0.4.125/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32:/soft/compilers/cudatoolkit/cuda-12.4.1/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-12.4.1/lib64:/soft/libraries/trt/TensorRT-8.6.1.6.Linux.x86_64-gnu.cuda-12.0/lib:/soft/libraries/nccl/nccl_2.21.5-1+cuda12.4_x86_64/lib:/soft/libraries/cudnn/cudnn-cuda12-linux-x64-v9.1.0.70/lib:/soft/compilers/cudatoolkit/cuda-11.8.0/extras/CUPTI/lib64:/soft/compilers/cudatoolkit/cuda-11.8.0/lib64:/soft/libraries/trt/TensorRT-8.5.2.2.Linux.x86_64-gnu.cuda-11.8.cudnn8.6/lib:/soft/libraries/nccl/nccl_2.16.2-1+cuda11.8_x86_64/lib:/soft/libraries/cudnn/cudnn-11-linux-x64-v8.6.0.163/lib:/soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64
-2024-08-09 00:45:57.659167: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
-Skipping registering GPU devices...</code></pre>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>chr1, 3190 genes: 129.08863715000916 seconds
-chr10, 1844 genes: 64.15786012192257 seconds
-chr11, 651 genes: 37.914293350069784 seconds
-chr12, 728 genes: 38.18615038192365 seconds
-chr13, 739 genes: 38.521823541028425 seconds
-chr14, 794 genes: 44.71535247191787 seconds
-chr15, 778 genes: 43.91769809497055 seconds
-chr16, 701 genes: 42.883026172057725 seconds
-chr17, 555 genes: 38.34623588703107 seconds
-chr18, 581 genes: 39.45503612293396 seconds
-chr19, 654 genes: 35.40245614293963 seconds
-chr2, 1592 genes: 162.26185088197235 seconds
-chr20, 702 genes: 40.760752159985714 seconds
-chr3, 1615 genes: 165.32191750698257 seconds
-chr4, 1575 genes: 162.78142886899877 seconds
-chr5, 1503 genes: 60.48483659804333 seconds
-chr6, 1033 genes: 50.48902957001701 seconds
-chr7, 1370 genes: 55.30841292592231 seconds
-chr8, 1289 genes: 53.40656710800249 seconds
-chr9, 982 genes: 48.54825172596611 seconds</code></pre>
-</div>
-<div class="cell-output cell-output-error">
-<pre><code>FileNotFoundError: [Errno 2] Unable to open file (unable to open file: name = '/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/human/chrX_genes.h5', errno = 2, error message = 'No such file or directory', flags = 0, o_flags = 0)</code></pre>
-</div>
 </div>
 
 
