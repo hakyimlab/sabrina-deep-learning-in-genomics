@@ -1,0 +1,55 @@
+#!/bin/bash -l
+#PBS -l select=24:ncpus=32
+#PBS -l place=scatter
+#PBS -l walltime=03:00:00
+#PBS -q prod
+#PBS -l filesystems=home:eagle
+#PBS -A AIHPC4EDU
+#PBS -N run_qtl2
+#PBS -j oe
+
+# Load modules
+module use /soft/modulefiles
+module load conda
+conda activate genomics
+module load cray-mpich
+
+
+# Change to working directory (where you submit)
+cd ${PBS_O_WORKDIR}  
+
+# Get number of allocated nodes
+NNODES=$(wc -l < $PBS_NODEFILE)
+
+# MPI ranks per node
+NRANKS_PER_NODE=1
+
+# Total MPI ranks = nodes * ranks/node
+NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))
+
+echo "NUM_OF_NODES=${NNODES} TOTAL_NUM_RANKS=${NTOTRANKS} RANKS_PER_NODE=${NRANKS_PER_NODE}"
+
+# Setup environment variables if using OpenMP (32 core per MPI rank here)
+export OMP_NUM_THREADS=32
+
+# Paths and variables
+export data_dir=/home/s1mi/qtl2_data
+export scratch=/eagle/AIHPC4Edu/sabrina/scratch
+export samples_dir=$scratch/bodylen_bmi_VCFs_for_qtl2
+export founders_dir=/home/s1mi/enformer_rat_data/genotypes/FounderVCFs
+export output_dir=$scratch/qtl2_outputs
+export code_dir=/home/s1mi/Github/deep-learning-in-genomics/posts/2025-07-22-bmi-bodylen-rats-haplotype-probabilities
+
+export job_list=${PBS_O_WORKDIR}/job_list.txt
+
+mpiexec -n $NTOTRANKS -ppn $NRANKS_PER_NODE bash -c '
+  n_tasks=$(wc -l < '"$job_list"')
+  for task_id in $(seq $((PMI_RANK+1)) $NTOTRANKS $n_tasks); do
+    read i j < <(sed -n "${task_id}p" '"$job_list"')
+    # echo "Rank $PMI_RANK running task for Chr${i}, Batch${j}"
+    work_dir=$scratch/chr${i}_qtl2_founder_haps/batch${j}
+    cd $work_dir
+    Rscript qtl2_calculate_prob.R
+    echo "Rank $PMI_RANK finished writing qtl2 inputs for Chr${i}, Batch${j}"
+  done
+'
