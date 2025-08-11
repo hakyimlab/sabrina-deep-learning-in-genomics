@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Sabrina Mi">
-<meta name="dcterms.date" content="2025-07-31">
+<meta name="dcterms.date" content="2025-08-10">
 
-<title>deep-learning-in-genomics - Computing Haplotype for Probabilities 8K HS Rats</title>
+<title>deep-learning-in-genomics - Processing 8K HS rat probabilities from qtl2 output</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -142,7 +142,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Computing Haplotype for Probabilities 8K HS Rats</h1>
+      <h1 class="title">Processing 8K HS rat probabilities from qtl2 output</h1>
                       </div>
   </div>
     
@@ -159,7 +159,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">July 31, 2025</p>
+        <p class="date">August 10, 2025</p>
       </div>
     </div>
     
@@ -177,145 +177,48 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 
-<section id="preparing-8k-rat-genotypes-with-body-lenght-bmi-data" class="level1">
-<h1>Preparing 8K rat genotypes with body lenght, BMI data</h1>
-<section id="write-samples-file" class="level2">
-<h2 class="anchored" data-anchor-id="write-samples-file">Write samples file</h2>
-<p>First, we obtain a list of samples with body length and BMI data, then intersect with genotypes rats.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>all_pheno <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/phenotypes/ALLTRAITSALLNORMALIZES_19jul24.csv"</span>, </span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                        usecols <span class="op">=</span> [<span class="st">'rfid'</span>, <span class="st">'dissection:regressedlr_length_w_tail_cm'</span>, <span class="st">'dissection:regressedlr_bmi_w_tail'</span>],</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                        index_col <span class="op">=</span> <span class="st">'rfid'</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>all_pheno.columns <span class="op">=</span> [<span class="st">'bodylen'</span>, <span class="st">'bmi'</span>]</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>samples <span class="op">=</span> <span class="bu">list</span>(all_pheno[all_pheno[<span class="st">'bodylen'</span>].notna()].index)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># with open("bodylen_bmisamples.txt", "w") as f:</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#     f.write("\n".join(pheno_rats))</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_3687900/3302687599.py:3: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
-  all_pheno = pd.read_csv("/home/s1mi/enformer_rat_data/phenotypes/ALLTRAITSALLNORMALIZES_19jul24.csv",</code></pre>
+<p>I eventually want to organize these probabilities indexed by position in an h5 file, so that given a genomic region, for each individual, we can query probabilities at all snps in the interval. But for now, I just combine the .rds outputs into csvs for each individual, with snp IDs as row names and the 8 founder rats as the columns.</p>
+<p>I created a new folder <code>/eagle/AIHPC4Edu/sabrina/bodylen_bmi_genotype_probabilities</code> with subdirectories for each chromosome to store csvs for each individual. Then started up R in a conda environment: <code>module use /soft/modulefiles; module load conda; conda activate genomics</code> ## Concatenate Probabilites by Chromosome</p>
+<div class="cell" data-hash="index_cache/html/global variables_d3ae704f837c07879fe150056e71756a">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>qtl2_output_dir <span class="ot">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/scratch/qtl2_outputs/"</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>output_dir <span class="ot">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/bodylen_bmi_genotype_probabilities/"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-hash="index_cache/html/functions_acb1bbdcc76ae2bdfa563429fdc2214d">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="st">"%&amp;%"</span> <span class="ot">=</span> <span class="cf">function</span>(a,b) <span class="fu">paste</span>(a,b,<span class="at">sep=</span><span class="st">""</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>split_by_sample <span class="ot">=</span> <span class="cf">function</span>(chromosome) {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  chr <span class="ot">=</span> <span class="fu">as.character</span>(chromosome)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  prob_dir <span class="ot">&lt;-</span> qtl2_output_dir <span class="sc">%&amp;%</span> <span class="st">"chr"</span> <span class="sc">%&amp;%</span> chr <span class="sc">%&amp;%</span> <span class="st">"_by_batch/"</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  batches <span class="ot">&lt;-</span> <span class="fu">list.files</span>(prob_dir)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (file <span class="cf">in</span> batches) {</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    pr <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(prob_dir <span class="sc">%&amp;%</span> file)[[<span class="dv">1</span>]]</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    samples <span class="ot">&lt;-</span> <span class="fu">rownames</span>(pr)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> (sample <span class="cf">in</span> samples) {</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>      sample_dir <span class="ot">=</span> output_dir <span class="sc">%&amp;%</span> sample</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(sample_dir)) {</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>        <span class="fu">dir.create</span>(sample_dir)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>      csv <span class="ot">=</span> sample_dir <span class="sc">%&amp;%</span> <span class="st">"/chr"</span> <span class="sc">%&amp;%</span> chr <span class="sc">%&amp;%</span> <span class="st">"_probabilities.csv"</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>      <span class="cf">if</span> (<span class="sc">!</span><span class="fu">file.exists</span>(csv)) {</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>        <span class="fu">write.csv</span>(<span class="fu">t</span>(pr[sample, ,]), csv, <span class="at">quote=</span><span class="cn">FALSE</span>)</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="write-csvs" class="level2">
+<h2 class="anchored" data-anchor-id="write-csvs">Write CSVs</h2>
+<div class="cell" data-hash="index_cache/html/run_edbad592ddbd8208d6a58794812e013a">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>) {</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="st">"Chromosome:"</span>, <span class="fu">as.character</span>((i)))</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">split_by_sample</span>(i)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Chromosome: 1Chromosome: 2Chromosome: 3Chromosome: 4Chromosome: 5Chromosome: 6Chromosome: 7Chromosome: 8Chromosome: 9Chromosome: 10Chromosome: 11Chromosome: 12Chromosome: 13Chromosome: 14Chromosome: 15Chromosome: 16Chromosome: 17Chromosome: 18Chromosome: 19Chromosome: 20</code></pre>
 </div>
 </div>
-<p>I downloaded the <a href="https://library.ucsd.edu/dc/object/bb5610743d">bed, bim, fam files</a>, then make basic modifications to the files.</p>
-</section>
-<section id="filter-samples" class="level2">
-<h2 class="anchored" data-anchor-id="filter-samples">Filter Samples</h2>
-<p>Filter to the 8K rats with phenotype data using <code>plink</code>.</p>
-<pre><code>plink2 --bfile bb5610743d --keep samples.txt --export vcf bgz --out bodylen_bmi_8K_samples</code></pre>
-<p><code>plink2</code> automatically generates new IDs of the format <code>FID_IID</code>, so we first need to remove the duplicate ID in the VCF header.</p>
-<pre><code>bcftools query -l bodylen_bmi_8K_samples.vcf.gz &gt; samples_FID_IID.txt
-awk -F'_' '{print $0 "\t" $1}' samples_FID_IID.txt &gt; rename_samples.txt
-bcftools reheader -s rename_samples.txt -o renamed.vcf.gz bodylen_bmi_8K_samples.vcf.gz</code></pre>
-<pre><code>bcftools view renamed.vcf.gz | \
-awk 'BEGIN{FS=OFS="\t"} /^#/ {print; next} {$1="chr"$1; $3="chr"$3; print}' | \
-bgzip &gt; bodylen_bmi.vcf.gz
-bcftools index -t bodylen_bmi.vcf.gz
-rm renamed.vcf.gz</code></pre>
-<p>Some of the samples with phenotype data are not in the genotype file, so <code>plink2</code> keeps only the overlapping samples. We generate a list of current samples.</p>
-<pre><code>bcftools query -l bodylen_bmi_8K_samples.vcf.gz &gt; /home/s1mi/Github/deep-learning-in-genomics/posts/2025-07-22-bmi-bodylen-rats-haplotype-probabilities/samples.txt</code></pre>
-</section>
-<section id="split-vcf-by-chromosome" class="level2">
-<h2 class="anchored" data-anchor-id="split-vcf-by-chromosome">Split VCF by Chromosome</h2>
-<pre><code>mkdir ~/enformer_rat_data/genotypes/bodylen_bmi_VCFs
-# Split VCF by chromosome
-vcf_in=bodylen_bmi.vcf.gz
-
-vcf_out_prefix=~/enformer_rat_data/genotypes/bodylen_bmi_VCFs/chr
-
-for i in {1..20}
-do
-    echo "Working on chromosome ${i}..."
-    bcftools view ${vcf_in} --regions chr${i} -o ${vcf_out_prefix}${i}.vcf.gz -Oz
-done</code></pre>
-</section>
-<section id="index-vcfs" class="level2">
-<h2 class="anchored" data-anchor-id="index-vcfs">Index VCFs</h2>
-<pre><code>for i in {1..20}
-do
-    echo "Indexing chromosome ${i}..."
-    bcftools index -t ${vcf_out_prefix}${i}.vcf.gz
-done</code></pre>
-</section>
-</section>
-<section id="compute-haplotype-probabilities" class="level1">
-<h1>Compute Haplotype Probabilities</h1>
-<p>Because the genotype files are so large, we need to split them into batches of 15 individuals in order to run qtl2.</p>
-<div class="cell" data-execution_count="8">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="st">"samples.txt"</span>, <span class="st">"r"</span>) <span class="im">as</span> f:</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    samples <span class="op">=</span> f.read().splitlines()</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>batch_size <span class="op">=</span> <span class="dv">20</span></span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>n_batches <span class="op">=</span> <span class="bu">len</span>(samples)<span class="op">//</span>batch_size</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>data_dir <span class="op">=</span> <span class="st">'/eagle/AIHPC4Edu/sabrina/scratch/bodylen_bmi_VCFs_for_qtl2'</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="bu">open</span>(<span class="ss">f'</span><span class="sc">{</span>data_dir<span class="sc">}</span><span class="ss">/batches.txt'</span>, <span class="st">"w"</span>) <span class="im">as</span> f:</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n_batches):</span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>        batch_str <span class="op">=</span> <span class="st">","</span>.join(samples[batch_size<span class="op">*</span>i:batch_size<span class="op">*</span>(i<span class="op">+</span><span class="dv">1</span>)])</span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>        f.write(<span class="ss">f'</span><span class="sc">{</span>batch_str<span class="sc">}</span><span class="ch">\t</span><span class="ss">-</span><span class="ch">\t</span><span class="ss">batch</span><span class="sc">{</span>i<span class="sc">}</span><span class="ch">\n</span><span class="ss">'</span>)</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<section id="split-vcf-by-batch" class="level2">
-<h2 class="anchored" data-anchor-id="split-vcf-by-batch">Split VCF by batch</h2>
-<pre><code>module use /soft/modulefiles; module load conda; conda activate genomics
-output_dir="/eagle/AIHPC4Edu/sabrina/scratch/bodylen_bmi_VCFs_for_qtl2"
-for i in {1..20}; do mkdir -p ${output_dir}/chr${i}_by_batch; done
-log_file="split_VCF_by_batch.log"
-for i in {1..20}
-do
-    start_time=$(date +%s)
-    echo "Working on chromosome ${i}..." &gt;&gt; "$log_file"
-    vcf_in=~/enformer_rat_data/genotypes/bodylen_bmi_VCFs/chr${i}.vcf.gz
-
-    bcftools +split ${vcf_in} -S ${output_dir}/batches.txt --output-type z --output ${output_dir}/chr${i}_by_batch
-
-    end_time=$(date +%s)
-    duration=$((end_time - start_time))
-    echo "Completed chromosome ${i} in ${duration}s" &gt;&gt; "$log_file"
-done</code></pre>
-</section>
-<section id="run-qtl2" class="level2">
-<h2 class="anchored" data-anchor-id="run-qtl2">Run qtl2</h2>
-<p>This is example code for batch 0 (all chromosomes), that I ran in an interactive job.</p>
-<pre><code>j=0
-
-module use /soft/modulefiles; module load conda
-data_dir=/home/s1mi/qtl2_data
-scratch=/eagle/AIHPC4Edu/sabrina/scratch
-samples_dir=${scratch}/bodylen_bmi_VCFs_for_qtl2
-founders_dir=/home/s1mi/enformer_rat_data/genotypes/FounderVCFs
-output_dir=${scratch}/qtl2_outputs
-code_dir=/home/s1mi/Github/deep-learning-in-genomics/posts/2025-07-22-bmi-bodylen-rats-haplotype-probabilities
-
-for i in {16..20}
-do
-    echo "Working on chromosome ${i}..."
-    start_time=$(date +%s)
-    conda run -n ml-python python ${code_dir}/make_qtl2_inputs.py ${samples_dir}/chr${i}_by_batch/batch${j}.vcf.gz ${founders_dir}/chr${i}.vcf.gz ${output_dir}/chr${i}_by_batch/batch${j}_probs.rds --working-dir ${scratch}/chr${i}_qtl2_inputs/batch${j} --gmap-dir ${data_dir}/genetic_map --cores 32
-
-    end_time=$(date +%s)
-    duration=$((end_time - start_time))
-    echo "Prepared chromosome ${i} inputs for qtl2 in ${duration}s"
-
-    cd ${scratch}/chr${i}_qtl2_founder_haps
-    conda run -n genomics Rscript ${scratch}/chr${i}_qtl2_founder_haps/qtl2_calculate_prob.R
-
-    end_time=$(date +%s)
-    duration=$((end_time - start_time))
-    echo "Computed chromosome ${i} haplotype probabilities in ${duration}s"
-done
-</code></pre>
-<p>I ran this in two interactive job, 2 hours total, sequentially. Since the writing input files take much less time, I put it in it’s own PBS script, <code>prepare_qtl2_inputs.pbs</code>, that runs the Python code in parallel by chromosome and batch. Then <code>run_qtl2.pbs</code> executes the R code in parallel.</p>
-<p>First create a file of all chromosome, batch pairs.</p>
-<pre><code>job_list=${PBS_O_WORKDIR}/job_list.txt
-for i in {1..20}; do
-  for j in {1..434}; do
-    echo $i $j &gt;&gt; $job_list
-  done
-done</code></pre>
-<p><code>qsub prepare_qtl2_inputs.pbs</code></p>
-<p><code>qsub -I -A AIHPC4EDU -l walltime=1:00:00 -l filesystems=home:eagle -q debug</code></p>
 
 
-</section>
 </section>
 
 </main> <!-- /main -->
