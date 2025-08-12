@@ -44,8 +44,7 @@ split_by_sample = function(chromosome) {
 
 ```{r run}
 for (i in 1:20) {
-  cat("Chromosome:", as.character((i)))
+  cat("Chromosome:", as.character((i)), "\n")
   split_by_sample(i)
 }
 ```
-

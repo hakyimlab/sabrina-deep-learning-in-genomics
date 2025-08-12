@@ -46,10 +46,15 @@ mpiexec -n $NTOTRANKS -ppn $NRANKS_PER_NODE bash -c '
   n_tasks=$(wc -l < '"$job_list"')
   for task_id in $(seq $((PMI_RANK+1)) $NTOTRANKS $n_tasks); do
     read i j < <(sed -n "${task_id}p" '"$job_list"')
-    # echo "Rank $PMI_RANK running task for Chr${i}, Batch${j}"
-    work_dir=$scratch/chr${i}_qtl2_founder_haps/batch${j}
-    cd $work_dir
-    Rscript qtl2_calculate_prob.R
-    echo "Rank $PMI_RANK finished writing qtl2 inputs for Chr${i}, Batch${j}"
+    output_file=$scratch/qtl2_outputs/chr${i}_by_batch/batch${j}_probs.rds
+    if [[ -f "$output_file" ]]; then
+      echo "Rank $PMI_RANK skipping Chr${i}, Batch${j} (already exists)"
+      continue
+    else
+      work_dir=$scratch/chr${i}_qtl2_founder_haps/batch${j}
+      cd $work_dir
+      Rscript qtl2_calculate_prob.R
+      echo "Rank $PMI_RANK finished writing qtl2 inputs for Chr${i}, Batch${j}"
+    fi
   done
 '
