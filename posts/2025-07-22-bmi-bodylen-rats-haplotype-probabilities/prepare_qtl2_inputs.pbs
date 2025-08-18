@@ -1,9 +1,9 @@
 #!/bin/bash -l
-#PBS -l select=10:ncpus=32
+#PBS -l select=2:ncpus=32
 #PBS -l place=scatter
 #PBS -l walltime=01:00:00
 #PBS -l filesystems=home:eagle
-#PBS -q debug-scaling
+#PBS -q debug
 #PBS -A AIHPC4EDU
 #PBS -N prepare_qtl2_inputs
 #PBS -j oe
@@ -29,11 +29,6 @@ NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))
 
 echo "NUM_OF_NODES=${NNODES} TOTAL_NUM_RANKS=${NTOTRANKS} RANKS_PER_NODE=${NRANKS_PER_NODE}"
 
-# Setup environment variables if using OpenMP (1 core per MPI rank here)
-export OMP_NUM_THREADS=1
-
-
-
 # Paths and variables
 export data_dir=/home/s1mi/qtl2_data
 export scratch=/eagle/AIHPC4Edu/sabrina/scratch
@@ -42,25 +37,26 @@ export founders_dir=/home/s1mi/enformer_rat_data/genotypes/FounderVCFs
 export output_dir=$scratch/qtl2_outputs
 export code_dir=/home/s1mi/Github/deep-learning-in-genomics/posts/2025-07-22-bmi-bodylen-rats-haplotype-probabilities
 export job_list=${PBS_O_WORKDIR}/job_list.txt
+export n_tasks=$(wc -l < "$job_list")
 
 mpiexec -n $NTOTRANKS -ppn $NRANKS_PER_NODE bash -c '
-  n_tasks=$(wc -l < '"$job_list"')
   for task_id in $(seq $((PMI_RANK+1)) $NTOTRANKS $n_tasks); do
-    read i j < <(sed -n "${task_id}p" '"$job_list"')
-    # echo "Rank $PMI_RANK running task for Chr${i}, Batch${j}"
-    output_file=$scratch/chr${i}_qtl2_founder_haps/batch${j}/qtl2_calculate_prob.R
-    if [[ -f "$output_file" ]]; then
-      echo "Rank $PMI_RANK skipping Chr${i}, Batch${j} (already exists)"
-      continue
-    else
-      python $code_dir/make_qtl2_inputs.py \
-        $samples_dir/chr${i}_by_batch/batch${j}.vcf.gz \
-        $founders_dir/chr${i}.vcf.gz \
-        $output_dir/chr${i}_by_batch/batch${j}_probs.rds \
-        --working-dir $scratch/chr${i}_qtl2_founder_haps/batch${j} \
-        --gmap-dir $data_dir/genetic_map \
-        --cores 32
-      echo "Rank $PMI_RANK finished writing qtl2 inputs for Chr${i}, Batch${j}"
+    if [ "$task_id" -le "$n_tasks" ]; then
+      read i j < <(sed -n "${task_id}p" "$job_list")
+      output_file=$scratch/chr${i}_qtl2_founder_haps/batch${j}/qtl2_calculate_prob.R
+      if [[ -f "$output_file" ]]; then
+        echo "Rank $PMI_RANK skipping Chr${i}, Batch${j} (already exists)"
+      else
+        # echo "Rank $PMI_RANK running task for Chr${i}, Batch${j}"
+        python $code_dir/make_qtl2_inputs.py \
+          $samples_dir/chr${i}_by_batch/batch${j}.vcf.gz \
+          $founders_dir/chr${i}.vcf.gz \
+          $output_dir/chr${i}_by_batch/batch${j}_probs.rds \
+          --working-dir $scratch/chr${i}_qtl2_founder_haps/batch${j} \
+          --gmap-dir $data_dir/genetic_map \
+          --cores 32
+        echo "Rank $PMI_RANK finished writing qtl2 inputs for Chr${i}, Batch${j}"
+      fi
     fi
   done
 '
