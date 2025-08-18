@@ -196,7 +196,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </ul></li>
 </ol>
 <p>GPU times, combined steps 1 &amp; 2: 1. Old code * 3190 genes, 340 samples: 32 minutes 2. New code removing inner foor loop * 1592 genes, 340 samples: 2 min 30 sec * 1575 genes, 340 samples: 2 min 5 sec * 19696 genes, 340 samples: 22 min 30 sec</p>
-<div class="cell" data-execution_count="1">
+<div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tensorflow <span class="im">as</span> tf</span>
@@ -206,13 +206,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> bisect</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>columns <span class="op">=</span> [<span class="st">'ACI'</span>, <span class="st">'BN'</span>, <span class="st">'BUF'</span>, <span class="st">'F344'</span>, <span class="st">'M520'</span>, <span class="st">'MR'</span>, <span class="st">'WKY'</span>, <span class="st">'WN'</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>2025-08-12 03:24:57.932615: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+<pre><code>2025-08-17 21:10:06.646981: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
 To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
-2025-08-12 03:24:58.120580: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nvshmem/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/math_libs/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/extras/qd/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/extras/CUPTI/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32
-2025-08-12 03:24:58.120623: I tensorflow/compiler/xla/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
-2025-08-12 03:24:59.710462: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nvshmem/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/math_libs/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/extras/qd/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/extras/CUPTI/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32
-2025-08-12 03:24:59.710669: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nvshmem/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/math_libs/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/extras/qd/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/extras/CUPTI/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32
-2025-08-12 03:24:59.710685: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.</code></pre>
+2025-08-17 21:10:09.958339: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nvshmem/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/math_libs/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/extras/qd/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/extras/CUPTI/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32
+2025-08-17 21:10:09.958723: I tensorflow/compiler/xla/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2025-08-17 21:10:14.050496: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nvshmem/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/math_libs/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/extras/qd/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/extras/CUPTI/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32
+2025-08-17 21:10:14.051982: W tensorflow/compiler/xla/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /soft/perftools/darshan/darshan-3.4.4/lib:/opt/cray/pe/papi/7.0.1.2/lib64:/opt/cray/libfabric/1.15.2.0/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nvshmem/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/comm_libs/nccl/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/math_libs/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/compilers/extras/qd/lib:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/extras/CUPTI/lib64:/opt/nvidia/hpc_sdk/Linux_x86_64/23.9/cuda/lib64:/dbhome/db2cat/sqllib/lib64:/dbhome/db2cat/sqllib/lib64/gskit:/dbhome/db2cat/sqllib/lib32
+2025-08-17 21:10:14.052008: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.</code></pre>
 </div>
 </div>
 <div class="cell" data-execution_count="3">
@@ -220,7 +220,7 @@ To enable them in other operations, rebuild TensorFlow with the appropriate comp
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>gene_annot <span class="op">=</span> gene_annot[<span class="op">~</span>gene_annot[<span class="st">'chromosome'</span>].isin([<span class="st">'chrX'</span>, <span class="st">'chrY'</span>])]</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>genes_by_chrom <span class="op">=</span> gene_annot.groupby(<span class="st">'chromosome'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="2">
+<div class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>probabilities_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_genotype_probabilities"</span></span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>reference_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_predictions/HS_founder_epigenomes/human"</span></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>output_dir <span class="op">=</span> <span class="st">"/eagle/AIHPC4Edu/sabrina/Br_prediction_from_founders"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -316,7 +316,7 @@ To enable them in other operations, rebuild TensorFlow with the appropriate comp
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    toc <span class="op">=</span> time.perf_counter()</span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span><span class="bu">chr</span><span class="sc">}</span><span class="ss">, </span><span class="sc">{</span><span class="bu">len</span>(genes_df)<span class="sc">}</span><span class="ss"> genes:'</span>, toc <span class="op">-</span> tic, <span class="st">'seconds'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="58">
+<div class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>all_pheno <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/phenotypes/ALLTRAITSALLNORMALIZES_19jul24.csv"</span>, </span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                        usecols <span class="op">=</span> [<span class="st">'rfid'</span>, <span class="st">'dissection:regressedlr_length_w_tail_cm'</span>, <span class="st">'dissection:regressedlr_bmi_w_tail'</span>],</span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>                        index_col <span class="op">=</span> <span class="st">'rfid'</span>)</span>
@@ -324,11 +324,11 @@ To enable them in other operations, rebuild TensorFlow with the appropriate comp
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>pheno <span class="op">=</span> all_pheno[all_pheno[<span class="st">'bodylen'</span>].notna()]</span>
 <span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>pheno_samples <span class="op">=</span> <span class="bu">list</span>(pheno.index)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
-<pre><code>/tmp/ipykernel_990295/4138209945.py:1: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
+<pre><code>/tmp/ipykernel_2837064/4138209945.py:1: DtypeWarning: Columns (0) have mixed types. Specify dtype option on import or set low_memory=False.
   all_pheno = pd.read_csv("/home/s1mi/enformer_rat_data/phenotypes/ALLTRAITSALLNORMALIZES_19jul24.csv",</code></pre>
 </div>
 </div>
-<div class="cell" data-execution_count="59">
+<div class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pred_expr <span class="op">=</span> pd.read_csv(<span class="ss">f'</span><span class="sc">{</span>output_dir<span class="sc">}</span><span class="ss">/Br_all_genes_by_tissue/Br_CAGE_brain__predict.txt'</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>samples <span class="op">=</span> pred_expr.index.intersection(pheno_samples)</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f'</span><span class="sc">{</span><span class="bu">len</span>(samples)<span class="sc">}</span><span class="ss"> samples in association test'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -337,7 +337,7 @@ To enable them in other operations, rebuild TensorFlow with the appropriate comp
 </div>
 </div>
 <p>We write new predicted expression and phenotype files with the same order of individuals.</p>
-<div class="cell" data-execution_count="60">
+<div class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>pred_expr <span class="op">=</span> pred_expr.loc[samples]</span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>pheno <span class="op">=</span> pheno.loc[samples]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -376,7 +376,7 @@ python3 $METAXCAN/PrediXcanAssociation.py \
 </section>
 <section id="compare-results-to-ratxcan" class="level3">
 <h3 class="anchored" data-anchor-id="compare-results-to-ratxcan">Compare Results to RatXcan</h3>
-<div class="cell" data-execution_count="130">
+<div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
