@@ -1,0 +1,28 @@
+---
+title: RatXcan run on 324 Br Rats
+author: Sabrina Mi
+date: 08/17/2025
+---
+
+## Predict Expression
+
+```
+PRE="/Users/sabrinami/Desktop/RatXcan" ## Replace with path to downloaded ratxcan-tutorial folder
+OUTPUT="$PRE/output"
+MODEL="$PRE/models"
+GENO_PREFIX="$PRE/Br_data/genotype/rat6k"
+METAXCAN="/Users/sabrinami/Github/MetaXcan"
+```
+
+```
+conda activate imlabtools
+python ${METAXCAN}/software/Predict.py \
+--model_db_path ${MODEL}/AC-filtered.db \
+--model_db_snp_key rsid \
+--vcf_genotypes ${GENO_PREFIX}.vcf.gz \
+--vcf_mode genotyped \
+--on_the_fly_mapping METADATA "{}_{}_{}_{}" \
+--prediction_output $OUTPUT/AC-filtered-rat6k__predict.txt  \
+--prediction_summary_output $OUTPUT/AC-filtered-rat6k__summary.txt \
+--throw
+```
