@@ -10,7 +10,1821 @@
 <atom:link href="https://sabrinami.quarto.pub/deep-learning-in-genomics/index.xml" rel="self" type="application/rss+xml"/>
 <description>Sabrina&#39;s blog for Deep Learning in Genomics course</description>
 <generator>quarto-1.3.361</generator>
-<lastBuildDate>Sun, 10 Aug 2025 07:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 17 Aug 2025 07:00:00 GMT</lastBuildDate>
+<item>
+  <title>RatXcan run on 324 Br Rats</title>
+  <dc:creator>Sabrina Mi</dc:creator>
+  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2025-08-17-Br-ratxcan-run/index.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="preliminary-computations" class="level2">
+<h2 class="anchored" data-anchor-id="preliminary-computations">Preliminary Computations</h2>
+<section id="predict-expression" class="level3">
+<h3 class="anchored" data-anchor-id="predict-expression">Predict Expression</h3>
+<pre><code>PRE="/Users/sabrinami/Desktop/RatXcan"
+OUTPUT="$PRE/output"
+MODEL="$PRE/models"
+GENO_PREFIX="$PRE/Br_data/genotype/Br_bodylen_bmi"
+METAXCAN="/Users/sabrinami/Github/MetaXcan"</code></pre>
+<pre><code>conda activate imlabtools
+tissues="AC IL LH PL VO"
+for model in $tissues; do
+  python ${METAXCAN}/software/Predict.py \
+  --model_db_path ${MODEL}/${model}-filtered.db \
+  --model_db_snp_key rsid \
+  --vcf_genotypes ${GENO_PREFIX}.vcf.gz \
+  --vcf_mode genotyped \
+  --liftover ${PRE}/rn7ToRn6.over.chain.gz \
+  --on_the_fly_mapping METADATA "{}_{}_{}_{}" \
+  --prediction_output $OUTPUT/Br_bodylen_bmi_${model}__predict.txt  \
+  --prediction_summary_output $OUTPUT/Br_bodylen_bmi_${model}__summary.txt \
+  --throw
+done
+</code></pre>
+</section>
+<section id="compute-genetic-relatedness-and-heritability" class="level3">
+<h3 class="anchored" data-anchor-id="compute-genetic-relatedness-and-heritability">Compute Genetic Relatedness and Heritability</h3>
+<pre><code>## Compute GRM
+gcta --bfile $GENO_PREFIX --make-grm-bin --out $OUTPUT/Br_bodylen_bmi
+## Compute h2
+## argument --mpheno specifies fam column to be used as phenotype, 1 for bodylength and 2 for bmi
+gcta --grm $OUTPUT/Br_bodylen_bmi --reml --pheno $PRE/Br_data/phenotype/pheno.fam --mpheno 1 --out $OUTPUT/bodylen_h2</code></pre>
+</section>
+</section>
+<section id="prepare-inputs-for-mixed-effects-model" class="level2">
+<h2 class="anchored" data-anchor-id="prepare-inputs-for-mixed-effects-model">Prepare Inputs for Mixed Effects Model</h2>
+<div class="cell" data-hash="index_cache/html/libraries_e634e082959bba4bdfbd62772213f4d6">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## compare observed correlation with null correlation plotting functions</span></span>
+<span id="cb4-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">suppressMessages</span>(devtools<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">source_gist</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"a925fea01b365a8c605e"</span>)) <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## qqR fn https://gist.github.com/hakyim/a925fea01b365a8c605e</span></span>
+<span id="cb4-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">suppressMessages</span>(devtools<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">source_gist</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"38431b74c6c0bf90c12f"</span>)) <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## qqunif https://gist.github.com/hakyim/38431b74c6c0bf90c12f</span></span>
+<span id="cb4-4"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## ratxcan functions</span></span>
+<span id="cb4-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">suppressMessages</span>(devtools<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">source_gist</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"115403f16bec0a0e871f3616d552ce9b"</span>)) <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## https://gist.github.com/hakyim/115403f16bec0a0e871f3616d552ce9b </span></span>
+<span id="cb4-6"></span>
+<span id="cb4-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">suppressMessages</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse))</span>
+<span id="cb4-8"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">suppressMessages</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(glue))</span>
+<span id="cb4-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">suppressMessages</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(readr))</span>
+<span id="cb4-10"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">suppressMessages</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(biomaRt))</span>
+<span id="cb4-11"></span>
+<span id="cb4-12"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## to install qvalue</span></span>
+<span id="cb4-13"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## if (!require("BiocManager", quietly = TRUE))</span></span>
+<span id="cb4-14">   <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## install.packages("BiocManager")</span></span>
+<span id="cb4-15"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## BiocManager::install("biomaRt")</span></span></code></pre></div>
+</div>
+<div class="cell" data-hash="index_cache/html/paths_da57a41def7d4e80e4620c34b7221890">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">PRE <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"~/Desktop/RatXcan"</span></span>
+<span id="cb5-2">OUTPUT <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{PRE}/output"</span>)</span></code></pre></div>
+</div>
+<section id="read-in-grm-h2-and-phenotypes" class="level3">
+<h3 class="anchored" data-anchor-id="read-in-grm-h2-and-phenotypes">Read in GRM, h2, and phenotypes</h3>
+<div class="cell" data-hash="index_cache/html/read gcta outputs_f920a1e0636cb20e62ae2ed72535ffe0">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## read grm</span></span>
+<span id="cb6-2">grm_mat <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_GRMBin</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_bodylen_bmi.grm"</span>))</span>
+<span id="cb6-3">grm_id <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_tsv</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_bodylen_bmi.grm.id"</span>), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">col_names =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 324 Columns: 2
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (1): X2
+dbl (1): X1
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">names</span>(grm_id) <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"FID"</span>,<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"IID"</span>)</span>
+<span id="cb8-2"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## read h2</span></span>
+<span id="cb8-3">tempo <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_tsv</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/bodylen_h2.hsq"</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(Source<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"V(G)/Vp"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: One or more parsing issues, call `problems()` on your data frame for details,
+e.g.:
+  dat &lt;- vroom(...)
+  problems(dat)</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 10 Columns: 3
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (1): Source
+dbl (2): Variance, SE
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">bodylen_h2 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> tempo <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pull</span>(Variance)</span>
+<span id="cb11-2">bodylen_se <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> tempo <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pull</span>(SE)</span>
+<span id="cb11-3"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## read phenotype</span></span>
+<span id="cb11-4">pheno_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_tsv</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{PRE}/Br_data/phenotype/pheno.fam"</span>), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">col_names =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 324 Columns: 4
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr (1): X2
+dbl (3): X1, X3, X4
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">names</span>(pheno_df) <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"FID"</span>,<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"IID"</span>,<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bodylen"</span>,<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bmi"</span>)</span></code></pre></div>
+</div>
+</section>
+<section id="run-lmm-association" class="level3">
+<h3 class="anchored" data-anchor-id="run-lmm-association">Run LMM Association</h3>
+<div class="cell" data-hash="index_cache/html/lmm function_2cec5ef60828d9a7b07a10fe9204f7bb">
+<div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## HERE WE USE THE FULL GRM MATRIX AND CALCULATE THE INVERSE OF THE SIGMA MATRIX}</span></span>
+<span id="cb14-2"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## define lmm association function </span></span>
+<span id="cb14-3">lmmGRM <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">function</span>(pheno, grm_mat, h2, pred_expr, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pheno_id_col=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pheno_value_cols=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">out=</span><span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span>)</span>
+<span id="cb14-4">{</span>
+<span id="cb14-5">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## input pheno is a data frame with id column pheno_id_col=1 by default</span></span>
+<span id="cb14-6">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## phenotype values are in pheno_value_cols, 6:6 by default (SCORE column location in plink output), it can have more than one phenotype</span></span>
+<span id="cb14-7">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## but h2 has to be the same, this is useful when running simulations with different h2</span></span>
+<span id="cb14-8">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## call lmmXcan(pheno %&gt;% select(IID,SCORE))</span></span>
+<span id="cb14-9">  </span>
+<span id="cb14-10">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## format pheno to matrix form</span></span>
+<span id="cb14-11">  phenomat <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.matrix</span>(pheno[,pheno_value_cols])</span>
+<span id="cb14-12">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(phenomat) <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> pheno[[pheno_id_col]]</span>
+<span id="cb14-13">  </span>
+<span id="cb14-14">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## turn pred_expr into matrix with rownames =IID, keep only IIDs in ymat</span></span>
+<span id="cb14-15">  exp_mat <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.matrix</span>(pred_expr <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> dplyr<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span>(<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>IID))</span>
+<span id="cb14-16">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(exp_mat) <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> pred_expr<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>IID</span>
+<span id="cb14-17"></span>
+<span id="cb14-18">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## align pheno and expr matrices</span></span>
+<span id="cb14-19">  idlist <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">intersect</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(phenomat), <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(exp_mat))</span>
+<span id="cb14-20">  </span>
+<span id="cb14-21">  nsam <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">length</span>(idlist)</span>
+<span id="cb14-22">  </span>
+<span id="cb14-23">    <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## number</span></span>
+<span id="cb14-24">  num_genes <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ncol</span>(exp_mat)</span>
+<span id="cb14-25"></span>
+<span id="cb14-26">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{nsam} samples, {num_genes} genes used in association test"</span>))</span>
+<span id="cb14-27">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## CALCULATE SIGMA</span></span>
+<span id="cb14-28">    ID_mat <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">diag</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rep</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>,nsam))</span>
+<span id="cb14-29">  </span>
+<span id="cb14-30">  Sigma <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> grm_mat[idlist,idlist] <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> h2 <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> (<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> h2) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> ID_mat</span>
+<span id="cb14-31">  </span>
+<span id="cb14-32">  Sig_eigen <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">eigen</span>(Sigma)</span>
+<span id="cb14-33">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(Sig_eigen<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>vectors) <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(Sigma)</span>
+<span id="cb14-34">  </span>
+<span id="cb14-35">  isighalf <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> Sig_eigen<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>vectors <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%*%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">diag</span>( <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sqrt</span>(  Sig_eigen<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>values  ) ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%*%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">t</span>(Sig_eigen<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>vectors)</span>
+<span id="cb14-36">  </span>
+<span id="cb14-37"></span>
+<span id="cb14-38">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## perform raw association</span></span>
+<span id="cb14-39">  cormat_raw <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">matrix_lm</span>(phenomat[idlist,, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">drop =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>], exp_mat[idlist,])</span>
+<span id="cb14-40">  pmat_raw <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">cor2pval</span>(cormat_raw,nsam)</span>
+<span id="cb14-41">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">colnames</span>(pmat_raw) <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">gsub</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cor_"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pval_"</span>, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">colnames</span>(pmat_raw))</span>
+<span id="cb14-42">  </span>
+<span id="cb14-43">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## perform corrected association</span></span>
+<span id="cb14-44">  cormat_correct <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">matrix_lm</span>(isighalf<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%*%</span> phenomat[idlist,, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">drop =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>], isighalf <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%*%</span> exp_mat[idlist,])</span>
+<span id="cb14-45">  pmat_correct <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">cor2pval</span>(cormat_correct,nsam)</span>
+<span id="cb14-46">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">colnames</span>(pmat_correct) <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">gsub</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cor_"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pval_"</span>, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">colnames</span>(pmat_correct))</span>
+<span id="cb14-47">  </span>
+<span id="cb14-48">  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># write outputs to file</span></span>
+<span id="cb14-49">  <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span>(<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">is.null</span>(out))</span>
+<span id="cb14-50">  {</span>
+<span id="cb14-51">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">saveRDS</span>(cormat_correct,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">file =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{out}_cormat_correct.RDS"</span>))</span>
+<span id="cb14-52">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">saveRDS</span>(pmat_correct,  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">file =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{out}_pmat_correct.RDS"</span>))</span>
+<span id="cb14-53">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">saveRDS</span>(cormat_raw,    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">file =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{out}_cormat_raw.RDS"</span>))</span>
+<span id="cb14-54">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">saveRDS</span>(pmat_raw,      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">file =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{out}_pmat_raw.RDS"</span>))</span>
+<span id="cb14-55">  }</span>
+<span id="cb14-56">  res <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">list</span>(</span>
+<span id="cb14-57">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">cormat_correct=</span>cormat_correct, </span>
+<span id="cb14-58">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pmat_correct=</span>pmat_correct, </span>
+<span id="cb14-59">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">cormat_raw=</span>cormat_raw, </span>
+<span id="cb14-60">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pmat_raw=</span>pmat_raw)</span>
+<span id="cb14-61">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">return</span>(res)</span>
+<span id="cb14-62">  </span>
+<span id="cb14-63">}</span></code></pre></div>
+</div>
+<section id="association-tests-using-predictdb-models-elastic-net" class="level4">
+<h4 class="anchored" data-anchor-id="association-tests-using-predictdb-models-elastic-net">Association Tests using PredictDB models (Elastic Net)</h4>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_79489de50ed2e41a491dcacee0645125">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1">trait <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bodylen"</span></span>
+<span id="cb15-2">h2 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> bodylen_h2</span>
+<span id="cb15-3">h2se <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> bodylen_h2<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span>bodylen_se</span>
+<span id="cb15-4">pred_expr <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_tsv</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_CAGE_brain__predict.txt"</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> </span>
+<span id="cb15-5">  dplyr<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span>(<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>FID) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Remove the FID column</span></span>
+<span id="cb15-6">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">IID =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">str_split</span>(IID, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"_"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">simplify =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)[, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>])  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Keep the first part of IID</span></span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 324 Columns: 22878
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr     (2): FID, IID
+dbl (22876): ENSRNOG00000066169, ENSRNOG00000070168, ENSRNOG00000070901, ENS...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1">res_h2 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">lmmGRM</span>(pheno_df,grm_mat, h2, pred_expr,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pheno_id_col=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pheno_value_cols=</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">which</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">colnames</span>(pheno_df)<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span>trait), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">out=</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_bodylen_bmi_CAGE_brain"</span>))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>324 samples, 22876 genes used in association test</code></pre>
+</div>
+</div>
+<p>We plot raw and corrected p-values for VO tissue to confirm inflation.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-2_ae6d8f9558967bdc45dca2043181fda4">
+<div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#png(glue("{OUTPUT}/bodylen-AC-lmmGRM.png"))</span></span>
+<span id="cb19-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">qqunif.compare</span>(res_h2<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pmat_raw,res_h2<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pmat_correct,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">main=</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"RatXcan bodylength, VO tissue"</span>) )</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2025-08-17-Br-ratxcan-run/index_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Aggregate p-values across tissues as ACAT p-values.</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-3_f72282a5c3416b2a56554254b1636eef">
+<div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1">AC_pval <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_bodylen_bmi_AC_pmat_correct.RDS"</span>))</span>
+<span id="cb20-2">IL_pval <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_bodylen_bmi_IL_pmat_correct.RDS"</span>))</span>
+<span id="cb20-3">LH_pval <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_bodylen_bmi_LH_pmat_correct.RDS"</span>))</span>
+<span id="cb20-4">PL_pval <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_bodylen_bmi_PL_pmat_correct.RDS"</span>))</span>
+<span id="cb20-5">VO_pval <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">readRDS</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_bodylen_bmi_VO_pmat_correct.RDS"</span>))</span>
+<span id="cb20-6"></span>
+<span id="cb20-7"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## Get list of common genes across all tissue</span></span>
+<span id="cb20-8">genes <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Reduce</span>(intersect, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">list</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(AC_pval), <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(IL_pval), <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(LH_pval), <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(PL_pval), <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(VO_pval)))</span>
+<span id="cb20-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{length(genes)} genes with ACAT p-values"</span>))</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>4077 genes with ACAT p-values</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-4_fd0efd3009fa62c173ba0179d998f421">
+<div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1">pval_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data.frame</span>(</span>
+<span id="cb22-2">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">AC =</span> AC_pval[genes,<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bodylen"</span>],</span>
+<span id="cb22-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">IL =</span> IL_pval[genes,<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bodylen"</span>],</span>
+<span id="cb22-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">LH =</span> LH_pval[genes,<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bodylen"</span>],</span>
+<span id="cb22-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">PL =</span> PL_pval[genes,<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bodylen"</span>],</span>
+<span id="cb22-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">VO =</span> VO_pval[genes,<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bodylen"</span>]</span>
+<span id="cb22-7">)</span>
+<span id="cb22-8">pval_df<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ACAT <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rowMeans</span>(pval_df)</span>
+<span id="cb22-9">pval_df<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>geneId <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span>  genes</span></code></pre></div>
+</div>
+<p>Manhattan plot of ACAT p-values:</p>
+<div class="cell" data-hash="index_cache/html/manhattan plot_d3fa31c995179e6ab3c1580965a68f13">
+<div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## here</span></span>
+<span id="cb23-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(ggrepel)</span>
+<span id="cb23-3">gg_manhattan <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">function</span>(df, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">titulo=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">""</span>,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">significance_threshold =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.05</span>) {</span>
+<span id="cb23-4">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## USAGE: gg_manhattan(df,0.05)</span></span>
+<span id="cb23-5">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## df has columns: pvalue, chr (numeric), and start (position)</span></span>
+<span id="cb23-6">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## significance threshold gets divided by the number of tests</span></span>
+<span id="cb23-7">  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Calculate cumulative base pair positions</span></span>
+<span id="cb23-8">  data_cum <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb23-9">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">group_by</span>(chromosome) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb23-10">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summarise</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">max_bp =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.numeric</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">max</span>(start)), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">.groups =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'drop'</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb23-11">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">bp_add =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">lag</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">cumsum</span>(max_bp), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">default =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>))</span>
+<span id="cb23-12"></span>
+<span id="cb23-13">  gwas_data <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb23-14">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">inner_join</span>(data_cum, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">by =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"chromosome"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb23-15">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">bp_cum =</span> start <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> bp_add)</span>
+<span id="cb23-16"></span>
+<span id="cb23-17">  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Calculate axis labels</span></span>
+<span id="cb23-18">  axis_set <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> gwas_data <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb23-19">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">group_by</span>(chromosome) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb23-20">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summarize</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">center =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(bp_cum), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">.groups =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'drop'</span>)</span>
+<span id="cb23-21"></span>
+<span id="cb23-22">  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Determine the ylim based on the most significant p-value</span></span>
+<span id="cb23-23">  ylim <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> gwas_data <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb23-24">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(ACAT <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">min</span>(ACAT)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb23-25">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summarise</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">ylim =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">abs</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">floor</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">log10</span>(ACAT))) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span></span>
+<span id="cb23-26">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pull</span>(ylim)</span>
+<span id="cb23-27"></span>
+<span id="cb23-28">  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Calculate the genome-wide significance level</span></span>
+<span id="cb23-29">  sig <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> significance_threshold <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">nrow</span>(df)</span>
+<span id="cb23-30"></span>
+<span id="cb23-31">  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Construct the Manhattan plot</span></span>
+<span id="cb23-32">  manhattan_plot <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(gwas_data, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> bp_cum, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">log10</span>(ACAT), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.factor</span>(chromosome), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">size =</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">log10</span>(ACAT))) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb23-33">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_hline</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">yintercept =</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">log10</span>(sig), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"grey40"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">linetype =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dashed"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb23-34">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_hline</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">yintercept =</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">log10</span>(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.0001</span>), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"red"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">linetype =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dashed"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb23-35">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">alpha =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.75</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">shape =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">19</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Simplified shape decision for clarity</span></span>
+<span id="cb23-36">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_label_repel</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">label =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ifelse</span>(ACAT <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;=</span> sig, geneSymbol, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">""</span>)), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">size =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb23-37">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ylim</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, ylim)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb23-38">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scale_x_continuous</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">labels =</span> axis_set<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>chromosome, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">breaks =</span> axis_set<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>tss) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb23-39">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scale_color_manual</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">values =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rep</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dodgerblue4"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"midnightblue"</span>), <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">length</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unique</span>(axis_set<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>chromosome)))) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb23-40">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scale_size_continuous</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">range =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb23-41">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">labs</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">expression</span>(<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>log[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>](<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">italic</span>(p)))) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb23-42">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_minimal</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb23-43">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">legend.position =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"none"</span>,</span>
+<span id="cb23-44">          <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">panel.border =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_blank</span>(),</span>
+<span id="cb23-45">          <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">panel.grid.major.x =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_blank</span>(),</span>
+<span id="cb23-46">          <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">panel.grid.minor.x =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_blank</span>(),</span>
+<span id="cb23-47">          <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">axis.text.x =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_text</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">angle =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">90</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">size =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">12</span>),</span>
+<span id="cb23-48">          <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">axis.text.y =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_text</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">size =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">12</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">vjust =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>),</span>
+<span id="cb23-49">          <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">axis.title =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_text</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">size =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>))</span>
+<span id="cb23-50"></span>
+<span id="cb23-51">  <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">if</span>(titulo <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">""</span>) manhattan_plot <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> manhattan_plot <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggtitle</span>(titulo)</span>
+<span id="cb23-52">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">return</span>(manhattan_plot)</span>
+<span id="cb23-53">}</span></code></pre></div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-5_ad64aa60c612f87860805784339ba696">
+<div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1">gene_annot <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read.delim</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{PRE}/rn7.gene.txt"</span>), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">header =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">sep =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">\t</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">stringsAsFactors =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>)[,<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>,<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">7</span>)]</span>
+<span id="cb24-2">res <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">inner_join</span>(pval_df, gene_annot, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">by=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"geneId"</span>)</span></code></pre></div>
+</div>
+<p>There are no Bonferroni significant genes, but these are lowest p-values:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-6_c4269acb897ff38651c5d8b9462bb210">
+<div class="sourceCode cell-code" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(res <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">arrange</span>(ACAT) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">head</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> dplyr<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span>(geneSymbol, ACAT)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>             AC           IL           LH           PL           VO
+1  0.0002984457 0.0003330477 0.0003093574 0.0002950438 0.0002984457
+2  0.0003969484 0.0002922556 0.0003969484 0.0002956643 0.0003329209
+3  0.0005406986 0.0004107848 0.0004082666 0.0004066414 0.0004066414
+4  0.0009696896 0.0009691317 0.0009667042 0.0009671762 0.0009703929
+5  0.0009785745 0.0009788197 0.0009785084 0.0009787353 0.0009786740
+6  0.0010306494 0.0010283724 0.0010971622 0.0011019875 0.0010983766
+7  0.0015846240 0.0015928800 0.0015843785 0.0015846240 0.0015839994
+8  0.0022564322 0.0022144255 0.0022353553 0.0022298055 0.0022381752
+9  0.0027014963 0.0027001104 0.0027014963 0.0027014963 0.0026982814
+10 0.0028384527 0.0027937299 0.0028384527 0.0028523556 0.0027110032
+11 0.0031485961 0.0032724711 0.0031176076 0.0030496773 0.0032045296
+12 0.0031954315 0.0031583542 0.0031954315 0.0031954315 0.0031954315
+13 0.0035013595 0.0034654536 0.0034654536 0.0033859357 0.0034654536
+14 0.0042882871 0.0043801239 0.0039551183 0.0044868369 0.0041227017
+15 0.0053768333 0.0041272187 0.0040159757 0.0042989843 0.0041272187
+16 0.0047327362 0.0053746206 0.0053746206 0.0043961506 0.0047870423
+17 0.0052465046 0.0052424070 0.0052368014 0.0052482310 0.0049728783
+18 0.0053991899 0.0058920315 0.0056152301 0.0054116775 0.0053991899
+19 0.0057914618 0.0056891371 0.0057414924 0.0058234307 0.0056891371
+20 0.0098620403 0.0033040490 0.0032601484 0.0044024009 0.0083620611
+           ACAT             geneId geneSymbol chromosome     start       end
+1  0.0003068681 ENSRNOG00000024525     Alkbh8          6    378100    452165
+2  0.0003429475 ENSRNOG00000040045     Crnkl1          6   1140615   1142918
+3  0.0004346066 ENSRNOG00000028783      Wdr35          6  31771360  31831029
+4  0.0009686189 ENSRNOG00000020833      Cspg5          8 110220653 110234758
+5  0.0009786624 ENSRNOG00000032134     Uqcrc1          8 109589706 109601480
+6  0.0010713096 ENSRNOG00000033809       Mlh1          8 111196468 111233617
+7  0.0015861012 ENSRNOG00000020721       Nme6          8 109832589 109839301
+8  0.0022348387 ENSRNOG00000020748       Map4          8 109925575 110064362
+9  0.0027005761 ENSRNOG00000016327       Mcee          1 117964576 117988484
+10 0.0028067988 ENSRNOG00000043006   Epm2aip1          8 111233826 111241871
+11 0.0031585763 ENSRNOG00000047225       Tma7          8 109726196 109735474
+12 0.0031880160 ENSRNOG00000037871      Sfxn5          4 117752806 117869794
+13 0.0034567312 ENSRNOG00000030719      Csmd1         16  72218503  73817614
+14 0.0042466136 ENSRNOG00000010930      Usp39          4 104373955 104406359
+15 0.0043892461 ENSRNOG00000047088      Rab10          6  26266859  26320193
+16 0.0049330340 ENSRNOG00000000048        Gak         14   1089866   1216398
+17 0.0051893645 ENSRNOG00000011459     Rhbdf2         10 101833157 101860283
+18 0.0055434638 ENSRNOG00000012083 St6galnac2         10 101915822 101927933
+19 0.0057469318 ENSRNOG00000028328       Tyw3          2 243529946 243552039
+20 0.0058381399 ENSRNOG00000005890     Serbp1          4  96401477  96421813
+         tss
+1     452165
+2    1140615
+3   31771360
+4  110220653
+5  109589706
+6  111233617
+7  109832589
+8  109925575
+9  117964576
+10 111233826
+11 109735474
+12 117869794
+13  72218503
+14 104406359
+15  26320193
+16   1089866
+17 101860283
+18 101927933
+19 243552039
+20  96401477</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   geneSymbol         ACAT
+1      Alkbh8 0.0003068681
+2      Crnkl1 0.0003429475
+3       Wdr35 0.0004346066
+4       Cspg5 0.0009686189
+5      Uqcrc1 0.0009786624
+6        Mlh1 0.0010713096
+7        Nme6 0.0015861012
+8        Map4 0.0022348387
+9        Mcee 0.0027005761
+10   Epm2aip1 0.0028067988
+11       Tma7 0.0031585763
+12      Sfxn5 0.0031880160
+13      Csmd1 0.0034567312
+14      Usp39 0.0042466136
+15      Rab10 0.0043892461
+16        Gak 0.0049330340
+17     Rhbdf2 0.0051893645
+18 St6galnac2 0.0055434638
+19       Tyw3 0.0057469318
+20     Serbp1 0.0058381399</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-7_cf592f4d771660028213573b29e3055e">
+<div class="sourceCode cell-code" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1">gg <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">gg_manhattan</span>(res, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">titulo=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"RatXcan Bodylength (5 tissue aggregate)"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Unknown or uninitialised column: `tss`.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ggsave(glue("{OUTPUT}/bodylen-manhattan-p_AC.png"))</span></span>
+<span id="cb30-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(gg)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2025-08-17-Br-ratxcan-run/index_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="association-using-fast-enformer" class="level4">
+<h4 class="anchored" data-anchor-id="association-using-fast-enformer">Association using Fast Enformer</h4>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-8_6dfd45223ddd6194225db4fc51566b76">
+<div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1">trait <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bodylen"</span></span>
+<span id="cb31-2">h2 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> bodylen_h2</span>
+<span id="cb31-3">h2se <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> bodylen_h2<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span>bodylen_se</span>
+<span id="cb31-4">tissues <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"AC"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"IL"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"LH"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"PL"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"VO"</span>)</span>
+<span id="cb31-5">pred_expr</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 324 × 22,877
+   IID        ENSRNOG00000066169 ENSRNOG00000070168 ENSRNOG00000070901
+   &lt;chr&gt;                   &lt;dbl&gt;              &lt;dbl&gt;              &lt;dbl&gt;
+ 1 00077E669E            0.00334            0.00255               1.76
+ 2 00077E75DE            0.00334            0.00277               1.75
+ 3 00077E7666            0.00334            0.00255               1.76
+ 4 00077E76EB            0.00334            0.00255               1.75
+ 5 00077E7819            0.00334            0.00255               1.76
+ 6 00077E7879            0.00334            0.00255               1.76
+ 7 00077E8223            0.00334            0.00255               1.76
+ 8 00077E82E3            0.00334            0.00255               1.76
+ 9 00077E82F7            0.00334            0.00260               1.76
+10 00077E8653            0.00334            0.00265               1.75
+# ℹ 314 more rows
+# ℹ 22,873 more variables: ENSRNOG00000018029 &lt;dbl&gt;, ENSRNOG00000031391 &lt;dbl&gt;,
+#   ENSRNOG00000068698 &lt;dbl&gt;, ENSRNOG00000064851 &lt;dbl&gt;,
+#   ENSRNOG00000063562 &lt;dbl&gt;, ENSRNOG00000050129 &lt;dbl&gt;,
+#   ENSRNOG00000032625 &lt;dbl&gt;, ENSRNOG00000029315 &lt;dbl&gt;,
+#   ENSRNOG00000016356 &lt;dbl&gt;, ENSRNOG00000028288 &lt;dbl&gt;,
+#   ENSRNOG00000015810 &lt;dbl&gt;, ENSRNOG00000017538 &lt;dbl&gt;, …</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">for</span> (tissue <span class="cf" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">in</span> tissues){</span>
+<span id="cb33-2">  <span class="do" style="color: #5E5E5E;
+background-color: null;
+font-style: italic;">## read predicted expression</span></span>
+<span id="cb33-3">  pred_expr <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_tsv</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_bodylen_bmi_{tissue}__predict.txt"</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> </span>
+<span id="cb33-4">  dplyr<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span>(<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>FID) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Remove the FID column</span></span>
+<span id="cb33-5">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">IID =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">str_split</span>(IID, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"_"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">simplify =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)[, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>])  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Keep the first part of IID</span></span>
+<span id="cb33-6">  res_h2 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">lmmGRM</span>(pheno_df,grm_mat, h2, pred_expr,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pheno_id_col=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pheno_value_cols=</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">which</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">colnames</span>(pheno_df)<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span>trait), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">out=</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{OUTPUT}/Br_bodylen_bmi_{tissue}"</span>))</span>
+<span id="cb33-7">}</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 324 Columns: 5756
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr    (2): FID, IID
+dbl (5754): ENSRNOG00000015552, ENSRNOG00000016054, ENSRNOG00000049505, ENSR...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>324 samples, 5754 genes used in association test</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 324 Columns: 5809
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr    (2): FID, IID
+dbl (5807): ENSRNOG00000015552, ENSRNOG00000016054, ENSRNOG00000049505, ENSR...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>324 samples, 5807 genes used in association test</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 324 Columns: 5824
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr    (2): FID, IID
+dbl (5822): ENSRNOG00000016054, ENSRNOG00000049505, ENSRNOG00000014330, ENSR...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>324 samples, 5822 genes used in association test</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 324 Columns: 5811
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr    (2): FID, IID
+dbl (5809): ENSRNOG00000016054, ENSRNOG00000049505, ENSRNOG00000014330, ENSR...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>324 samples, 5809 genes used in association test</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Rows: 324 Columns: 5767
+── Column specification ────────────────────────────────────────────────────────
+Delimiter: "\t"
+chr    (2): FID, IID
+dbl (5765): ENSRNOG00000015552, ENSRNOG00000016054, ENSRNOG00000049505, ENSR...
+
+ℹ Use `spec()` to retrieve the full column specification for this data.
+ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>324 samples, 5765 genes used in association test</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-9_196dc12c79294285977c6d031c27d961">
+<div class="sourceCode cell-code" id="cb44" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#png(glue("{OUTPUT}/bodylen-AC-lmmGRM.png"))</span></span>
+<span id="cb44-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">qqunif.compare</span>(res_h2<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pmat_raw,res_h2<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pmat_correct,<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">main=</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glue</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"RatXcan bodylength, CAGE:brain"</span>) )</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2025-08-17-Br-ratxcan-run/index_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-10_40ea356a0a7cac4f5270febdccd098fe">
+<div class="sourceCode cell-code" id="cb45" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1">pval <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> res_h2<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pmat_correct</span>
+<span id="cb45-2">pval_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data.frame</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">geneId =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rownames</span>(pval), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">ACAT =</span> pval[, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bodylen"</span>], <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">row.names =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span>)</span>
+<span id="cb45-3">res <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">inner_join</span>(pval_df, gene_annot, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">by=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"geneId"</span>)</span></code></pre></div>
+</div>
+<p>There are no Bonferroni significant genes, but these are lowest p-values:</p>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-11_60086d044219176d0e068a3c7f5ce306">
+<div class="sourceCode cell-code" id="cb46" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(res <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">arrange</span>(ACAT) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">head</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%&gt;%</span> dplyr<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span>(geneSymbol, ACAT)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               geneId         ACAT geneSymbol chromosome     start       end
+1  ENSRNOG00000008546 0.0001692050     Mrpl35          4 103865812 103880887
+2  ENSRNOG00000024525 0.0002984457     Alkbh8          6    378100    452165
+3  ENSRNOG00000040045 0.0003329209     Crnkl1          6   1140615   1142918
+4  ENSRNOG00000028783 0.0004066414      Wdr35          6  31771360  31831029
+5  ENSRNOG00000021091 0.0005284146     Trank1          8 111276354 111355092
+6  ENSRNOG00000001079 0.0005623907      Daglb         12  11059732  11102154
+7  ENSRNOG00000020833 0.0009703929      Cspg5          8 110220653 110234758
+8  ENSRNOG00000032134 0.0009786740     Uqcrc1          8 109589706 109601480
+9  ENSRNOG00000033809 0.0010983766       Mlh1          8 111196468 111233617
+10 ENSRNOG00000006069 0.0011877671    Eif2ak3          4 102805510 102866911
+11 ENSRNOG00000020721 0.0015839994       Nme6          8 109832589 109839301
+12 ENSRNOG00000020748 0.0022381752       Map4          8 109925575 110064362
+13 ENSRNOG00000016327 0.0026982814       Mcee          1 117964576 117988484
+14 ENSRNOG00000043006 0.0027110032   Epm2aip1          8 111233826 111241871
+15 ENSRNOG00000012404 0.0030110863      Thrsp          1 151723086 151728075
+16 ENSRNOG00000037871 0.0031954315      Sfxn5          4 117752806 117869794
+17 ENSRNOG00000047225 0.0032045296       Tma7          8 109726196 109735474
+18 ENSRNOG00000030719 0.0034654536      Csmd1         16  72218503  73817614
+19 ENSRNOG00000010930 0.0041227017      Usp39          4 104373955 104406359
+20 ENSRNOG00000047088 0.0041272187      Rab10          6  26266859  26320193
+         tss
+1  103880887
+2     452165
+3    1140615
+4   31771360
+5  111276354
+6   11102154
+7  110220653
+8  109589706
+9  111233617
+10 102805510
+11 109832589
+12 109925575
+13 117964576
+14 111233826
+15 151728075
+16 117869794
+17 109735474
+18  72218503
+19 104406359
+20  26320193</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   geneSymbol         ACAT
+1      Mrpl35 0.0001692050
+2      Alkbh8 0.0002984457
+3      Crnkl1 0.0003329209
+4       Wdr35 0.0004066414
+5      Trank1 0.0005284146
+6       Daglb 0.0005623907
+7       Cspg5 0.0009703929
+8      Uqcrc1 0.0009786740
+9        Mlh1 0.0010983766
+10    Eif2ak3 0.0011877671
+11       Nme6 0.0015839994
+12       Map4 0.0022381752
+13       Mcee 0.0026982814
+14   Epm2aip1 0.0027110032
+15      Thrsp 0.0030110863
+16      Sfxn5 0.0031954315
+17       Tma7 0.0032045296
+18      Csmd1 0.0034654536
+19      Usp39 0.0041227017
+20      Rab10 0.0041272187</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="index_cache/html/unnamed-chunk-12_6ee205054f99383c47217a1f866c76e3">
+<div class="sourceCode cell-code" id="cb49" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1">gg <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">gg_manhattan</span>(res, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">titulo=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"RatXcan Bodylength (CAGE:brain)"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Unknown or uninitialised column: `tss`.</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb51" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ggsave(glue("{OUTPUT}/bodylen-manhattan-p_AC.png"))</span></span>
+<span id="cb51-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(gg)</span></code></pre></div>
+<div class="cell-output-display">
+<p><img src="https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2025-08-17-Br-ratxcan-run/index_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+
+
+</section>
+</section>
+</section>
+
+ ]]></description>
+  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2025-08-17-Br-ratxcan-run/index.html</guid>
+  <pubDate>Sun, 17 Aug 2025 07:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Processing 8K HS rat probabilities from qtl2 output</title>
   <dc:creator>Sabrina Mi</dc:creator>
@@ -585,7 +2399,7 @@ font-style: inherit;">/Br_all_genes_by_tissue/Br_CAGE_brain__predict.txt'</span>
 <section id="write-phenotype-file" class="level3">
 <h3 class="anchored" data-anchor-id="write-phenotype-file">Write Phenotype File</h3>
 <p>There are 324 Br rats with genotype and phenotype (body length, BMI) data for the RatXcan run. We will filter the phenotypes to those sample, then write it as a headerless fam file with columns FID, IID, bodylen, bmi.</p>
-<div class="cell" data-execution_count="7">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1">all_pheno <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
@@ -13005,202 +14819,6 @@ Type 'q()' to quit R.
  ]]></description>
   <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-19-split-qlt2-inputs-batches/index.html</guid>
   <pubDate>Sun, 19 Nov 2023 08:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>Debugging qtl2’s calc_genoprob</title>
-  <dc:creator>Sabrina Mi</dc:creator>
-  <link>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-17-debugging-qtl2-founder-haps/index.html</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="subset-individuals" class="level3">
-<h3 class="anchored" data-anchor-id="subset-individuals">Subset Individuals</h3>
-<p>For debugging, we filter the VCFs to 2 samples:</p>
-<pre><code>cd /Users/sabrinami/Desktop/qtl2_data
-bcftools view -s '000789972A,0007899884' -Oz -o test/chr20.vcf.gz BrainVCFs/chr20.vcf.gz
-bcftools index -t test/chr20.vcf.gz
-bcftools view -s '000789972A,0007899884' -Oz -o test/chr19.vcf.gz BrainVCFs/chr19.vcf.gz
-bcftools index -t test/chr19.vcf.gz
-</code></pre>
-<p>Create the input files:</p>
-<pre><code>conda activate genomics
-python /Users/sabrinami/Github/qtl2-founder-haps/qtl2-founder-haps.py test/chr20.vcf.gz FounderVCFs/chr20.vcf.gz output/chr20_prob.rds --working-dir chr20-test
-python /Users/sabrinami/Github/qtl2-founder-haps/qtl2-founder-haps.py test/chr19.vcf.gz FounderVCFs/chr19.vcf.gz output/chr19_prob.rds --working-dir chr19-test
-</code></pre>
-<div class="cell" data-hash="index_cache/html/unnamed-chunk-1_475932e5ff924ca91e9f463b2bbf0cac">
-<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"%&amp;%"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">function</span>(a,b) <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste</span>(a,b,<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">sep=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">""</span>)</span>
-<span id="cb3-2">data_dir <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'/Users/sabrinami/Desktop/qtl2_data/'</span></span>
-<span id="cb3-3">chr20_prob <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">readRDS</span>(data_dir <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'output/chr20_prob.rds'</span>)</span>
-<span id="cb3-4">chr19_prob <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">readRDS</span>(data_dir <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">%&amp;%</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'output/chr19_prob.rds'</span>)</span>
-<span id="cb3-5"></span>
-<span id="cb3-6">chr20_prob[[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>]][, , <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>]</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>, , chr20:3201
-
-                    ACI           BN       BUF       F344      M520        MR
-000789972A 0.4992629643 1.885205e-06 0.1389550 0.01293124 0.2504721 0.0980062
-0007899884 0.0003664564 1.852144e-06 0.3551907 0.02549159 0.3575424 0.2610384
-                    WKY           WN
-000789972A 1.885205e-06 0.0003687873
-0007899884 1.852144e-06 0.0003667471
-
-, , chr20:7226
-
-                    ACI           BN       BUF       F344      M520         MR
-000789972A 4.999977e-01 4.759653e-08 0.1388944 0.01259253 0.2506577 0.09785527
-0007899884 2.218615e-08 1.648856e-10 0.3556074 0.02518061 0.3579643 0.26124736
-                    WKY           WN
-000789972A 4.759653e-08 2.353476e-06
-0007899884 1.648856e-10 3.134648e-07
-
-, , chr20:7266
-
-                    ACI           BN       BUF       F344      M520         MR
-000789972A 4.999999e-01 3.164964e-08 0.1388947 0.01259055 0.2506599 0.09785478
-0007899884 9.923816e-12 4.269602e-12 0.3556093 0.02517666 0.3579662 0.26124757
-                    WKY           WN
-000789972A 3.164964e-08 1.476223e-07
-0007899884 4.269602e-12 2.923039e-07
-
-, , chr20:7269
-
-                    ACI           BN       BUF       F344      M520         MR
-000789972A 4.999999e-01 3.039399e-08 0.1388947 0.01259039 0.2506600 0.09785475
-0007899884 1.107912e-12 4.627740e-12 0.3556094 0.02517635 0.3579663 0.26124758
-                    WKY           WN
-000789972A 3.039399e-08 1.459054e-07
-0007899884 4.627740e-12 2.906267e-07
-
-, , chr20:7341
-
-                    ACI           BN       BUF       F344      M520        MR
-000789972A 5.000000e-01 2.313504e-09 0.1388951 0.01258686 0.2506640 0.0978539
-0007899884 8.523267e-12 1.790190e-09 0.3556128 0.02516929 0.3579697 0.2612479
-                    WKY           WN
-000789972A 2.313504e-09 1.265991e-07
-0007899884 1.790190e-09 2.523467e-07</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">dim</span>(chr20_prob[[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>]])</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1]      2      8 202387</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1">chr19_prob[[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>]][, , <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>]</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>, , chr19:2445
-
-                 ACI           BN       BUF         F344         M520        MR
-000789972A 0.2438649 4.366846e-08 0.2844450 0.0006018009 0.0006018009 0.2438649
-0007899884 0.2434618 4.366846e-08 0.2848848 0.0006018009 0.0006018009 0.2434618
-                    WKY        WN
-000789972A 0.0006018009 0.2260199
-0007899884 0.0006018009 0.2263861
-
-, , chr19:2531
-
-                 ACI           BN       BUF        F344        M520        MR
-000789972A 0.2438709 4.949989e-10 0.2844534 0.000593287 0.000593287 0.2438709
-0007899884 0.2434678 4.949989e-10 0.2848934 0.000593287 0.000593287 0.2434678
-                   WKY        WN
-000789972A 0.000593287 0.2260249
-0007899884 0.000593287 0.2263911
-
-, , chr19:2727
-
-                 ACI          BN       BUF         F344         M520        MR
-000789972A 0.2438845 2.10961e-13 0.2844724 0.0005741863 0.0005741863 0.2438845
-0007899884 0.2434814 2.10961e-13 0.2849124 0.0005741863 0.0005741863 0.2434814
-                    WKY        WN
-000789972A 0.0005741863 0.2260360
-0007899884 0.0005741863 0.2264023
-
-, , chr19:2728
-
-                 ACI           BN       BUF         F344         M520        MR
-000789972A 0.2438846 2.351976e-13 0.2844726 0.0005740712 0.0005740712 0.2438846
-0007899884 0.2434814 2.351976e-13 0.2849125 0.0005740712 0.0005740712 0.2434814
-                    WKY        WN
-000789972A 0.0005740712 0.2260361
-0007899884 0.0005740712 0.2264024
-
-, , chr19:3021
-
-                 ACI           BN       BUF         F344         M520        MR
-000789972A 0.2439049 6.487041e-12 0.2845011 0.0005454151 0.0005454151 0.2439049
-0007899884 0.2435017 6.487041e-12 0.2849412 0.0005454151 0.0005454151 0.2435017
-                    WKY        WN
-000789972A 0.0005454151 0.2260528
-0007899884 0.0005454151 0.2264192</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">dim</span>(chr19_prob[[<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>]])</span></code></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1]      2      8 139713</code></pre>
-</div>
-</div>
-
-
-</section>
-
- ]]></description>
-  <guid>https://sabrinami.quarto.pub/deep-learning-in-genomics/posts/2023-11-17-debugging-qtl2-founder-haps/index.html</guid>
-  <pubDate>Fri, 17 Nov 2023 08:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>

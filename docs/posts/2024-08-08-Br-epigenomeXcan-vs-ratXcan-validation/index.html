@@ -215,7 +215,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="write-phenotype-file" class="level3">
 <h3 class="anchored" data-anchor-id="write-phenotype-file">Write Phenotype File</h3>
 <p>There are 324 Br rats with genotype and phenotype (body length, BMI) data for the RatXcan run. We will filter the phenotypes to those sample, then write it as a headerless fam file with columns FID, IID, bodylen, bmi.</p>
-<div class="cell" data-execution_count="7">
+<div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>all_pheno <span class="op">=</span> pd.read_csv(<span class="st">"/home/s1mi/enformer_rat_data/phenotypes/ALLTRAITSALLNORMALIZES_19jul24.csv"</span>, </span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                        usecols <span class="op">=</span> [<span class="st">'rfid'</span>, <span class="st">'dissection:regressedlr_length_w_tail_cm'</span>, <span class="st">'dissection:regressedlr_bmi_w_tail'</span>],</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>                        index_col <span class="op">=</span> <span class="st">'rfid'</span>)</span>
